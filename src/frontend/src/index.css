@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  @apply font-sans text-lg bg-zinc-800 text-zinc-300;
+}
+
+a {
+  @apply underline text-cyan-600;
+}
+
+[id^="headlessui-dialog-title-"] {
+  @apply text-2xl font-bold;
+}
+
+h2 {
+  font-weight: 700;
+  font-size: 1.65em;
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+  line-height: 1.3333333;
+}
+
+h3 {
+  font-weight: 600;
+  font-size: 1.4em;
+  margin-top: 0.7em;
+  margin-bottom: 0.7em;
+  line-height: 1.2;
+}
+
+p {
+  line-height: 1.8em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}

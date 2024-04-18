@@ -1,0 +1,35 @@
+{
+  "canisters": {
+    "ic_siwe_provider": {
+      "candid": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.did",
+      "type": "custom",
+      "wasm": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.wasm.gz"
+    },
+    "evm_rpc": {
+      "candid": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.did",
+      "remote": {
+        "candid": "src/evm_rpc/evm_rpc.did",
+        "id": {
+          "ic": "7hfb6-caaaa-aaaar-qadga-cai"
+        }
+      },
+      "type": "custom",
+      "wasm": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc_dev.wasm.gz"
+    },
+    "backend": {
+      "candid": "src/backend/backend.did",
+      "dependencies": ["ic_siwe_provider", "evm_rpc"],
+      "package": "backend",
+      "type": "custom",
+      "wasm": "target/wasm32-wasi/release/backend.wasm.gz"
+    },
+    "frontend": {
+      "build": ["npm run build"],
+      "dependencies": ["backend", "ic_siwe_provider"],
+      "source": ["dist"],
+      "type": "assets"
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
