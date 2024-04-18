@@ -14,6 +14,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
   const _useInitRun = useInitRun();
   const _startRun = useStartRun();
   const _writeContract = useWriteContract();
+
   const _useWaitForTransactionReceipt = useWaitForTransactionReceipt({
     hash: _writeContract.data,
     confirmations: 1,

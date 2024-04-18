@@ -22,10 +22,5 @@ export default function RecipesList() {
     );
   }
 
-  return (
-    <div>
-      <h1>Recipes</h1>
-      <p>Error: {data.Err}</p>
-    </div>
-  );
+  return <p>Error: {data.Err}</p>;
 }

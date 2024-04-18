@@ -18,6 +18,7 @@ export default function CancelRunButton({ run }: { run: Run }) {
         cancelRun(run.id);
       }}
       spin={isPending}
+      variant="outline"
     >
       {isPending ? "Cancelling run" : "Cancel run"}
     </Button>

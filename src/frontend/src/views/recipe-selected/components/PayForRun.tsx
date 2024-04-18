@@ -5,10 +5,8 @@ import { ETH_PAYMENT_CONTRACT_ADDRESS } from "../../../config";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import abi from "../../../components/abi.json";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { toHex } from "viem/utils";
+import { formatEther, toHex } from "viem/utils";
 import useRunContext from "../../../ run-context/useRunContext";
-
-// import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export function PayForRunInner() {
   const {
@@ -72,7 +70,7 @@ export function PayForRunInner() {
             }}
             spin={isPayPending}
           >
-            Pay 0.0001 ETH
+            Pay {formatEther(initRunData.Ok.cost)} SepoilaETH
           </Button>
         </div>
       );
@@ -115,6 +113,11 @@ export function PayForRunInner() {
 }
 
 export default function PayForRun() {
+  const { useInitRun } = useRunContext();
+  const { data: initRunData } = useInitRun;
+
+  const cost = initRunData && "Ok" in initRunData ? initRunData?.Ok?.cost : 0n;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
@@ -126,7 +129,9 @@ export default function PayForRun() {
       <div className="flex flex-col gap-2 pl-10">
         <div className="flex justify-between w-full">
           <div className="text-sm text-zinc-500">Transaction fee</div>
-          <div className="text-sm text-zinc-500">0.0001 SepoilaETH </div>
+          <div className="text-sm text-zinc-500">
+            {formatEther(cost)} SepoilaETH{" "}
+          </div>
         </div>
 
         <PayForRunInner />

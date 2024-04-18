@@ -4,16 +4,35 @@ import { Run } from "../../../../../declarations/backend/backend.did";
 import abi from "../../../components/abi.json";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { toHex } from "viem/utils";
-import { useWriteContract } from "wagmi";
+import useRunContext from "../../../ run-context/useRunContext";
 
 export default function PayRunButton({ run }: { run: Run }) {
-  const { writeContract, isPending, error } = useWriteContract();
+  const { useWriteContract, useWaitForTransactionReceipt } = useRunContext();
+  const {
+    writeContract,
+    isPending: isPaymentPending,
+    error,
+  } = useWriteContract;
+
+  const { isFetching: isConfirmationFetching } = useWaitForTransactionReceipt;
 
   if (!("Created" in run.status)) {
     return null;
   }
 
   error && console.error("error", error);
+
+  const isPending = isPaymentPending || isConfirmationFetching;
+
+  const buttonText = () => {
+    if (isPaymentPending) {
+      return "Paying...";
+    }
+    if (isConfirmationFetching) {
+      return "Waiting for 3 confirmations...";
+    }
+    return "Pay and create attestation";
+  };
 
   const payRun = async () => {
     writeContract({
@@ -34,7 +53,7 @@ export default function PayRunButton({ run }: { run: Run }) {
       }}
       spin={isPending}
     >
-      Pay
+      {buttonText()}
     </Button>
   );
 }
