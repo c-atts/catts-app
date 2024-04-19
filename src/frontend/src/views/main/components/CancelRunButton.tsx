@@ -6,10 +6,6 @@ import { useCancelRun } from "../../../catts/hooks/useCancelRun";
 export default function CancelRunButton({ run }: { run: Run }) {
   const { mutate: cancelRun, isPending } = useCancelRun();
 
-  if (!("Created" in run.status)) {
-    return null;
-  }
-
   return (
     <Button
       disabled={isPending}

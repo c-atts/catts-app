@@ -116,7 +116,8 @@ export default function PayForRun() {
   const { useInitRun } = useRunContext();
   const { data: initRunData } = useInitRun;
 
-  const cost = initRunData && "Ok" in initRunData ? initRunData?.Ok?.cost : 0n;
+  const cost =
+    initRunData && "Ok" in initRunData ? initRunData?.Ok?.cost : undefined;
 
   return (
     <div className="flex flex-col gap-2">
@@ -127,12 +128,14 @@ export default function PayForRun() {
         Pay for run
       </div>
       <div className="flex flex-col gap-2 pl-10">
-        <div className="flex justify-between w-full">
-          <div className="text-sm text-zinc-500">Transaction fee</div>
-          <div className="text-sm text-zinc-500">
-            {formatEther(cost)} SepoilaETH{" "}
+        {cost !== undefined && (
+          <div className="flex justify-between w-full">
+            <div className="text-sm text-zinc-500">Transaction fee</div>
+            <div className="text-sm text-zinc-500">
+              {formatEther(cost)} SepoilaETH{" "}
+            </div>
           </div>
-        </div>
+        )}
 
         <PayForRunInner />
       </div>

@@ -16,10 +16,6 @@ export default function PayRunButton({ run }: { run: Run }) {
 
   const { isFetching: isConfirmationFetching } = useWaitForTransactionReceipt;
 
-  if (!("Created" in run.status)) {
-    return null;
-  }
-
   error && console.error("error", error);
 
   const isPending = isPaymentPending || isConfirmationFetching;

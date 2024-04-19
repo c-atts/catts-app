@@ -3,12 +3,8 @@ import { Run } from "../../../../../declarations/backend/backend.did";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { useStartRun } from "../../../catts/hooks/useStartRun";
 
-export default function RunButton({ run }: { run: Run }) {
+export default function StartRunButton({ run }: { run: Run }) {
   const { mutate: startRun, isPending } = useStartRun();
-
-  if (!("Paid" in run.status)) {
-    return null;
-  }
 
   return (
     <Button
@@ -19,7 +15,7 @@ export default function RunButton({ run }: { run: Run }) {
       }}
       spin={isPending}
     >
-      Run
+      Create attestation
     </Button>
   );
 }

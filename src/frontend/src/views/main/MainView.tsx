@@ -1,10 +1,11 @@
+import Section from "../../components/ui/Section";
 import RecipesList from "./components/RecipesList";
 import RunHistory from "./components/RunHistory";
 
 export default function MainView() {
   return (
     <>
-      <div>
+      <Section>
         <h2>Run a recipe</h2>
         <p>
           This is an early demo of what is possible using{" "}
@@ -12,9 +13,11 @@ export default function MainView() {
           one of three pre-defined recipes to get started. All attestations are
           created on the Ethereum Sepolia testnet.
         </p>
-      </div>
-      <RecipesList />
-      <RunHistory />
+        <RecipesList />
+      </Section>
+      <Section>
+        <RunHistory />
+      </Section>
     </>
   );
 }
