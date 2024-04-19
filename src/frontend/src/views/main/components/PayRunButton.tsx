@@ -1,51 +1,49 @@
 import Button from "../../../components/ui/Button";
-import { ETH_PAYMENT_CONTRACT_ADDRESS } from "../../../config";
 import { Run } from "../../../../../declarations/backend/backend.did";
-import abi from "../../../components/abi.json";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { toHex } from "viem/utils";
 import useRunContext from "../../../ run-context/useRunContext";
 
 export default function PayRunButton({ run }: { run: Run }) {
-  const { useWriteContract, useWaitForTransactionReceipt } = useRunContext();
   const {
-    writeContract,
-    isPending: isPaymentPending,
-    error,
-  } = useWriteContract;
+    useWriteContract,
+    useWaitForTransactionReceipt,
+    useStartRun,
+    useGetAttestationUid,
+    payAndCreateAttestations,
+  } = useRunContext();
 
-  const { isFetching: isConfirmationFetching } = useWaitForTransactionReceipt;
-
-  error && console.error("error", error);
-
-  const isPending = isPaymentPending || isConfirmationFetching;
+  const isPending =
+    useWriteContract.isPending ||
+    useWaitForTransactionReceipt.isFetching ||
+    useStartRun.isPending;
 
   const buttonText = () => {
-    if (isPaymentPending) {
+    if (useWriteContract.isPending) {
       return "Paying...";
     }
-    if (isConfirmationFetching) {
+    if (useWaitForTransactionReceipt.isFetching) {
       return "Waiting for 3 confirmations...";
+    }
+    if (useStartRun.isPending) {
+      return "Creating attestation...";
+    }
+    if (useGetAttestationUid.isPending) {
+      return "Attestaion created, getting UID...";
     }
     return "Pay and create attestation";
   };
 
-  const payRun = async () => {
-    writeContract({
-      abi,
-      address: ETH_PAYMENT_CONTRACT_ADDRESS,
-      functionName: "payRun",
-      args: [toHex(run.id as Uint8Array)],
-      value: run.cost,
-    });
-  };
+  console.log("run", run);
+  console.log("isPending", isPending);
+  console.log("buttonText", buttonText());
+  console.log("---");
 
   return (
     <Button
       disabled={isPending}
       icon={isPending ? faCircleNotch : undefined}
       onClick={() => {
-        payRun();
+        payAndCreateAttestations(run);
       }}
       spin={isPending}
     >

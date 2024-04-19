@@ -84,14 +84,13 @@ pub async fn check_latest_eth_payments() -> Result<(), String> {
         "Updating latest processed block to {}",
         latest_processed_block
     );
-    STABLE_STATE.with(|state| {
-        let mut cell = state.borrow_mut();
-        let mut current_state = cell.get().clone();
+
+    STABLE_STATE.with_borrow_mut(|state_cell| {
+        let mut current_state = state_cell.get().clone();
         current_state.eth_payments_latest_block = latest_processed_block;
-        if let Err(e) = cell.set(current_state) {
-            ic_cdk::println!("Error updating state: {:?}", e);
-        }
+        state_cell.set(current_state).unwrap();
     });
+
     Ok(())
 }
 

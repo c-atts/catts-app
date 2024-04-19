@@ -1,6 +1,6 @@
 use ic_cdk::update;
 
-use crate::{identity::get_address, user_profile::UserProfile, USER_PROFILES};
+use crate::{siwe::get_address, user_profile::UserProfile, USER_PROFILES};
 
 /// Returns the profile of the caller if it exists.
 #[update]

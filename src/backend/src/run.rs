@@ -54,6 +54,8 @@ pub struct Run {
     pub chain: Option<String>,
     pub attestations: Option<Vec<String>>,
     pub payment_transaction_hash: Option<String>,
+    pub attestation_transaction_hash: Option<String>,
+    pub attestation_uid: Option<String>,
 }
 
 impl Storable for Run {
@@ -85,6 +87,8 @@ impl Run {
             chain: None,
             attestations: None,
             payment_transaction_hash: None,
+            attestation_transaction_hash: None,
+            attestation_uid: None,
         }
     }
 
@@ -157,7 +161,10 @@ impl Run {
     pub fn get_active(address: &EthAddressBytes) -> Vec<Run> {
         let runs = Self::get_by_address(address);
         runs.into_iter()
-            .filter(|run| run.status == RunStatus::Created || run.status == RunStatus::Paid)
+            .filter(|run| {
+                run.status == RunStatus::Created
+                    || (run.status == RunStatus::Paid && run.attestation_transaction_hash.is_none())
+            })
             .collect()
     }
 

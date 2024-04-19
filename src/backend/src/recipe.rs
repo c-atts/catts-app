@@ -45,7 +45,7 @@ impl Storable for Recipe {
 }
 
 impl Recipe {
-    pub fn new(name: &str, version: &str) -> Self {
+    pub fn _new(name: &str, version: &str) -> Self {
         Self {
             name: name.to_string(),
             version: version.to_string(),
@@ -66,7 +66,7 @@ impl Recipe {
         RECIPES.with_borrow(|recipes| recipes.get(&name.to_string()))
     }
 
-    pub fn create(recipe: Self) {
+    pub fn _create(recipe: Self) {
         RECIPES.with_borrow_mut(|recipes| {
             recipes.insert(recipe.name.clone(), recipe);
         });

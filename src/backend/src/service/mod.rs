@@ -1,4 +1,5 @@
 pub mod cancel_run;
+pub mod get_attestation_uid;
 pub mod get_my_profile;
 pub mod get_my_runs;
 pub mod init_run;

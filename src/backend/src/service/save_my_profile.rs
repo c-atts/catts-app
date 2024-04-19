@@ -1,6 +1,6 @@
 use ic_cdk::update;
 
-use crate::{identity::get_address, user_profile::UserProfile, USER_PROFILES};
+use crate::{siwe::get_address, user_profile::UserProfile, USER_PROFILES};
 
 #[update]
 async fn save_my_profile(name: String, avatar_url: String) -> Result<UserProfile, String> {

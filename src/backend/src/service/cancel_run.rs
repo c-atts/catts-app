@@ -1,7 +1,7 @@
 use crate::authenticated;
 use crate::eth::EthAddress;
-use crate::identity::get_address;
 use crate::run::{Run, RunId};
+use crate::siwe::get_address;
 use ic_cdk::update;
 
 #[update (guard = authenticated)]

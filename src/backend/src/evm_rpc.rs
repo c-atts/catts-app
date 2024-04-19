@@ -2,10 +2,9 @@ use crate::declarations::evm_rpc::*;
 use crate::ECDSA_KEY;
 use candid::Nat;
 use ethers_core::abi::ethereum_types::{Address, U256, U64};
-use ethers_core::abi::{AbiDecode, Contract, FunctionExt, Token};
+use ethers_core::abi::{Contract, FunctionExt, Token};
 use ethers_core::types::Bytes;
 use ethers_core::utils::keccak256;
-use hex::FromHexError;
 use ic_cdk::api::{
     call::{call_with_payment, CallResult},
     management_canister::ecdsa::{
@@ -19,8 +18,7 @@ use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::str::FromStr;
 
-// const CHAIN_ID: u128 = 1337;
-const CHAIN_ID: u128 = 11155111; // Sepolia
+const CHAIN_ID: u128 = 11155111;
 const GAS: u128 = 300_000;
 const MAX_FEE_PER_GAS: u128 = 156_083_066_522_u128;
 const MAX_PRIORITY_FEE_PER_GAS: u128 = 3_000_000_000;
@@ -80,95 +78,13 @@ async fn next_id() -> Nat {
     }
 }
 
-pub fn parse_address(address_str: &str) -> Result<Address, &'static str> {
-    // Remove any leading or trailing whitespace
-
-    // Check if the address string starts with "0x" prefix
-    if address_str.starts_with("0x") && address_str.len() == 42 {
-        // Try to parse the hexadecimal string into an Address
-        if let Ok(address_bytes) = hex::decode(&address_str[2..]) {
-            if address_bytes.len() == 20 {
-                let mut address = [0u8; 20];
-                address.copy_from_slice(&address_bytes);
-                return Ok(Address::from(address));
-            }
-        }
-    }
-
-    // If the address format is invalid, return an error
-    Err("Invalid Ethereum address format")
-}
-
-/// Call an Ethereum smart contract.
-pub async fn eth_call(
-    contract_address: String,
-    abi: &Contract,
-    function_name: &str,
-    args: &[Token],
-    block_number: &str,
-) -> Vec<Token> {
-    let f = match abi.functions_by_name(function_name).map(|v| &v[..]) {
-        Ok([f]) => f,
-        Ok(fs) => panic!(
-            "Found {} function overloads. Please pass one of the following: {}",
-            fs.len(),
-            fs.iter()
-                .map(|f| format!("{:?}", f.abi_signature()))
-                .collect::<Vec<_>>()
-                .join(", ")
-        ),
-        Err(_) => abi
-            .functions()
-            .find(|f| function_name == f.abi_signature())
-            .expect("Function not found"),
-    };
-    let data = f
-        .encode_input(args)
-        .expect("Error while encoding input args");
-    let json_rpc_payload = serde_json::to_string(&JsonRpcRequest {
-        id: next_id().await.0.try_into().unwrap(),
-        jsonrpc: "2.0".to_string(),
-        method: "eth_call".to_string(),
-        params: (
-            EthCallParams {
-                to: contract_address,
-                data: to_hex(&data),
-            },
-            block_number.to_string(),
-        ),
-    })
-    .expect("Error while encoding JSON-RPC request");
-
-    let res: CallResult<(RequestResult,)> = call_with_payment(
-        crate::declarations::evm_rpc::evm_rpc.0,
-        "request",
-        (
-            RpcService::EthSepolia(EthSepoliaService::BlockPi),
-            json_rpc_payload,
-            2048_u64,
-        ),
-        2_000_000_000,
-    )
-    .await;
-
-    match res {
-        Ok((RequestResult::Ok(ok),)) => {
-            let json: JsonRpcResult =
-                serde_json::from_str(&ok).expect("JSON was not well-formatted");
-            let result = from_hex(&json.result.expect("Unexpected JSON response")).unwrap();
-            f.decode_output(&result).expect("Error decoding output")
-        }
-        err => panic!("Response error: {err:?}"),
-    }
-}
-
 /// Submit an ETH TX.
 pub async fn eth_transaction(
     contract_address: String,
     abi: &Contract,
     function_name: &str,
     args: &[Token],
-) -> String {
+) -> Result<String, String> {
     let f = match abi.functions_by_name(function_name).map(|v| &v[..]) {
         Ok([f]) => f,
         Ok(fs) => panic!(
@@ -219,17 +135,43 @@ pub async fn eth_transaction(
     match res {
         MultiSendRawTransactionResult::Consistent(SendRawTransactionResult::Ok(
             SendRawTransactionStatus::Ok(txid),
-        )) => format!("Ok: {txid:?}"),
-        other => format!("call: {signed_data}, error: {:?}", other),
+        )) => match txid {
+            Some(txid) => Ok(txid),
+            None => Err("Transaction failed".to_string()),
+        },
+        other => Err(format!("{:?}", other)),
     }
 }
 
-fn to_hex(data: &[u8]) -> String {
-    format!("0x{}", hex::encode(data))
-}
+pub async fn eth_get_transaction_receipt(hash: &str) -> Result<TransactionReceipt, String> {
+    ic_cdk::println!("eth_get_transaction_receipt: {}", hash);
 
-fn from_hex(data: &str) -> Result<Vec<u8>, FromHexError> {
-    hex::decode(&data[2..])
+    let (res,): (MultiGetTransactionReceiptResult,) = call_with_payment(
+        crate::declarations::evm_rpc::evm_rpc.0,
+        "eth_getTransactionReceipt",
+        (
+            RpcServices::EthSepolia(Some(vec![
+                EthSepoliaService::PublicNode,
+                EthSepoliaService::BlockPi,
+                EthSepoliaService::Ankr,
+            ])),
+            None::<RpcConfig>,
+            hash,
+        ),
+        2_000_000_000,
+    )
+    .await
+    .unwrap();
+
+    match res {
+        MultiGetTransactionReceiptResult::Consistent(GetTransactionReceiptResult::Ok(receipt)) => {
+            match receipt {
+                Some(receipt) => Ok(receipt),
+                None => Err("Receipt not found".to_string()),
+            }
+        }
+        other => Err(format!("{:?}", other)),
+    }
 }
 
 #[derive(Debug)]
@@ -340,67 +282,9 @@ fn nat_to_u64(n: &Nat) -> U64 {
     U64::from_big_endian(&be_bytes)
 }
 
-pub async fn rpc_request_with_cycles(
-    cycles: u64,
-    arg1: String,
-    max_response_bytes: u64,
-) -> CallResult<(RequestResult,)> {
-    call_with_payment(
-        crate::declarations::evm_rpc::evm_rpc.0,
-        "request",
-        (
-            RpcService::EthSepolia(EthSepoliaService::Alchemy),
-            arg1,
-            max_response_bytes,
-        ),
-        cycles,
-    )
-    .await
-}
-
-/// returns latest block number in `U256` and hex encoded form
-pub async fn latest_block_number() -> (U256, String) {
-    let RequestResult::Ok(response) = rpc_request_with_cycles(
-        1_000_000_000,
-        "{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[]}".into(),
-        2000,
-    )
-    .await
-    .expect("RPC failed")
-    .0
-    else {
-        panic!("oops")
-    };
-    let json: JsonRpcResult = serde_json::from_str(&response).expect("JSON was not well-formatted");
-    if let Some(err) = json.error {
-        panic!("JSON-RPC error code {}: {}", err.code, err.message);
-    }
-    let hex_result = json.result.expect("Unexpected JSON response");
-    let result = from_hex(&hex_result).unwrap();
-
-    (U256::from_big_endian(&result), hex_result)
-}
-
-pub async fn eth_balance_of(user: &str, block_number: &str) -> Nat {
-    let RequestResult::Ok(response) = rpc_request_with_cycles(1_000_000_000, format!("{{\"jsonrpc\":\"2.0\",\"method\":\"eth_getBalance\",\"params\":[\"{user}\",\"{block_number}\"]}}"), 2000).await.expect("RPC failed").0 else {panic!("oops")};
-    let json: JsonRpcResult = serde_json::from_str(&response).expect("JSON was not well-formatted");
-    if let Some(err) = json.error {
-        panic!("JSON-RPC error code {}: {}", err.code, err.message);
-    }
-    let hex_result = json.result.expect("Unexpected JSON response");
-    let zeros_to_pad = 64 - hex_result.len() + 2;
-
-    Nat::from_str(
-        &U256::decode_hex(format!("{}{}", "0".repeat(zeros_to_pad), &hex_result[2..]))
-            .unwrap()
-            .to_string(),
-    )
-    .unwrap()
-}
-
 thread_local! {
     static SELF_ETH_ADDRESS: RefCell<Option<String>> =
-        RefCell::new(None);
+        const { RefCell::new(None) };
 }
 
 pub async fn get_self_eth_address() -> String {
