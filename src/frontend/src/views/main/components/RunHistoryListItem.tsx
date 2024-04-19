@@ -21,26 +21,27 @@ export function RunHistoryListItem({ run }: { run: Run }) {
     "Created" in run.status ||
     ("Paid" in run.status &&
       (!run.payment_transaction_hash.length ||
-        !run.attestation_transaction_hash.length));
+        !run.attestation_transaction_hash.length ||
+        !run.attestation_uid.length));
 
   return (
     <li className="flex flex-col">
       <h3>Copy Gitcoin Passport Score</h3>
-      <div className="flex flex-col gap-2">
+      <div className="border-zinc-700/50 border-[1px]  drop-shadow-xl rounded-2xl flex flex-col p-10 w-full mt-2">
         <div className="flex flex-col gap-2 text-sm text-zinc-500">
-          <div className="flex justify-between w-full">
+          <div className="flex items-center justify-between w-full h-8">
             <div>Created</div>
             <div>{when}</div>
           </div>
         </div>
         <div className="flex flex-col gap-2 text-sm text-zinc-500">
-          <div className="flex justify-between w-full">
+          <div className="flex items-center justify-between w-full h-8">
             <div>Status</div>
             <div>{runStatusToString(run.status)}</div>
           </div>
         </div>
         <div className="flex flex-col gap-2 text-sm text-zinc-500">
-          <div className="flex justify-between w-full">
+          <div className="flex items-center justify-between w-full h-8">
             <div>Transaction fee</div>
             <div>{formatEther(run.cost)} SepoliaETH</div>
           </div>
@@ -64,7 +65,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
         {run.attestation_uid.length > 0 && (
           <div className="flex flex-col gap-2 text-sm text-zinc-500">
             <div className="flex items-center justify-between w-full h-8">
-              <div>Attestation</div>
+              <div>Attestation UID</div>
               <AttestationUidLink uid={run.attestation_uid[0]} />
             </div>
           </div>

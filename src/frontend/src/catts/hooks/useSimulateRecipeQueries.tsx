@@ -44,7 +44,6 @@ export const useSimulateRecipeQueries = () => {
       ) {
         return null;
       }
-      console.log(easConfig.graphqlUrl, selectedRecipe.queries[0], variables);
       return request(
         easConfig.graphqlUrl,
         selectedRecipe.queries[0],

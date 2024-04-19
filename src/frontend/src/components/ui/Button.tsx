@@ -43,7 +43,7 @@ export default function Button({
       className
     ),
     outline: twMerge(
-      "bg-transparent border border-zinc-500 hover:bg-emerald-500/10 disabled:bg-transparent disabled:border-zinc-500",
+      "bg-transparent border border-zinc-500 hover:bg-zinc-500/10 disabled:bg-transparent disabled:border-zinc-500",
       className
     ),
     dark: twMerge(

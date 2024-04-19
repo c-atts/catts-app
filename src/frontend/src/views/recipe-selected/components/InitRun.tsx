@@ -5,19 +5,18 @@ import useRunContext from "../../../ run-context/useRunContext";
 
 export default function InitRun() {
   const { isSelectedRecipeValid, useInitRun, selectedRecipe } = useRunContext();
-  const { mutate: initRun, isPending, data: initRunData } = useInitRun;
   const queryClient = useQueryClient();
 
   const handleClick = () => {
     if (!selectedRecipe) return;
     queryClient.invalidateQueries({ queryKey: ["run_history"] });
-    initRun(selectedRecipe.name);
+    useInitRun.mutate(selectedRecipe.name);
   };
 
-  const disabled = !selectedRecipe || !isSelectedRecipeValid || isPending;
+  const disabled =
+    !selectedRecipe || !isSelectedRecipeValid || useInitRun.isPending;
 
-  const buttonHidden =
-    initRunData !== undefined && initRunData !== null && "Ok" in initRunData;
+  const buttonHidden = useInitRun.data != null && "Ok" in useInitRun.data;
 
   return (
     <div className="flex flex-col gap-5">
@@ -33,9 +32,9 @@ export default function InitRun() {
           <Button
             className="mb-4"
             disabled={disabled}
-            icon={isPending ? faCircleNotch : undefined}
+            icon={useInitRun.isPending ? faCircleNotch : undefined}
             onClick={handleClick}
-            spin={isPending}
+            spin={useInitRun.isPending}
           >
             Run
           </Button>
@@ -49,13 +48,13 @@ export default function InitRun() {
           Initialise run
         </div>
         <div className="pl-10">
-          {initRunData && "Err" in initRunData && (
+          {useInitRun.data && "Err" in useInitRun.data && (
             <div className="flex justify-between w-full">
-              <div>Error: {initRunData.Err}</div>
+              <div>Error: {useInitRun.data.Err}</div>
               <div>🔴</div>
             </div>
           )}
-          {initRunData && "Ok" in initRunData && (
+          {useInitRun.data && "Ok" in useInitRun.data && (
             <div className="flex justify-between w-full">
               <div>Initialised</div>
               <div>✅</div>

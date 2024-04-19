@@ -1,11 +1,11 @@
 import Button from "../../../components/ui/Button";
 import { Run } from "../../../../../declarations/backend/backend.did";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { useCancelRun } from "../../../catts/hooks/useCancelRun";
 import useRunContext from "../../../ run-context/useRunContext";
 
 export default function CancelRunButton({ run }: { run: Run }) {
-  const { mutate: cancelRun, isPending: isCancelPending } = useCancelRun();
+  const { useCancelRun } = useRunContext();
+  const { mutate: cancelRun, isPending: isCancelPending } = useCancelRun;
 
   const { useWriteContract, useWaitForTransactionReceipt, useStartRun } =
     useRunContext();

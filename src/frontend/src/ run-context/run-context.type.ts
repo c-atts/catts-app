@@ -18,7 +18,15 @@ export type RunContextType = {
   isSelectedRecipeValid?: boolean;
   setIsSelectedRecipeValid: (isValid: boolean) => void;
   runInProgress?: Run;
+  runInProgressStep: number;
+  setRunInProgressStep: (step: number) => void;
   useInitRun: UseMutationResult<Result | null, Error, string, unknown>;
+  useCancelRun: UseMutationResult<
+    Result | null,
+    Error,
+    Uint8Array | number[],
+    unknown
+  >;
   useStartRun: UseMutationResult<
     Result_1 | null,
     Error,
@@ -34,4 +42,5 @@ export type RunContextType = {
     unknown
   >;
   payAndCreateAttestations: (run: Run) => Promise<void>;
+  reset: () => void;
 };

@@ -1,58 +1,62 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { useEffect } from "react";
 import useRunContext from "../../../ run-context/useRunContext";
+import EthTxLink from "../../../components/EthTxLink";
+import AttestationUidLink from "../../../components/AttestationUidLink";
 
 export function CreateAttestationInner() {
-  const { useInitRun, useWaitForTransactionReceipt, useStartRun } =
-    useRunContext();
-  const { data: initRunData } = useInitRun;
-  const { isSuccess } = useWaitForTransactionReceipt;
+  const { useStartRun, runInProgress } = useRunContext();
 
-  const { mutate: startRun, isPending, data } = useStartRun;
+  return (
+    <>
+      {useStartRun.isPending && (
+        <p>
+          <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
+          Creating attestation...
+        </p>
+      )}
 
-  useEffect(() => {
-    if (isSuccess && initRunData && "Ok" in initRunData) {
-      startRun(initRunData.Ok.id);
-    }
-  }, [isSuccess, initRunData, startRun]);
-
-  if (isPending) {
-    return (
-      <p>
-        <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-        Creating attestation
-      </p>
-    );
-  }
-
-  if (data && "Ok" in data) {
-    return (
-      <>
+      {runInProgress?.attestation_transaction_hash[0]?.length && (
         <div className="flex justify-between w-full">
-          <div className="text-sm text-zinc-500">Transaction hash:</div>
+          <div className="text-sm text-zinc-500">Attesttation tx</div>
           <div className="text-sm text-zinc-500">
-            {data.Ok.s?.slice(0, 5)}...
-            {data.Ok.s?.slice(-5)}
+            <EthTxLink tx={runInProgress?.attestation_transaction_hash[0]} />
           </div>
         </div>
+      )}
+
+      {runInProgress?.attestation_transaction_hash[0]?.length &&
+        !runInProgress?.attestation_uid[0]?.length && (
+          <p>
+            <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
+            Attestation created, getting UID...
+          </p>
+        )}
+
+      {runInProgress?.attestation_uid[0]?.length && (
+        <div className="flex justify-between w-full">
+          <div className="text-sm text-zinc-500">Attestation UID</div>
+          <div className="text-sm text-zinc-500">
+            <AttestationUidLink uid={runInProgress?.attestation_uid[0]} />
+          </div>
+        </div>
+      )}
+
+      {runInProgress?.attestation_uid[0]?.length && (
         <div className="flex justify-between w-full">
           <div>Attestation created</div>
           <div>✅</div>
         </div>
-      </>
-    );
-  }
+      )}
 
-  if (data && "Err" in data) {
-    console.error("Error creating attestation", data.Err);
-    return (
-      <div className="flex justify-between w-full">
-        <div>There was an error creating the attestation</div>
-        <div>🔴</div>
-      </div>
-    );
-  }
+      {useStartRun.data && "Err" in useStartRun.data && (
+        <div className="flex justify-between w-full">
+          <div>There was an error creating the attestation</div>
+          <div>🔴</div>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function CreateAttestation() {

@@ -3,16 +3,17 @@ import useRunContext from "../../../ run-context/useRunContext";
 
 export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
   const { name, description } = recipe;
-  const { setSelectedRecipe, useInitRun } = useRunContext();
+  const { setSelectedRecipe, reset } = useRunContext();
 
   const handleClick = () => {
-    useInitRun.reset(); // Clear any already initialised run
+    reset(); // Clear all run context state
+    console.log("Clearing run context state");
     setSelectedRecipe(recipe);
   };
 
   return (
     <li
-      className="border-zinc-700/50 border-[1px] bg-zinc-800/50 drop-shadow-xl rounded-3xl flex flex-col p-10 cursor-pointer w-full mb-5 hover:bg-zinc-800"
+      className="border-zinc-700/50 border-[1px] bg-theme-200/10 drop-shadow-xl rounded-2xl flex flex-col p-10 cursor-pointer w-full mb-10 hover:bg-theme-200/20"
       key={name}
       onClick={handleClick}
     >

@@ -5,6 +5,7 @@ import useRunContext from "../../../ run-context/useRunContext";
 
 export default function PayRunButton({ run }: { run: Run }) {
   const {
+    useCancelRun,
     useWriteContract,
     useWaitForTransactionReceipt,
     useStartRun,
@@ -12,10 +13,19 @@ export default function PayRunButton({ run }: { run: Run }) {
     payAndCreateAttestations,
   } = useRunContext();
 
+  const handleClick = () => {
+    if (run.payment_transaction_hash.length) {
+      useStartRun.mutate(run.id);
+    } else {
+      payAndCreateAttestations(run);
+    }
+  };
+
   const isPending =
     useWriteContract.isPending ||
     useWaitForTransactionReceipt.isFetching ||
-    useStartRun.isPending;
+    useStartRun.isPending ||
+    useGetAttestationUid.isPending;
 
   const buttonText = () => {
     if (useWriteContract.isPending) {
@@ -28,23 +38,19 @@ export default function PayRunButton({ run }: { run: Run }) {
       return "Creating attestation...";
     }
     if (useGetAttestationUid.isPending) {
-      return "Attestaion created, getting UID...";
+      return "Attestation created, getting UID...";
+    }
+    if (run.payment_transaction_hash.length) {
+      return "Create attestation";
     }
     return "Pay and create attestation";
   };
 
-  console.log("run", run);
-  console.log("isPending", isPending);
-  console.log("buttonText", buttonText());
-  console.log("---");
-
   return (
     <Button
-      disabled={isPending}
+      disabled={isPending || useCancelRun.isPending}
       icon={isPending ? faCircleNotch : undefined}
-      onClick={() => {
-        payAndCreateAttestations(run);
-      }}
+      onClick={handleClick}
       spin={isPending}
     >
       {buttonText()}

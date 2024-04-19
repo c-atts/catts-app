@@ -1,107 +1,59 @@
-import { useCallback, useEffect } from "react";
-
-import Button from "../../../components/ui/Button";
-import { ETH_PAYMENT_CONTRACT_ADDRESS } from "../../../config";
+import { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import abi from "../../../components/abi.json";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { formatEther, toHex } from "viem/utils";
+import { formatEther } from "viem/utils";
 import useRunContext from "../../../ run-context/useRunContext";
+import EthTxLink from "../../../components/EthTxLink";
 
 export function PayForRunInner() {
   const {
     useInitRun,
     useWriteContract,
     useWaitForTransactionReceipt,
-    selectedRecipe,
+    payAndCreateAttestations,
+    runInProgress,
+    runInProgressStep,
+    setRunInProgressStep,
   } = useRunContext();
-  const { data: initRunData } = useInitRun;
-
-  const {
-    writeContract,
-    isPending: isPayPending,
-    error: payError,
-    data: transactionHash,
-  } = useWriteContract;
-
-  const { isPending: isConfirmationPending } = useWaitForTransactionReceipt;
-
-  const payRun = useCallback(
-    async (id: Uint8Array | number[], cost: bigint) => {
-      writeContract({
-        abi,
-        address: ETH_PAYMENT_CONTRACT_ADDRESS,
-        functionName: "payRun",
-        args: [toHex(id as Uint8Array)],
-        value: cost,
-      });
-    },
-    [writeContract]
-  );
 
   useEffect(() => {
-    if (
-      initRunData &&
-      "Ok" in initRunData &&
-      initRunData.Ok.recipe_id === selectedRecipe?.name
-    ) {
-      const run = initRunData.Ok;
-      // payRun(run.id, run.cost);
+    if (useInitRun.data && "Ok" in useInitRun.data && runInProgressStep === 0) {
+      const run = useInitRun.data.Ok;
+      payAndCreateAttestations(run);
+      setRunInProgressStep(1);
     }
-  }, [initRunData, payRun, selectedRecipe]);
+  }, [
+    payAndCreateAttestations,
+    runInProgressStep,
+    setRunInProgressStep,
+    useInitRun.data,
+    useInitRun.isSuccess,
+  ]);
 
-  if (initRunData && "Ok" in initRunData) {
-    if (payError) {
-      console.error("Error paying for run", payError);
-      let errorMessage = "Error paying for run.";
-      if ("shortMessage" in payError) {
-        errorMessage = payError.shortMessage;
-      }
-      return (
-        <div className="flex items-center justify-between w-full">
-          {payError && <p>🔴 {errorMessage}</p>}
+  if (useWriteContract.isPending) {
+    return (
+      <p>
+        <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
+        Paying...
+      </p>
+    );
+  }
 
-          <Button
-            className="text-sm"
-            disabled={isPayPending}
-            icon={isPayPending ? faCircleNotch : undefined}
-            onClick={() => {
-              payRun(initRunData.Ok.id, initRunData.Ok.cost);
-            }}
-            spin={isPayPending}
-          >
-            Pay {formatEther(initRunData.Ok.cost)} SepoilaETH
-          </Button>
-        </div>
-      );
-    }
+  if (useWaitForTransactionReceipt.isFetching) {
+    return (
+      <p>
+        <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
+        Waiting for 3 confirmations...
+      </p>
+    );
+  }
 
-    if (isPayPending) {
-      return (
-        <p>
-          <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin /> Paying
-          for run
-        </p>
-      );
-    }
-
-    if (isConfirmationPending) {
-      return (
-        <p>
-          <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-          Waiting for 3 confirmations
-        </p>
-      );
-    }
-
+  if (runInProgress?.payment_transaction_hash[0]?.length) {
     return (
       <>
         <div className="flex justify-between w-full">
-          <div className="text-sm text-zinc-500">Transaction hash:</div>
-          <div className="text-sm text-zinc-500">
-            {transactionHash?.slice(0, 5)}...
-            {transactionHash?.slice(-5)}
-          </div>
+          <div className="text-sm text-zinc-500">Payment tx</div>
+          <EthTxLink tx={runInProgress?.payment_transaction_hash[0]} />
         </div>
         <div className="flex justify-between w-full">
           <div>Run paid</div>
@@ -110,6 +62,8 @@ export function PayForRunInner() {
       </>
     );
   }
+
+  return null;
 }
 
 export default function PayForRun() {
