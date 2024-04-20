@@ -15,14 +15,14 @@ export function RunHistoryListItem({ run }: { run: Run }) {
 
   const showCancelButton =
     "Created" in run.status ||
-    ("Paid" in run.status && !run.payment_transaction_hash.length);
+    ("Paid" in run.status && run.payment_transaction_hash.length === 0);
 
   const showPayButton =
     "Created" in run.status ||
     ("Paid" in run.status &&
-      (!run.payment_transaction_hash.length ||
-        !run.attestation_transaction_hash.length ||
-        !run.attestation_uid.length));
+      (run.payment_transaction_hash.length === 0 ||
+        run.attestation_transaction_hash.length === 0 ||
+        run.attestation_uid.length === 0));
 
   return (
     <li className="flex flex-col">

@@ -7,12 +7,12 @@ export default function CancelRunButton({ run }: { run: Run }) {
   const { useCancelRun } = useRunContext();
   const { mutate: cancelRun, isPending: isCancelPending } = useCancelRun;
 
-  const { useWriteContract, useWaitForTransactionReceipt, useStartRun } =
+  const { usePayForRun, isPaymentTransactionConfirmed, useStartRun } =
     useRunContext();
 
   const isDisabled =
-    useWriteContract.isPending ||
-    useWaitForTransactionReceipt.isFetching ||
+    usePayForRun.isPending ||
+    isPaymentTransactionConfirmed === false ||
     useStartRun.isPending;
 
   return (

@@ -2,75 +2,33 @@ import { useEffect, useState } from "react";
 
 import Button from "../../../components/ui/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { RunOutput } from "../../../catts/types/run-output.type";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import { simulateRun } from "../../../catts/simulateRun";
 import useRunContext from "../../../ run-context/useRunContext";
 import { useSimulateRecipeQueries } from "../../../catts/hooks/useSimulateRecipeQueries";
-import { z } from "zod";
-
-const DataItem = z.object({
-  name: z.string(),
-  type: z.string(),
-  value: z.union([z.string(), z.number(), z.object({ hex: z.string() })]),
-});
-type DataItem = z.infer<typeof DataItem>;
-
-const DataItemArray = z.array(DataItem);
-type DataItemArray = z.infer<typeof DataItemArray>;
-
-function cleanProcessedData(dataItems: DataItemArray) {
-  return dataItems.map((item) => {
-    if (item.type === "uint256") {
-      if (typeof item.value === "object" && item.value.hex) {
-        return {
-          name: item.name,
-          type: item.type,
-          value: item.value.hex,
-        };
-      }
-      throw new Error("Invalid uint256 value");
-    }
-    return item;
-  });
-}
 
 function RecipeRunnerInner() {
   const { data, isPending, error } = useSimulateRecipeQueries();
-  const { selectedRecipe, setIsSelectedRecipeValid, isSelectedRecipeValid } =
-    useRunContext();
+  const {
+    selectedRecipe,
+    setIsSimulationOk: setIsSelectedRecipeValid,
+    isSimulationOk: isSelectedRecipeValid,
+  } = useRunContext();
 
-  const [processedData, setProcessedData] = useState<any>(null);
+  const [processedData, setProcessedData] = useState<RunOutput>();
 
   useEffect(() => {
     if (!data || !selectedRecipe || isSelectedRecipeValid != undefined) return;
     try {
-      // Process the data returned by the recipe queries
-      //TODO  Replace this with a proper sandboxed environment
-      const processFunction = `            
-          const data = JSON.parse(queryResult?.attestations[0]?.decodedDataJson); 
-          ${selectedRecipe.processor}
-      `;
-      const process: (data: any) => any = new Function(
-        "queryResult",
-        processFunction
-      ) as (data: any) => any;
-
-      let _processedData = process(data);
-
-      // Parse the processed data, make sure it follows the expected schema
-      const dataItems: DataItemArray = DataItemArray.parse(
-        JSON.parse(_processedData)
-      );
-
-      // Clean the processed data, transforming uint256 values to hex strings
-      _processedData = cleanProcessedData(dataItems);
-
-      // Encode the processed data using the output schema
-      const schemaEncoder = new SchemaEncoder(selectedRecipe.output_schema);
-      schemaEncoder.encodeData(_processedData);
+      // Simluate the run in the browser
+      const { runOutput } = simulateRun({
+        recipe: selectedRecipe,
+        queryData: data as string,
+      });
 
       // All checks passed, this means we can use this data to create a new attestation
-      setProcessedData(_processedData);
+      setProcessedData(runOutput);
       setIsSelectedRecipeValid(true);
     } catch (e) {
       console.error(e);
@@ -86,6 +44,7 @@ function RecipeRunnerInner() {
       </p>
     );
 
+  console.log(data, isSelectedRecipeValid);
   if (!data || !isSelectedRecipeValid)
     return <p>🔴 Recipe did not return any data for this user.</p>;
 
@@ -109,7 +68,8 @@ function RecipeRunnerInner() {
 
 export default function SimulateRun() {
   const [runSimulation, setRunSimulation] = useState(false);
-  const { selectedRecipe, isSelectedRecipeValid } = useRunContext();
+  const { selectedRecipe, isSimulationOk: isSelectedRecipeValid } =
+    useRunContext();
 
   const disabled = !selectedRecipe || isSelectedRecipeValid != undefined;
 

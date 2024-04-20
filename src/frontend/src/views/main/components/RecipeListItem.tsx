@@ -3,11 +3,10 @@ import useRunContext from "../../../ run-context/useRunContext";
 
 export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
   const { name, description } = recipe;
-  const { setSelectedRecipe, reset } = useRunContext();
+  const { setSelectedRecipe, resetRun } = useRunContext();
 
   const handleClick = () => {
-    reset(); // Clear all run context state
-    console.log("Clearing run context state");
+    resetRun();
     setSelectedRecipe(recipe);
   };
 

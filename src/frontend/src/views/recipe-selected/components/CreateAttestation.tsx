@@ -16,24 +16,26 @@ export function CreateAttestationInner() {
         </p>
       )}
 
-      {runInProgress?.attestation_transaction_hash[0]?.length && (
-        <div className="flex justify-between w-full">
-          <div className="text-sm text-zinc-500">Attesttation tx</div>
-          <div className="text-sm text-zinc-500">
-            <EthTxLink tx={runInProgress?.attestation_transaction_hash[0]} />
+      {runInProgress &&
+        runInProgress.attestation_transaction_hash.length > 0 && (
+          <div className="flex justify-between w-full">
+            <div className="text-sm text-zinc-500">Attesttation tx</div>
+            <div className="text-sm text-zinc-500">
+              <EthTxLink tx={runInProgress?.attestation_transaction_hash[0]} />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {runInProgress?.attestation_transaction_hash[0]?.length &&
-        !runInProgress?.attestation_uid[0]?.length && (
+      {runInProgress &&
+        runInProgress.attestation_transaction_hash.length > 0 &&
+        runInProgress.attestation_uid.length === 0 && (
           <p>
             <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
             Attestation created, getting UID...
           </p>
         )}
 
-      {runInProgress?.attestation_uid[0]?.length && (
+      {runInProgress && runInProgress.attestation_uid.length > 0 && (
         <div className="flex justify-between w-full">
           <div className="text-sm text-zinc-500">Attestation UID</div>
           <div className="text-sm text-zinc-500">
@@ -42,7 +44,7 @@ export function CreateAttestationInner() {
         </div>
       )}
 
-      {runInProgress?.attestation_uid[0]?.length && (
+      {runInProgress && runInProgress.attestation_uid.length > 0 && (
         <div className="flex justify-between w-full">
           <div>Attestation created</div>
           <div>✅</div>

@@ -2,7 +2,9 @@ import { Recipe, Run } from "../../../declarations/backend/backend.did";
 
 export type RunContextStateType = {
   selectedRecipe?: Recipe;
-  isSelectedRecipeValid?: boolean;
+  isSimulationOk?: boolean;
   runInProgress?: Run;
-  getUidRetryCount: number;
+  progressMessage?: string;
+  errorMessage?: string;
+  isPaymentTransactionConfirmed?: boolean;
 };

@@ -1,5 +1,6 @@
-import { ReactNode, createContext, useEffect, useRef, useState } from "react";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import * as R from "remeda";
+
+import { ReactNode, createContext, useState } from "react";
 
 import { ETH_PAYMENT_CONTRACT_ADDRESS } from "../config";
 import { Run } from "../../../declarations/backend/backend.did";
@@ -11,6 +12,10 @@ import { useCancelRun } from "../catts/hooks/useCancelRun";
 import { useGetAttestationUid } from "../catts/hooks/useGetAttestationUid";
 import { useInitRun } from "../catts/hooks/useInitRun";
 import { useStartRun } from "../catts/hooks/useStartRun";
+import { useWriteContract } from "wagmi";
+import { wagmiConfig } from "../wagmi/wagmi.config";
+import { wait } from "../utils/wait";
+import { waitForTransactionReceipt } from "@wagmi/core";
 
 export const RunContext = createContext<RunContextType | undefined>(undefined);
 
@@ -18,167 +23,229 @@ const GET_UID_RETRY_LIMIT = 4;
 const GET_UID_RETRY_INTERVAL = 10000;
 
 export function RunContextProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<RunContextStateType>({
-    getUidRetryCount: 0,
-  });
-
-  // STEP 0: Run initialized
-  // STEP 1: Payment receipt received
-  // STEP 2: Run started, attestation transaction hash received
-  // STEP 3: Attestation uid received
-  const runInProgressStep = useRef(0);
+  const [state, setState] = useState<RunContextStateType>({});
 
   const _useInitRun = useInitRun();
+  const _usePayForRun = useWriteContract();
   const _useCancelRun = useCancelRun();
-  const _useWriteContract = useWriteContract();
-  const _useWaitForTransactionReceipt = useWaitForTransactionReceipt({
-    hash: _useWriteContract.data,
-    confirmations: 1,
-  });
   const _useStartRun = useStartRun();
   const _useGetAttestationUid = useGetAttestationUid();
 
-  // Reset isSelectedRecipeValid when selectedRecipe changes
-  useEffect(() => {
+  async function initPayAndCreateAttestation() {
+    if (!state.selectedRecipe) {
+      console.error("No selected recipe.");
+      return;
+    }
+
     setState((s) => {
       return {
         ...s,
-        isSelectedRecipeValid: undefined,
+        progressMessage: "Initializing...",
+        errorMessage: undefined,
       };
     });
-  }, [state?.selectedRecipe]);
 
-  // A payment receipt has been received and there is a run in progress
-  // Start the run
-  useEffect(() => {
-    if (
-      runInProgressStep.current === 1 &&
-      _useWaitForTransactionReceipt.isSuccess &&
-      state?.runInProgress &&
-      !state.runInProgress.payment_transaction_hash[0]?.length
-    ) {
-      const run = state.runInProgress;
-      run.payment_transaction_hash = [_useWriteContract.data as string];
+    try {
+      const res = await _useInitRun.mutateAsync(state.selectedRecipe.name);
+      if (res) {
+        if ("Ok" in res) {
+          await payAndCreateAttestation(res.Ok);
+        } else {
+          throw new Error(res.Err);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      const errorMessage = R.isError(e) ? e.message : "Error initializing run.";
       setState((s) => {
         return {
           ...s,
-          runInProgress: run,
+          errorMessage,
         };
       });
-      _useStartRun.mutate(run.id);
-      runInProgressStep.current = 2;
     }
-  }, [
-    _useWaitForTransactionReceipt.isSuccess,
-    _useWriteContract.data,
-    _useStartRun,
-    state?.runInProgress,
-  ]);
+  }
 
-  // The run has been completed, save the attestation transaction hash
-  useEffect(() => {
-    if (
-      runInProgressStep.current === 2 &&
-      _useStartRun.isSuccess &&
-      state?.runInProgress &&
-      !state.runInProgress.attestation_transaction_hash[0]?.length
-    ) {
-      if (_useStartRun.data && "Ok" in _useStartRun.data) {
-        const run = state.runInProgress;
-        run.attestation_transaction_hash = [_useStartRun.data.Ok as string];
-        setState((s) => {
-          return {
-            ...s,
-            runInProgress: run,
-          };
-        });
-        _useGetAttestationUid.mutate(run.id);
-        runInProgressStep.current = 3;
-      }
+  async function payAndCreateAttestation(run: Run) {
+    if (!run) {
+      console.error("No run to pay for.");
+      return;
     }
-    if (_useStartRun.data && "Err" in _useStartRun.data) {
-      console.error("Error starting run", _useStartRun.data.Err);
-    }
-  }, [
-    _useGetAttestationUid,
-    _useStartRun.data,
-    _useStartRun.isSuccess,
-    state.runInProgress,
-  ]);
 
-  // Poll for attestation uid until it is received, max GET_UID_RETRY_LIMIT times
-  useEffect(() => {
-    if (
-      runInProgressStep.current === 3 &&
-      _useGetAttestationUid.isSuccess &&
-      _useGetAttestationUid.data &&
-      state?.runInProgress &&
-      !state.runInProgress.attestation_uid[0]?.length
-    ) {
-      if ("Ok" in _useGetAttestationUid.data) {
-        const run = state.runInProgress;
-        run.attestation_uid = [_useGetAttestationUid.data.Ok];
-        setState((s) => {
-          return {
-            ...s,
-            runInProgress: run,
-          };
-        });
-        runInProgressStep.current = 4;
-      }
-      if (
-        "Err" in _useGetAttestationUid.data &&
-        state.getUidRetryCount < GET_UID_RETRY_LIMIT
-      ) {
-        const run = state.runInProgress;
-        setTimeout(() => {
-          _useGetAttestationUid.mutate(run.id);
-          setState((s) => {
-            return {
-              ...s,
-              getUidRetryCount: s.getUidRetryCount + 1,
-            };
-          });
-        }, GET_UID_RETRY_INTERVAL);
-      }
-    }
-  }, [
-    _useGetAttestationUid,
-    _useGetAttestationUid.isSuccess,
-    state.getUidRetryCount,
-    state.runInProgress,
-  ]);
-
-  const payAndCreateAttestations = async (run: Run) => {
     setState((s) => {
       return {
         ...s,
         runInProgress: run,
+        progressMessage: "Paying...",
+        isPaymentTransactionConfirmed: false,
+        errorMessage: undefined,
       };
     });
 
-    _useWriteContract.writeContract({
-      abi,
-      address: ETH_PAYMENT_CONTRACT_ADDRESS,
-      functionName: "payRun",
-      args: [toHex(run.id as Uint8Array)],
-      value: run.cost,
+    try {
+      const transactionHash = await _usePayForRun.writeContractAsync({
+        abi,
+        address: ETH_PAYMENT_CONTRACT_ADDRESS,
+        functionName: "payRun",
+        args: [toHex(run.id as Uint8Array)],
+        value: run.cost,
+      });
+
+      if (!transactionHash) {
+        throw new Error("No transaction hash returned from wallet.");
+      }
+
+      run.payment_transaction_hash = [transactionHash as string];
+      setState((s) => {
+        return {
+          ...s,
+          runInProgress: {
+            ...run,
+          },
+          progressMessage: "Waiting for 3 confirmations...",
+        };
+      });
+    } catch (e) {
+      console.error(e);
+      const errorMessage = R.isError(e) ? e.message : "Error paying for run.";
+      setState((s) => {
+        return {
+          ...s,
+          errorMessage,
+        };
+      });
+      return;
+    }
+
+    try {
+      const res = await waitForTransactionReceipt(wagmiConfig, {
+        hash: run.payment_transaction_hash[0] as `0x${string}`,
+      });
+
+      if (res) {
+        if (res.transactionHash !== run.payment_transaction_hash[0]) {
+          throw new Error("Transaction hash mismatch.");
+        }
+      } else {
+        throw new Error("No transaction receipt returned.");
+      }
+
+      setState((s) => {
+        return {
+          ...s,
+          isPaymentTransactionConfirmed: true,
+        };
+      });
+    } catch (e) {
+      console.error(e);
+      const errorMessage = R.isError(e)
+        ? e.message
+        : "Error waiting for transaction receipt.";
+      setState((s) => {
+        return {
+          ...s,
+          errorMessage,
+        };
+      });
+    }
+
+    await createAttestation(run);
+  }
+
+  async function createAttestation(run: Run) {
+    if (!run) {
+      console.error("No run to create attestation for.");
+      return;
+    }
+
+    setState((s) => {
+      return {
+        ...s,
+        runInProgress: run,
+        progressMessage: "Creating attestation...",
+        errorMessage: undefined,
+      };
     });
-  };
 
-  const reset = () => {
+    try {
+      const res = await _useStartRun.mutateAsync(run.id);
+      if (res) {
+        if ("Ok" in res) {
+          run.attestation_transaction_hash = [res.Ok];
+          setState((s) => {
+            return {
+              ...s,
+              runInProgress: {
+                ...run,
+              },
+              progressMessage: "Attestation created, getting UID...",
+            };
+          });
+        } else {
+          throw new Error(res.Err);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      const errorMessage = R.isError(e) ? e.message : "Error starting run.";
+      setState((s) => {
+        return {
+          ...s,
+          runInProgress: undefined,
+          errorMessage,
+        };
+      });
+      return;
+    }
+
+    for (let i = 0; i < GET_UID_RETRY_LIMIT; i++) {
+      await wait(GET_UID_RETRY_INTERVAL);
+
+      try {
+        const res = await _useGetAttestationUid.mutateAsync(run.id);
+        if (res) {
+          if ("Ok" in res) {
+            run.attestation_uid = [res.Ok];
+            setState((s) => {
+              return {
+                ...s,
+                runInProgress: {
+                  ...run,
+                },
+              };
+            });
+            break;
+          } else {
+            throw new Error(res.Err);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+        const errorMessage = R.isError(e)
+          ? e.message
+          : "Error getting attestation uid.";
+        setState((s) => {
+          return {
+            ...s,
+            errorMessage,
+          };
+        });
+        return;
+      }
+    }
+  }
+
+  const resetRun = () => {
     _useInitRun.reset();
-    _useCancelRun.reset();
-    _useWriteContract.reset();
-    _useStartRun.reset();
-    _useGetAttestationUid.reset();
-
-    setState({
-      ...state,
-      selectedRecipe: undefined,
-      getUidRetryCount: 0,
-      runInProgress: undefined,
-      isSelectedRecipeValid: undefined,
+    setState((s) => {
+      return {
+        ...s,
+        isSimulationOk: undefined,
+        runInProgress: undefined,
+        progressMessage: undefined,
+        errorMessage: undefined,
+        isPaymentTransactionConfirmed: undefined,
+      };
     });
   };
 
@@ -187,21 +254,26 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       value={{
         selectedRecipe: state?.selectedRecipe,
         setSelectedRecipe: (recipe) =>
-          setState({ ...state, selectedRecipe: recipe }),
-        isSelectedRecipeValid: state?.isSelectedRecipeValid,
-        setIsSelectedRecipeValid: (isValid) =>
-          setState({ ...state, isSelectedRecipeValid: isValid }),
+          setState((s) => {
+            return { ...s, selectedRecipe: recipe };
+          }),
+        isSimulationOk: state?.isSimulationOk,
+        setIsSimulationOk: (ok) =>
+          setState((s) => {
+            return { ...s, isSimulationOk: ok };
+          }),
         runInProgress: state?.runInProgress,
-        runInProgressStep: runInProgressStep.current,
-        setRunInProgressStep: (step) => (runInProgressStep.current = step),
+        progressMessage: state?.progressMessage,
+        errorMessage: state?.errorMessage,
+        isPaymentTransactionConfirmed: state?.isPaymentTransactionConfirmed,
         useInitRun: _useInitRun,
-        useCancelRun: _useCancelRun,
+        usePayForRun: _usePayForRun,
         useStartRun: _useStartRun,
-        useWriteContract: _useWriteContract,
-        useWaitForTransactionReceipt: _useWaitForTransactionReceipt,
-        useGetAttestationUid: _useGetAttestationUid,
-        payAndCreateAttestations,
-        reset,
+        useCancelRun: _useCancelRun,
+        initPayAndCreateAttestation,
+        payAndCreateAttestation,
+        createAttestation,
+        resetRun,
       }}
     >
       {children}

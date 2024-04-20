@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { formatEther } from "viem/utils";
@@ -6,31 +5,10 @@ import useRunContext from "../../../ run-context/useRunContext";
 import EthTxLink from "../../../components/EthTxLink";
 
 export function PayForRunInner() {
-  const {
-    useInitRun,
-    useWriteContract,
-    useWaitForTransactionReceipt,
-    payAndCreateAttestations,
-    runInProgress,
-    runInProgressStep,
-    setRunInProgressStep,
-  } = useRunContext();
+  const { usePayForRun, runInProgress, isPaymentTransactionConfirmed } =
+    useRunContext();
 
-  useEffect(() => {
-    if (useInitRun.data && "Ok" in useInitRun.data && runInProgressStep === 0) {
-      const run = useInitRun.data.Ok;
-      payAndCreateAttestations(run);
-      setRunInProgressStep(1);
-    }
-  }, [
-    payAndCreateAttestations,
-    runInProgressStep,
-    setRunInProgressStep,
-    useInitRun.data,
-    useInitRun.isSuccess,
-  ]);
-
-  if (useWriteContract.isPending) {
+  if (usePayForRun.isPending) {
     return (
       <p>
         <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
@@ -39,7 +17,7 @@ export function PayForRunInner() {
     );
   }
 
-  if (useWaitForTransactionReceipt.isFetching) {
+  if (isPaymentTransactionConfirmed === false) {
     return (
       <p>
         <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
@@ -48,7 +26,7 @@ export function PayForRunInner() {
     );
   }
 
-  if (runInProgress?.payment_transaction_hash[0]?.length) {
+  if (runInProgress?.payment_transaction_hash[0]) {
     return (
       <>
         <div className="flex justify-between w-full">

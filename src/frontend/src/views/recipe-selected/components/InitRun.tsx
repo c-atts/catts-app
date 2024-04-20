@@ -1,16 +1,17 @@
 import Button from "../../../components/ui/Button";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { useQueryClient } from "@tanstack/react-query";
 import useRunContext from "../../../ run-context/useRunContext";
 
 export default function InitRun() {
-  const { isSelectedRecipeValid, useInitRun, selectedRecipe } = useRunContext();
-  const queryClient = useQueryClient();
+  const {
+    isSimulationOk: isSelectedRecipeValid,
+    useInitRun,
+    selectedRecipe,
+    initPayAndCreateAttestation,
+  } = useRunContext();
 
   const handleClick = () => {
-    if (!selectedRecipe) return;
-    queryClient.invalidateQueries({ queryKey: ["run_history"] });
-    useInitRun.mutate(selectedRecipe.name);
+    initPayAndCreateAttestation();
   };
 
   const disabled =

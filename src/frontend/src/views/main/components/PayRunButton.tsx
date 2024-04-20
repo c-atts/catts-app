@@ -1,3 +1,5 @@
+import * as R from "remeda";
+
 import Button from "../../../components/ui/Button";
 import { Run } from "../../../../../declarations/backend/backend.did";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
@@ -6,41 +8,36 @@ import useRunContext from "../../../ run-context/useRunContext";
 export default function PayRunButton({ run }: { run: Run }) {
   const {
     useCancelRun,
-    useWriteContract,
-    useWaitForTransactionReceipt,
+    usePayForRun,
     useStartRun,
-    useGetAttestationUid,
-    payAndCreateAttestations,
+    payAndCreateAttestation,
+    createAttestation,
+    isPaymentTransactionConfirmed,
+    runInProgress,
+    progressMessage: runProgressMessage,
   } = useRunContext();
 
-  const handleClick = () => {
-    if (run.payment_transaction_hash.length) {
-      useStartRun.mutate(run.id);
+  const handleClick = async () => {
+    if (run.payment_transaction_hash.length > 0) {
+      await createAttestation(run);
     } else {
-      payAndCreateAttestations(run);
+      await payAndCreateAttestation(run);
     }
   };
 
-  const isPending =
-    useWriteContract.isPending ||
-    useWaitForTransactionReceipt.isFetching ||
+  const isDisabled =
+    usePayForRun.isPending ||
+    isPaymentTransactionConfirmed === false ||
     useStartRun.isPending ||
-    useGetAttestationUid.isPending;
+    useCancelRun.isPending;
+
+  const showSpinner = R.isDeepEqual(runInProgress?.id, run.id) && isDisabled;
 
   const buttonText = () => {
-    if (useWriteContract.isPending) {
-      return "Paying...";
+    if (runInProgress && R.isDeepEqual(runInProgress?.id, run.id)) {
+      return runProgressMessage;
     }
-    if (useWaitForTransactionReceipt.isFetching) {
-      return "Waiting for 3 confirmations...";
-    }
-    if (useStartRun.isPending) {
-      return "Creating attestation...";
-    }
-    if (useGetAttestationUid.isPending) {
-      return "Attestation created, getting UID...";
-    }
-    if (run.payment_transaction_hash.length) {
+    if (run.payment_transaction_hash.length > 0) {
       return "Create attestation";
     }
     return "Pay and create attestation";
@@ -48,10 +45,10 @@ export default function PayRunButton({ run }: { run: Run }) {
 
   return (
     <Button
-      disabled={isPending || useCancelRun.isPending}
-      icon={isPending ? faCircleNotch : undefined}
+      disabled={isDisabled}
+      icon={showSpinner ? faCircleNotch : undefined}
       onClick={handleClick}
-      spin={isPending}
+      spin={showSpinner}
     >
       {buttonText()}
     </Button>
