@@ -4,7 +4,7 @@ use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
 
-use crate::{eas::Uid, RECIPES};
+use crate::{eas::Uid, eth::EthAddressBytes, RECIPES};
 
 type Query = String;
 type QueryVariable = String;
@@ -16,12 +16,11 @@ const MAX_VALUE_SIZE: u32 = 1024;
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Recipe {
     pub name: String,
+    pub creator: EthAddressBytes,
+    pub created: u64,
     pub version: String,
     pub description: Option<String>,
     pub keywords: Option<Vec<String>>,
-    pub homepage: Option<String>,
-    pub author: Option<String>,
-    pub created: u64,
     pub queries: Vec<Query>,
     pub query_variables: Vec<QueryVariable>,
     pub query_settings: Vec<QuerySetting>,
@@ -45,22 +44,33 @@ impl Storable for Recipe {
 }
 
 impl Recipe {
-    pub fn _new(name: &str, version: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            version: version.to_string(),
-            description: None,
-            keywords: None,
-            homepage: None,
-            author: None,
-            created: ic_cdk::api::time(),
-            queries: vec![],
-            query_variables: vec![],
-            query_settings: vec![],
-            processor: "".to_string(),
-            output_schema: "".to_string(),
-        }
-    }
+    // pub fn _new(name: &str, version: &str) -> Self {
+    //     Self {
+    //         name: name.to_string(),
+    //         version: version.to_string(),
+    //         description: None,
+    //         keywords: None,
+    //         homepage: None,
+    //         author: None,
+    //         created: ic_cdk::api::time(),
+    //         queries: vec![],
+    //         query_variables: vec![],
+    //         query_settings: vec![],
+    //         processor: "".to_string(),
+    //         output_schema: "".to_string(),
+    //     }
+    // }
+
+    // pub fn _save(&self) {
+    //     //TODO: Implement business rules
+    //     // - Check if recipe already exists
+    //     // - Check if recipe is valid
+    //    // - Check string lengths
+
+    //     RECIPES.with_borrow_mut(|recipes| {
+    //         recipes.insert(self.name.clone(), self.clone());
+    //     });
+    // }
 
     pub fn get(name: &str) -> Option<Self> {
         RECIPES.with_borrow(|recipes| recipes.get(&name.to_string()))
@@ -81,12 +91,11 @@ pub fn init_recipes() {
     RECIPES.with_borrow_mut(|recipes| {
         recipes.insert("Copy Gitcoin Passport Score".to_string(), Recipe {
             name: "Copy Gitcoin Passport Score".to_string(),
-            version: "0.1.0".to_string(),
+            creator: EthAddressBytes::from([0u8; 20]),
+            created: ic_cdk::api::time(),
+            version: "0.0.1".to_string(),
             description: Some("This recipe allows you to make a copy of your Gitcoin Passport score to another chain.".to_string()),
             keywords: None,
-            homepage: None,
-            author: Some("Kristofer Lund".to_string()),
-            created: ic_cdk::api::time(),
             queries: vec!["query PassportQuery($where: AttestationWhereInput) { attestations(where: $where) { decodedDataJson }}".to_string()],
             query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0x6ab5d34260fca0cfcf0e76e96d439cace6aa7c3c019d7c4580ed52c6845e9c89" }, "recipient": {  "equals": "{user_eth_address}" } }, "take": 1 }"#.to_string()],
             query_settings: vec![r#"{"chainId": 10}"#.to_string()],
@@ -95,12 +104,11 @@ pub fn init_recipes() {
         });
         recipes.insert("Other Recipe".to_string(), Recipe {
             name: "Other Recipe".to_string(),
-            version: "0.1.0".to_string(),
+            creator: EthAddressBytes::from([0u8; 20]),
+            created: ic_cdk::api::time(),
+            version: "0.0.1".to_string(),
             description: Some("This recipe does some other cool thing with your attestation data.".to_string()),
             keywords: None,
-            homepage: None,
-            author: Some("Kristofer Lund".to_string()),
-            created: ic_cdk::api::time(),
             queries: vec!["query PassportQuery($where: AttestationWhereInput) { attestations(where: $where) { decodedDataJson }}".to_string()],
             query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0x6ab5d34260fca0cfcf0e76e96d439cace6aa7c3c019d7c4580ed52c6845e9c89" }, "recipient": {  "equals": "{user_eth_address}" } }, "take": 1 }"#.to_string()],
             query_settings: vec![r#"{"chainId": 10}"#.to_string()],

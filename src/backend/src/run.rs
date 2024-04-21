@@ -45,17 +45,15 @@ impl Display for RunStatus {
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Run {
     pub id: RunId,
-    pub creator: EthAddressBytes,
-    pub cost: u128,
     pub recipe_id: String,
+    pub creator: EthAddressBytes,
     pub created: u64,
+    pub cost: u128,
     pub status: RunStatus,
-    pub run_attestation_uid: Option<String>,
-    pub chain: Option<String>,
-    pub attestations: Option<Vec<String>>,
     pub payment_transaction_hash: Option<String>,
     pub attestation_transaction_hash: Option<String>,
     pub attestation_uid: Option<String>,
+    pub attestation_chain: Option<String>,
 }
 
 impl Storable for Run {
@@ -74,22 +72,37 @@ impl Storable for Run {
 }
 
 impl Run {
-    pub fn new(address: &EthAddress, cost: u128, recipe_id: &str) -> Self {
-        let created: u64 = ic_cdk::api::time();
-        Self {
-            id: Self::id(address, created),
-            creator: address.as_byte_array(),
-            cost,
+    pub fn new(address: &EthAddress, cost: u128, recipe_id: &str) -> Result<Self, String> {
+        let active_runs = Self::get_active(&address.as_byte_array());
+        if !active_runs.is_empty() {
+            return Err(String::from("You already have an active run"));
+        }
+
+        let created = ic_cdk::api::time();
+        let id = Self::id(address, created);
+
+        let run = Self {
+            id,
             recipe_id: recipe_id.to_string(),
+            creator: address.as_byte_array(),
             created,
+            cost,
             status: RunStatus::Created,
-            run_attestation_uid: None,
-            chain: None,
-            attestations: None,
             payment_transaction_hash: None,
             attestation_transaction_hash: None,
             attestation_uid: None,
-        }
+            attestation_chain: None,
+        };
+
+        RUNS_ORDER_INDEX.with(|r| {
+            r.borrow_mut().push(&id).unwrap();
+        });
+        RUNS.with(|r| {
+            r.borrow_mut()
+                .insert((address.as_byte_array(), id), run.clone());
+        });
+
+        Ok(run)
     }
 
     // hash of cretaor+created
@@ -100,15 +113,6 @@ impl Run {
         let mut buf = [0u8; 12];
         hasher.finalize_variable(&mut buf).unwrap();
         buf
-    }
-
-    pub fn create(run: Run) {
-        RUNS_ORDER_INDEX.with(|r| {
-            r.borrow_mut().push(&run.id).unwrap();
-        });
-        RUNS.with(|r| {
-            r.borrow_mut().insert((run.creator, run.id), run);
-        });
     }
 
     pub fn update(run: Run) {
@@ -168,12 +172,12 @@ impl Run {
             .collect()
     }
 
-    // pub fn get_by_id(run_id: &RunId) -> Option<Run> {
-    //     RUNS.with(|r| {
-    //         r.borrow()
-    //             .range(([0; 20], *run_id)..=([255; 20], *run_id))
-    //             .map(|(_, run)| run)
-    //             .next()
-    //     })
-    // }
+    pub fn _get_by_id(run_id: &RunId) -> Option<Run> {
+        RUNS.with(|r| {
+            r.borrow()
+                .range(([0; 20], *run_id)..=([255; 20], *run_id))
+                .map(|(_, run)| run)
+                .next()
+        })
+    }
 }

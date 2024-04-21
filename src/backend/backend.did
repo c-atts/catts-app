@@ -1,10 +1,9 @@
 type Recipe = record {
   created : nat64;
+  creator : blob;
   name : text;
-  homepage : opt text;
   query_variables : vec text;
   description : opt text;
-  author : opt text;
   version : text;
   keywords : opt vec text;
   queries : vec text;
@@ -21,15 +20,13 @@ type Result_5 = variant { Ok : vec Recipe; Err : text };
 type Run = record {
   id : blob;
   status : RunStatus;
-  attestations : opt vec text;
   created : nat64;
   creator : blob;
   attestation_uid : opt text;
   attestation_transaction_hash : opt text;
   cost : nat;
-  chain : opt text;
   recipe_id : text;
-  run_attestation_uid : opt text;
+  attestation_chain : opt text;
   payment_transaction_hash : opt text;
 };
 type RunStatus = variant { Failed; Paid; Cancelled; Created; Completed };

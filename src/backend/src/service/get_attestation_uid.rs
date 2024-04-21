@@ -36,6 +36,7 @@ pub async fn get_attestation_uid(run_id: RunId) -> Result<String, String> {
     let uid = receipt_result.logs[0].data.clone();
 
     run.attestation_uid = Some(uid.clone());
+    run.status = crate::run::RunStatus::Completed;
     Run::update(run);
 
     let cycles_after = ic_cdk::api::canister_balance();
