@@ -44,7 +44,6 @@ function RecipeRunnerInner() {
       </p>
     );
 
-  console.log(data, isSelectedRecipeValid);
   if (!data || !isSelectedRecipeValid)
     return <p>🔴 Recipe did not return any data for this user.</p>;
 

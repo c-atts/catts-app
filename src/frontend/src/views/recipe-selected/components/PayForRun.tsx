@@ -3,45 +3,55 @@ import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { formatEther } from "viem/utils";
 import useRunContext from "../../../ run-context/useRunContext";
 import EthTxLink from "../../../components/EthTxLink";
+import { TransactionExecutionError } from "viem";
 
 export function PayForRunInner() {
-  const { usePayForRun, runInProgress, isPaymentTransactionConfirmed } =
-    useRunContext();
+  const {
+    usePayForRun,
+    runInProgress,
+    isPaymentTransactionConfirmed,
+    progressMessage,
+  } = useRunContext();
 
-  if (usePayForRun.isPending) {
+  if (!runInProgress) return null;
+
+  if (
+    usePayForRun.isPending ||
+    (runInProgress.payment_transaction_hash.length > 0 &&
+      !isPaymentTransactionConfirmed)
+  ) {
     return (
       <p>
         <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-        Paying...
+        {progressMessage}
       </p>
     );
   }
 
-  if (isPaymentTransactionConfirmed === false) {
+  if (usePayForRun.error) {
     return (
-      <p>
-        <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-        Waiting for 3 confirmations...
-      </p>
+      <div className="flex justify-between w-full">
+        <div>
+          Error:{" "}
+          {(usePayForRun.error as TransactionExecutionError).shortMessage}
+        </div>
+        <div>🔴</div>
+      </div>
     );
   }
 
-  if (runInProgress?.payment_transaction_hash[0]) {
-    return (
-      <>
-        <div className="flex justify-between w-full">
-          <div className="text-sm text-zinc-500">Payment tx</div>
-          <EthTxLink tx={runInProgress?.payment_transaction_hash[0]} />
-        </div>
-        <div className="flex justify-between w-full">
-          <div>Run paid</div>
-          <div>✅</div>
-        </div>
-      </>
-    );
-  }
-
-  return null;
+  return (
+    <>
+      <div className="flex justify-between w-full">
+        <div className="text-sm text-zinc-500">Payment tx</div>
+        <EthTxLink tx={runInProgress.payment_transaction_hash[0]} />
+      </div>
+      <div className="flex justify-between w-full">
+        <div>Run paid</div>
+        <div>✅</div>
+      </div>
+    </>
+  );
 }
 
 export default function PayForRun() {

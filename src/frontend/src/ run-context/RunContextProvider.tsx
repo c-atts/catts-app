@@ -6,6 +6,7 @@ import { ETH_PAYMENT_CONTRACT_ADDRESS } from "../config";
 import { Run } from "../../../declarations/backend/backend.did";
 import { RunContextStateType } from "./run-context-state.type";
 import { RunContextType } from "./run-context.type";
+import { TransactionExecutionError } from "viem";
 import abi from "../components/abi.json";
 import { toHex } from "viem/utils";
 import { useCancelRun } from "../catts/hooks/useCancelRun";
@@ -61,6 +62,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         return {
           ...s,
           errorMessage,
+          progressMessage: undefined,
         };
       });
     }
@@ -107,11 +109,12 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       });
     } catch (e) {
       console.error(e);
-      const errorMessage = R.isError(e) ? e.message : "Error paying for run.";
+      const err = e as TransactionExecutionError;
       setState((s) => {
         return {
           ...s,
-          errorMessage,
+          errorMessage: err.shortMessage,
+          progressMessage: undefined,
         };
       });
       return;
@@ -145,6 +148,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         return {
           ...s,
           errorMessage,
+          progressMessage: undefined,
         };
       });
     }
@@ -193,6 +197,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           ...s,
           runInProgress: undefined,
           errorMessage,
+          progressMessage: undefined,
         };
       });
       return;
@@ -228,6 +233,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           return {
             ...s,
             errorMessage,
+            progressMessage: undefined,
           };
         });
         return;

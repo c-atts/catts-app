@@ -29,7 +29,8 @@ export default function PayRunButton({ run }: { run: Run }) {
     usePayForRun.isPending ||
     isPaymentTransactionConfirmed === false ||
     useStartRun.isPending ||
-    useCancelRun.isPending;
+    useCancelRun.isPending ||
+    runInProgress?.attestation_uid.length === 0;
 
   const showSpinner = R.isDeepEqual(runInProgress?.id, run.id) && isDisabled;
 
