@@ -51,8 +51,8 @@ export default function LoginPage(): React.ReactElement {
   }, [loginError]);
 
   return (
-    <div>
-      <div className="flex flex-col justify-between w-full gap-10 p-5 md:flex-row">
+    <div className="flex flex-col h-screen">
+      <div className="flex flex-col items-center justify-between w-full h-24 gap-10 p-5 md:flex-row">
         <div className="hidden text-xl font-bold text-center md:block">
           C–ATTS
         </div>
@@ -64,8 +64,8 @@ export default function LoginPage(): React.ReactElement {
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center w-full h-screen gap-10">
-        <div className="md:w-[750px] border-zinc-700/50 border-[1px] bg-zinc-900 drop-shadow-xl rounded-3xl flex flex-col items-center p-10">
+      <div className="flex flex-col items-center justify-center flex-grow w-full gap-10">
+        <div className="md:w-[650px] border-zinc-700/50 border-[1px] bg-zinc-900 drop-shadow-xl rounded-3xl flex flex-col items-center p-10 -mt-24">
           <div className="flex flex-col w-full gap-10">
             <div className="flex flex-col items-center w-full gap-2">
               <div className="text-3xl font-bold">

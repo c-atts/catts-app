@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  @apply font-sans text-lg bg-zinc-800 text-zinc-300;
+  @apply font-sans text-sm bg-zinc-800 text-zinc-300;
 }
 
 a {

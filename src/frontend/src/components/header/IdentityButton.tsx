@@ -1,5 +1,5 @@
 import Button from "../ui/Button";
-import PrincipalDialog from "./PrincipalDialog";
+import IcPrincipalDialog from "./IcPrincipalDialog";
 import { useAccount } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { useState } from "react";
@@ -29,7 +29,7 @@ export default function IdentityButton() {
         />
         {principal}
       </Button>
-      <PrincipalDialog isOpen={isOpen} setIsOpen={setIsOpen} />
+      <IcPrincipalDialog isOpen={isOpen} setIsOpen={setIsOpen} />
     </>
   );
 }

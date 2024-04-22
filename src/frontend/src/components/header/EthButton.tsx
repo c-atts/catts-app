@@ -1,8 +1,8 @@
 import { useAccount, useEnsName } from "wagmi";
 
-import { AccountDialog } from "../AccountDialog";
 import Button from "../ui/Button";
 import ConnectDialog from "../ConnectDialog";
+import { EthAccountDialog } from "./EthAccountDialog";
 import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { faWaveSquare } from "@fortawesome/free-solid-svg-icons";
 import { shortenEthAddress } from "../../eth/utils/shortenEthAddress";
@@ -56,7 +56,7 @@ export default function EthButton() {
         isOpen={connectDialogOpen}
         setIsOpen={setConnectDialogOpen}
       />
-      <AccountDialog
+      <EthAccountDialog
         isOpen={accountDialogOpen}
         setIsOpen={setAccountDialogOpen}
       />

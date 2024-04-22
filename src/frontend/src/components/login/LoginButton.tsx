@@ -3,6 +3,7 @@ import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { isChainIdSupported } from "../../wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
+import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 
 export default function LoginButton() {
   const { isConnected, chainId } = useAccount();
@@ -19,20 +20,22 @@ export default function LoginButton() {
     if (isPreparingLogin) {
       return "Preparing";
     }
-    return "Sign in";
+    return "Sign in with Ethereum";
   };
 
-  const icon = isLoggingIn || isPreparingLogin ? faCircleNotch : undefined;
+  const icon = isLoggingIn || isPreparingLogin ? faCircleNotch : faEthereum;
 
   const disabled = isLoggingIn || !isConnected || isPreparingLogin;
 
+  const spin = isLoggingIn || isPreparingLogin;
+
   return (
     <Button
-      className="w-44"
+      className="w-56"
       disabled={disabled}
       icon={icon}
       onClick={login}
-      spin
+      spin={spin}
     >
       {text()}
     </Button>
