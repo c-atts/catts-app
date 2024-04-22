@@ -1,8 +1,11 @@
 import RecipesList from "./components/RecipesList";
 import RunHistory from "./components/RunHistory";
 import Section from "../../components/ui/Section";
+import { useActor } from "../../ic/Actors";
 
 export default function MainView() {
+  const { actor } = useActor();
+
   return (
     <>
       <Section>
@@ -21,9 +24,11 @@ export default function MainView() {
         </p>
         <RecipesList />
       </Section>
-      <Section>
-        <RunHistory />
-      </Section>
+      {actor && (
+        <Section>
+          <RunHistory />
+        </Section>
+      )}
     </>
   );
 }

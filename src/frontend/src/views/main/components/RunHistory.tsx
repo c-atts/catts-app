@@ -29,7 +29,7 @@ export function RunHistoryInner() {
     return <p>Error: {data.Err}</p>;
   }
 
-  if (!Array.isArray || data.Ok.length === 0) {
+  if (!Array.isArray(data.Ok) || data.Ok.length === 0) {
     return <p>You have not run any recipes yet.</p>;
   }
 

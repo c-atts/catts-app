@@ -17,11 +17,6 @@ import { useSiweIdentity } from "ic-use-siwe-identity";
 const actorContext = createActorContext<_SERVICE>();
 export const useActor = createUseActorHook<_SERVICE>(actorContext);
 
-const anonymousActorContext = createActorContext<_SERVICE>();
-export const useAnonymousActor = createUseActorHook<_SERVICE>(
-  anonymousActorContext
-);
-
 export default function Actors({ children }: { children: ReactNode }) {
   const { identity, clear } = useSiweIdentity();
 
@@ -60,23 +55,14 @@ export default function Actors({ children }: { children: ReactNode }) {
   return (
     <ActorProvider<_SERVICE>
       canisterId={canisterId}
-      context={anonymousActorContext}
+      context={actorContext}
+      identity={identity}
       idlFactory={idlFactory}
       onRequest={handleRequest}
       onRequestError={(error) => errorToast(error)}
       onResponseError={handleResponseError}
     >
-      <ActorProvider<_SERVICE>
-        canisterId={canisterId}
-        context={actorContext}
-        identity={identity}
-        idlFactory={idlFactory}
-        onRequest={handleRequest}
-        onRequestError={(error) => errorToast(error)}
-        onResponseError={handleResponseError}
-      >
-        {children}
-      </ActorProvider>
+      {children}
     </ActorProvider>
   );
 }

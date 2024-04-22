@@ -70,26 +70,26 @@ export default function RecipeDetails() {
       {showDetails && (
         <div className="flex flex-col gap-3 prose-l">
           <h2 className="prose-lg">Queries</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
+          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
             {formattedQueries}
           </pre>
           <h2 className="prose-lg">Query variables</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
+          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
             {formattedQueryVariables}
           </pre>
           <h2 className="prose-lg">Query settings</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
+          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
             {formattedQuerySettings}
           </pre>
           <h2 className="prose-lg">Processor</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
+          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
             {processor
               .split("\n")
               .map((line) => line.trim())
               .join("\n")}
           </pre>
           <h2 className="prose-lg">Output Schema</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
+          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
             {JSON.stringify(output_schema, null, 2)}
           </pre>
         </div>
