@@ -17,8 +17,6 @@ fn main() {
         .binding
         .set_type_attributes("#[derive(Debug, CandidType, Deserialize)]".into());
     builder.add(ic_siwe_provider);
-    println!("cargo:rerun-if-env-changed=CANISTER_ID_IC_SIWE_PROVIDER");
-    println!("cargo:rerun-if-env-changed=CANISTER_CANDID_PATH_IC_SIWE_PROVIDER");
 
     // evm_rpc
     let mut evm_rpc = Config::new("evm_rpc");
@@ -26,8 +24,6 @@ fn main() {
         .binding
         .set_type_attributes("#[derive(Debug, CandidType, Deserialize)]".into());
     builder.add(evm_rpc);
-    println!("cargo:rerun-if-env-changed=CANISTER_ID_EVM_RPC");
-    println!("cargo:rerun-if-env-changed=CANISTER_CANDID_PATH_EVM_RPC");
 
     builder.build(Some(manifest_dir.join("src/declarations")));
 }
