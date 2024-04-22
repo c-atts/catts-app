@@ -1,5 +1,5 @@
 use crate::eth::EthAddress;
-use crate::evm_rpc::{eth_transaction, get_self_eth_address};
+use crate::evm_rpc::eth_transaction;
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
 use boa_engine::{js_string, property::Attribute, Context, Source};
 use ethers_core::abi::{encode, encode_packed, ethereum_types::H160, Address, Token};
@@ -88,10 +88,6 @@ pub fn get_schema_uid(
 
 pub fn get_eas_http_headers() -> Vec<HttpHeader> {
     vec![
-        // HttpHeader {
-        //     name: "Host".to_string(),
-        //     value: "catts.run".to_string(),
-        // },
         HttpHeader {
             name: "User-Agent".to_string(),
             value: "catts/0.0.1".to_string(),
@@ -125,9 +121,18 @@ pub fn insert_dynamic_variables(
 lazy_static! {
     static ref EAS_CHAIN_GQL_ENDPOINT: HashMap<u32, &'static str> = {
         let mut m = HashMap::new();
-        m.insert(10, "https://optimism.easscan.org/graphql");
-        m.insert(11155111, "https://sepolia.easscan.org/graphql");
-        m.insert(8453, "https://base.easscan.org/graphql");
+        m.insert(
+            10,
+            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/optimism",
+        );
+        m.insert(
+            11155111,
+            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/sepolia",
+        );
+        m.insert(
+            8453,
+            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/base",
+        );
         m
     };
 }
@@ -178,18 +183,15 @@ pub async fn run_eas_query(
         transform: None,
     };
 
-    let res = match http_request(request, ETH_DEFAULT_CALL_CYCLES as u128).await {
+    match http_request(request, ETH_DEFAULT_CALL_CYCLES as u128).await {
         Ok((response,)) => {
-            String::from_utf8(response.body).expect("Transformed response is not UTF-8 encoded.")
+            Ok(String::from_utf8(response.body)
+                .expect("Transformed response is not UTF-8 encoded."))
         }
-        Err((r, m)) => {
-            let message =
-                format!("The http_request resulted into error. RejectionCode: {r:?}, Error: {m}");
-            message
-        }
-    };
-
-    Ok(res)
+        Err((r, m)) => Err(format!(
+            "Request to EAS failed. RejectionCode: {r:?}, Error: {m}"
+        )),
+    }
 }
 
 pub fn process_query_result(processor: &str, query_result: &str) -> String {
@@ -245,10 +247,6 @@ pub async fn create_attestation(
     ]);
 
     let attest_request = Token::Tuple(vec![schema_token, attestation_request_data]);
-
-    let canister_eth_address = get_self_eth_address().await;
-
-    ic_cdk::println!("Canister eth address: {:?}", canister_eth_address);
 
     eth_transaction(
         String::from("0xC2679fBD37d54388Ce493F1DB75320D236e1815e"),
