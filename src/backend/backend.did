@@ -38,6 +38,7 @@ type UserProfile = record {
 };
 service : (text) -> {
   cancel_run : (blob) -> (Result);
+  canister_eth_address : () -> (Result_1);
   get_attestation_uid : (blob) -> (Result_1);
   get_my_profile : () -> (Result_2);
   get_my_runs : () -> (Result_3);
