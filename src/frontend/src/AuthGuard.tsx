@@ -1,8 +1,7 @@
 import React, { useEffect } from "react";
-import { useAccount, useChainId } from "wagmi";
 
-import LoginPage from "./components/login/LoginPage";
 import { isChainIdSupported } from "./wagmi/is-chain-id-supported";
+import { useAccount } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 
 type AuthGuardProps = {
@@ -11,7 +10,7 @@ type AuthGuardProps = {
 
 export default function AuthGuard({ children }: AuthGuardProps) {
   const { isConnected, address } = useAccount();
-  const chainId = useChainId();
+  const { chainId } = useAccount();
   const { clear, isInitializing, identity, identityAddress } =
     useSiweIdentity();
 
@@ -41,9 +40,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   }
 
   // If wallet is not connected or there is no identity, show login page.
-  if (!isInitializing && (!isConnected || !identity)) {
-    return <LoginPage />;
-  }
+  // if (!isInitializing && (!isConnected || !identity)) {
+  //   return <LoginPage />;
+  // }
 
   return <>{children}</>;
 }

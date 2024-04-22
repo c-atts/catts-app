@@ -1,8 +1,13 @@
 import Button from "../../../components/ui/Button";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import useRunContext from "../../../ run-context/useRunContext";
+import { useSiweIdentity } from "ic-use-siwe-identity";
+import { useAccount } from "wagmi";
+import { isChainIdSupported } from "../../../wagmi/is-chain-id-supported";
 
 export default function InitRun() {
+  const { identity } = useSiweIdentity();
+  const { chainId } = useAccount();
   const {
     isSimulationOk: isSelectedRecipeValid,
     useInitRun,
@@ -15,7 +20,11 @@ export default function InitRun() {
   };
 
   const disabled =
-    !selectedRecipe || !isSelectedRecipeValid || useInitRun.isPending;
+    !identity ||
+    !isChainIdSupported(chainId) ||
+    !selectedRecipe ||
+    !isSelectedRecipeValid ||
+    useInitRun.isPending;
 
   const buttonHidden = useInitRun.data != null && "Ok" in useInitRun.data;
 

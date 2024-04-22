@@ -1,17 +1,23 @@
-import Section from "../../components/ui/Section";
 import RecipesList from "./components/RecipesList";
 import RunHistory from "./components/RunHistory";
+import Section from "../../components/ui/Section";
 
 export default function MainView() {
   return (
     <>
       <Section>
-        <h2>Run a recipe</h2>
+        <h2 className="text-theme-400">Recipes</h2>
         <p>
-          This is an early demo of what is possible using{" "}
-          <span className="font-bold text-theme-400">C–ATTS</span>. Select from
-          one of three pre-defined recipes to get started. All attestations are
-          created on the Ethereum Sepolia testnet.
+          Recipes define the ingredients that make up a composite attestation -
+          the queries, variables and custom processing logic. C–ATTS uses{" "}
+          <a href="https://attest.sh" rel="noreferrer" target="_blank">
+            Ethereum Attestation Service
+          </a>{" "}
+          (EAS) to execute recipes and generate attestations.
+        </p>
+        <p>
+          This demo provides a few prebuilt recipes to get you started. Future
+          versions will allow you to create and share your own recipes!
         </p>
         <RecipesList />
       </Section>

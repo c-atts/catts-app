@@ -8,6 +8,9 @@ import { simulateRun } from "../../../catts/simulateRun";
 import useRunContext from "../../../ run-context/useRunContext";
 import { useSimulateRecipeQueries } from "../../../catts/hooks/useSimulateRecipeQueries";
 import { isError } from "remeda";
+import { useSiweIdentity } from "ic-use-siwe-identity";
+import { useAccount } from "wagmi";
+import { isChainIdSupported } from "../../../wagmi/is-chain-id-supported";
 
 function RecipeRunnerInner() {
   const { data, isPending, error } = useSimulateRecipeQueries();
@@ -71,11 +74,17 @@ function RecipeRunnerInner() {
 }
 
 export default function SimulateRun() {
+  const { identity } = useSiweIdentity();
+  const { chainId } = useAccount();
   const [runSimulation, setRunSimulation] = useState(false);
   const { selectedRecipe, isSimulationOk: isSelectedRecipeValid } =
     useRunContext();
 
-  const disabled = !selectedRecipe || isSelectedRecipeValid != undefined;
+  const disabled =
+    !identity ||
+    !isChainIdSupported(chainId) ||
+    !selectedRecipe ||
+    isSelectedRecipeValid != undefined;
 
   return (
     <div className="flex flex-col gap-2">

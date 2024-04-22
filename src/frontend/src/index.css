@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  @apply font-sans text-sm bg-zinc-800 text-zinc-300;
+  @apply font-sans text-base bg-zinc-800 text-zinc-400;
 }
 
 a {
@@ -32,6 +32,5 @@ h3 {
 
 p {
   line-height: 1.8em;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+  margin-bottom: 1.2em;
 }
