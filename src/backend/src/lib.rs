@@ -29,7 +29,7 @@ use user_profile::UserProfile;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
-const ETH_DEFAULT_CALL_CYCLES: u64 = 2_000_000_000;
+const ETH_DEFAULT_CALL_CYCLES: u64 = 30_000_000_000;
 const ETH_PAYMENT_CONTRACT_ADDRESS: &str = "0xf4e6652aFF99525b2f38b9A990AA1EB5f42ABdF0";
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
