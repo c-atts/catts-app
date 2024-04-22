@@ -32,4 +32,11 @@ export const EAS_CONFIG: EasConfig[] = [
     explorerUrl: "https://optimism.easscan.org",
     graphqlUrl: "https://optimism.easscan.org/graphql",
   },
+  {
+    id: 8453, // Base
+    address: "0x4200000000000000000000000000000000000021",
+    registryAddress: "0x4200000000000000000000000000000000000020",
+    explorerUrl: "https://base.easscan.org",
+    graphqlUrl: "https://base.easscan.org/graphql",
+  },
 ];

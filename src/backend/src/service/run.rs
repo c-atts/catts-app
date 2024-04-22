@@ -44,13 +44,24 @@ async fn run(run_id: RunId) -> Result<String, String> {
     let recipe =
         recipe::Recipe::get(&run.recipe_id).ok_or_else(|| "Recipe not found".to_string())?;
 
-    // Here, we should run all queries instead of just the first one
-    let query_response =
-        run_eas_query(&address, &recipe.queries[0], &recipe.query_variables[0]).await?;
+    let mut query_response = Vec::new();
+    for i in 0..recipe.queries.len() {
+        let response = run_eas_query(
+            &address,
+            &recipe.queries[i],
+            &recipe.query_variables[i],
+            &recipe.query_settings[i],
+        )
+        .await?;
 
-    ic_cdk::println!("Response: {:?}", query_response);
+        query_response.push(response);
+    }
 
-    let processed_response = process_query_result(&recipe.processor, &query_response);
+    let aggregated_response = format!("[{}]", query_response.join(","));
+
+    ic_cdk::println!("Response: {:?}", aggregated_response);
+
+    let processed_response = process_query_result(&recipe.processor, &aggregated_response);
 
     ic_cdk::println!("Processed response: {:?}", processed_response);
 

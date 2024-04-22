@@ -8,21 +8,26 @@ export function simulateRun({
   queryData,
 }: {
   recipe: Recipe;
-  queryData: string;
+  queryData: any[];
 }) {
+  console.log(
+    "Data returned by the recipe queries:",
+    JSON.stringify(queryData, null, 2)
+  );
+
   // Define the function that processes the data returned by the recipe queries
-  //TODO  Replace this with a proper sandboxed environment
+  //TODO  Replace this with secure sandboxed evaluation
   const processFunction = `            
-  const data = JSON.parse(queryResult?.attestations[0]?.decodedDataJson); 
+  const queryResult = JSON.parse(queryResultRaw); 
   ${recipe.processor}
 `;
   const process: (data: string) => string = new Function(
-    "queryResult",
+    "queryResultRaw",
     processFunction
   ) as (data: string) => string;
 
   // Process the data returned by the recipe queries
-  const runOutputRaw = process(queryData);
+  const runOutputRaw = process(JSON.stringify(queryData));
 
   // Parse the processed data, make sure it follows the expected schema
   let runOutput: RunOutput = RunOutput.parse(JSON.parse(runOutputRaw));

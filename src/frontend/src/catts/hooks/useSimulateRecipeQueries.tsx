@@ -22,33 +22,53 @@ export const useSimulateRecipeQueries = () => {
   const { selectedRecipe } = useRunContext();
   const { address } = useAccount();
 
-  const settings: RecipeSettings = JSON.parse(
-    selectedRecipe?.query_settings[0] ?? "{}"
-  );
+  const dynamicVariables = {
+    user_eth_address: address ?? "",
+  };
 
-  const easConfig = getEasConfig(settings.chainId);
-  const variables = parseVariablesTemplate(
-    selectedRecipe?.query_variables[0] ?? "",
-    {
-      user_eth_address: address ?? "",
-    }
-  );
   return useQuery({
-    queryKey: ["RecipeRun", selectedRecipe?.name, address, settings.chainId],
+    queryKey: ["RecipeRun", selectedRecipe?.name, address],
     queryFn: async () => {
-      if (
-        !selectedRecipe?.name ||
-        !address ||
-        !settings.chainId ||
-        !easConfig?.graphqlUrl
-      ) {
+      if (!selectedRecipe?.name || !address) {
         return null;
       }
-      return request(
-        easConfig.graphqlUrl,
-        selectedRecipe.queries[0],
-        variables
-      );
+
+      const aggregatedResponse: any[] = [];
+      for (let i = 0; i < selectedRecipe.queries.length; i++) {
+        const querySettings: RecipeSettings = JSON.parse(
+          selectedRecipe.query_settings[i] ?? "{}"
+        );
+
+        const easConfig = getEasConfig(querySettings.chain_id);
+        if (!easConfig) {
+          console.error(
+            `No EAS configuration found for chain_id ${querySettings.chain_id}`
+          );
+          return null;
+        }
+
+        const queryVariables = parseVariablesTemplate(
+          selectedRecipe.query_variables[i] ?? "",
+          dynamicVariables
+        );
+
+        const queryResponse = await request(
+          easConfig.graphqlUrl,
+          selectedRecipe.queries[i],
+          queryVariables
+        );
+
+        if (typeof queryResponse !== "object") {
+          console.error(
+            `Expected response to be an object, got ${typeof queryResponse}`
+          );
+          return null;
+        }
+
+        aggregatedResponse.push(queryResponse);
+      }
+
+      return aggregatedResponse;
     },
   });
 };

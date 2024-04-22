@@ -156,6 +156,7 @@ dependencies = [
  "ic-stable-structures",
  "ic-wasi-polyfill",
  "k256",
+ "lazy_static",
  "num-bigint",
  "rand",
  "regex",

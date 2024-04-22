@@ -8,6 +8,7 @@ use ethers_core::utils::keccak256;
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
 };
+use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -33,6 +34,7 @@ enum AbiValueField {
         hex: String,
     },
     Number(u64),
+    Bool(bool),
 }
 
 pub fn encode_abi_data(json_data: &str) -> Vec<u8> {
@@ -47,12 +49,18 @@ pub fn encode_abi_data(json_data: &str) -> Vec<u8> {
                     Token::Uint(U256::from_str(hex).expect("Invalid hex value"))
                 }
                 AbiValueField::Number(num) => Token::Uint((*num).into()),
+                _ => panic!("Unsupported value: {:?}", item.value),
             },
             _ if item.type_.starts_with("int") => match &item.value {
                 AbiValueField::BigNumber { hex, .. } => {
                     Token::Int(U256::from_str(hex).expect("Invalid hex value"))
                 }
                 AbiValueField::Number(num) => Token::Int((*num).into()),
+                _ => panic!("Unsupported value: {:?}", item.value),
+            },
+            _ if item.type_ == "bool" => match &item.value {
+                AbiValueField::Bool(val) => Token::Bool(*val),
+                _ => panic!("Unsupported value: {:?}", item.value),
             },
             _ => panic!("Unsupported type: {}", item.type_),
         })
@@ -114,16 +122,32 @@ pub fn insert_dynamic_variables(
     .to_string()
 }
 
+lazy_static! {
+    static ref EAS_CHAIN_GQL_ENDPOINT: HashMap<u32, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert(10, "https://optimism.easscan.org/graphql");
+        m.insert(11155111, "https://sepolia.easscan.org/graphql");
+        m.insert(8453, "https://base.easscan.org/graphql");
+        m
+    };
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 struct EasQueryPayload {
     query: String,
     variables: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct EasQuerySettings {
+    pub chain_id: u32,
+}
+
 pub async fn run_eas_query(
     address: &EthAddress,
     query: &str,
     query_variables: &str,
+    query_settings: &str,
 ) -> Result<String, String> {
     let http_headers = get_eas_http_headers();
 
@@ -138,8 +162,15 @@ pub async fn run_eas_query(
     let payload = serde_json::to_string(&payload).map_err(|err| err.to_string())?;
     let payload = payload.into_bytes();
 
+    let settings =
+        serde_json::from_str::<EasQuerySettings>(query_settings).map_err(|err| err.to_string())?;
+
+    let endpoint = EAS_CHAIN_GQL_ENDPOINT
+        .get(&settings.chain_id)
+        .ok_or_else(|| format!("Chain ID {} is not supported", settings.chain_id))?;
+
     let request = CanisterHttpRequestArgument {
-        url: "https://optimism.easscan.org/graphql".to_string(),
+        url: endpoint.to_string(),
         method: HttpMethod::POST,
         headers: http_headers,
         body: Some(payload),
@@ -165,20 +196,17 @@ pub fn process_query_result(processor: &str, query_result: &str) -> String {
     let js_process_function = format!(
         r#"
             function process() {{
-                const queryResultJson = JSON.parse(queryResultString); 
-                const data = JSON.parse(queryResultJson?.data?.attestations[0]?.decodedDataJson); 
+                let queryResult = JSON.parse(queryResultRaw).map((res) => res.data);
                 {processor}
             }}
         "#
     );
 
-    ic_cdk::println!("JS code: {:?}", js_process_function);
-
     let mut context = Context::default();
 
     context
         .register_global_property(
-            js_string!("queryResultString"),
+            js_string!("queryResultRaw"),
             js_string!(query_result),
             Attribute::all(),
         )
@@ -203,11 +231,7 @@ pub async fn create_attestation(
 ) -> Result<String, String> {
     let encoded_abi_data = encode_abi_data(attestation_data);
 
-    ic_cdk::println!("Data: {:?}", hex::encode(encoded_abi_data.clone()));
-
     let schema_uid = get_schema_uid(schema, "0x0000000000000000000000000000000000000000", false)?;
-
-    ic_cdk::println!("UID: {:?}", hex::encode(schema_uid));
 
     let schema_token = Token::FixedBytes(schema_uid.to_vec());
 

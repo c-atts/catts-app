@@ -7,15 +7,13 @@ export default function RecipeBasics() {
     return null;
   }
 
-  const { name, description, author, version } = selectedRecipe;
+  const { name, description, version } = selectedRecipe;
 
   return (
     <div>
       <h2>{name}</h2>
       {description}
-      <p className="text-sm text-zinc-500">
-        {author} published {version}, 8 days ago.
-      </p>
+      <p className="text-sm text-zinc-500">Version {version}, 8 days ago.</p>
     </div>
   );
 }

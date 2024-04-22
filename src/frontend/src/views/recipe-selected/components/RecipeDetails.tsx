@@ -4,6 +4,41 @@ import Button from "../../../components/ui/Button";
 import useRunContext from "../../../ run-context/useRunContext";
 import { useState } from "react";
 
+function formatGraphQLQuery(query: string): string {
+  // Normalize spaces and remove unnecessary spaces before and after braces
+  let formatted = query
+    .replace(/\s*\{\s*/g, " { ")
+    .replace(/\s*\}\s*/g, " } ")
+    .trim();
+
+  // Break before any '{' and after any '}', and ensure space around the parentheses
+  formatted = formatted.replace(/(\s*\{\s*)|(\s*\}\s*)/g, "\n$&\n");
+
+  // Split the formatted string into lines for further processing
+  const lines = formatted.split("\n").filter((line) => line.trim() !== "");
+
+  // Manage indentation
+  let indentLevel = 0;
+  const indentedLines = lines.map((line) => {
+    // Adjust indentation based on the current line content
+    if (line.includes("}") && !line.includes("{")) {
+      indentLevel--;
+    }
+
+    // Create the indented line
+    const indentedLine = `${"  ".repeat(indentLevel)}${line.trim()}`;
+
+    // Prepare for the next line
+    if (line.includes("{") && !line.includes("}")) {
+      indentLevel++;
+    }
+
+    return indentedLine;
+  });
+
+  return indentedLines.join("\n");
+}
+
 export default function RecipeDetails() {
   const { selectedRecipe } = useRunContext();
   const [showDetails, setShowDetails] = useState(false);
@@ -11,9 +46,24 @@ export default function RecipeDetails() {
     return null;
   }
 
-  const { queries, query_variables, output_schema } = selectedRecipe;
+  const { queries, query_variables, query_settings, processor, output_schema } =
+    selectedRecipe;
 
   const faChevron = showDetails ? faChevronUp : faChevronDown;
+
+  const formattedQueries = queries.map(formatGraphQLQuery).join("\n");
+
+  const formattedQueryVariables = JSON.stringify(
+    query_variables.map((v) => JSON.parse(v)),
+    null,
+    2
+  );
+
+  const formattedQuerySettings = JSON.stringify(
+    query_settings.map((s) => JSON.parse(s)),
+    null,
+    2
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -21,11 +71,22 @@ export default function RecipeDetails() {
         <div className="flex flex-col gap-3 prose-l">
           <h2 className="prose-lg">Queries</h2>
           <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
-            {JSON.stringify(queries, null, 2)}
+            {formattedQueries}
           </pre>
           <h2 className="prose-lg">Query variables</h2>
           <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
-            [{JSON.stringify(JSON.parse(query_variables[0]), null, 2)}]
+            {formattedQueryVariables}
+          </pre>
+          <h2 className="prose-lg">Query settings</h2>
+          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
+            {formattedQuerySettings}
+          </pre>
+          <h2 className="prose-lg">Processor</h2>
+          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
+            {processor
+              .split("\n")
+              .map((line) => line.trim())
+              .join("\n")}
           </pre>
           <h2 className="prose-lg">Output Schema</h2>
           <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">

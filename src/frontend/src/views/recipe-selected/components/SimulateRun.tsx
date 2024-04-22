@@ -7,6 +7,7 @@ import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { simulateRun } from "../../../catts/simulateRun";
 import useRunContext from "../../../ run-context/useRunContext";
 import { useSimulateRecipeQueries } from "../../../catts/hooks/useSimulateRecipeQueries";
+import { isError } from "remeda";
 
 function RecipeRunnerInner() {
   const { data, isPending, error } = useSimulateRecipeQueries();
@@ -15,6 +16,7 @@ function RecipeRunnerInner() {
     setIsSimulationOk: setIsSelectedRecipeValid,
     isSimulationOk: isSelectedRecipeValid,
   } = useRunContext();
+  const [simulateError, setSimulateError] = useState<string>();
 
   const [processedData, setProcessedData] = useState<RunOutput>();
 
@@ -24,7 +26,7 @@ function RecipeRunnerInner() {
       // Simluate the run in the browser
       const { runOutput } = simulateRun({
         recipe: selectedRecipe,
-        queryData: data as string,
+        queryData: data,
       });
 
       // All checks passed, this means we can use this data to create a new attestation
@@ -32,6 +34,7 @@ function RecipeRunnerInner() {
       setIsSelectedRecipeValid(true);
     } catch (e) {
       console.error(e);
+      setSimulateError(isError(e) ? e.message : "Couldn't run simulation");
       setIsSelectedRecipeValid(false);
     }
   }, [data, selectedRecipe, setIsSelectedRecipeValid, isSelectedRecipeValid]);
@@ -43,6 +46,8 @@ function RecipeRunnerInner() {
         Running simulation
       </p>
     );
+
+  if (simulateError) return <p>🔴 {simulateError}</p>;
 
   if (!data || !isSelectedRecipeValid)
     return <p>🔴 Recipe did not return any data for this user.</p>;

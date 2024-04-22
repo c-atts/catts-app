@@ -26,6 +26,7 @@ ic-wasi-polyfill = "0.4.1"
 regex = "1.10.4"
 boa_engine = "0.18.0"
 futures = "0.3"
+lazy_static = "1.4.0"
 
 [build-dependencies]
 ic-cdk-bindgen = "0.1.3"

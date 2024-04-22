@@ -1,3 +1,3 @@
 export type RecipeSettings = {
-  chainId: number;
+  chain_id: number;
 };
