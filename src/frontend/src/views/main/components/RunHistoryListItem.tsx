@@ -26,7 +26,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
 
   return (
     <li className="flex flex-col">
-      <h3>Copy Gitcoin Passport Score</h3>
+      <h3>{run.recipe_id}</h3>
       <div className="border-zinc-700/50 border-[1px]  drop-shadow-xl rounded-2xl flex flex-col p-10 w-full mt-2">
         <div className="flex flex-col gap-2 text-sm text-zinc-500">
           <div className="flex items-center justify-between w-full h-8">
