@@ -123,6 +123,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     try {
       const res = await waitForTransactionReceipt(wagmiConfig, {
         hash: run.payment_transaction_hash[0] as `0x${string}`,
+        confirmations: 3,
       });
 
       if (res) {
