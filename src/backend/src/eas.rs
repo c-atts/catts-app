@@ -1,12 +1,14 @@
 use crate::eth::EthAddress;
 use crate::evm_rpc::eth_transaction;
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
+use blake2::digest::{Update, VariableOutput};
+use blake2::Blake2bVar;
 use boa_engine::{js_string, property::Attribute, Context, Source};
 use ethers_core::abi::{encode, encode_packed, ethereum_types::H160, Address, Token};
 use ethers_core::types::U256;
 use ethers_core::utils::keccak256;
 use ic_cdk::api::management_canister::http_request::{
-    http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod,
+    http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
 };
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -14,7 +16,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::str::FromStr;
-
 pub type Uid = String;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -154,8 +155,6 @@ pub async fn run_eas_query(
     query_variables: &str,
     query_settings: &str,
 ) -> Result<String, String> {
-    let http_headers = get_eas_http_headers();
-
     let mut dynamic_values: HashMap<String, String> = HashMap::new();
     dynamic_values.insert("user_eth_address".to_string(), address.as_str().to_string());
     let variables = insert_dynamic_variables(query_variables, &dynamic_values);
@@ -174,13 +173,25 @@ pub async fn run_eas_query(
         .get(&settings.chain_id)
         .ok_or_else(|| format!("Chain ID {} is not supported", settings.chain_id))?;
 
+    let http_headers = get_eas_http_headers();
+
+    let mut hasher = Blake2bVar::new(12).unwrap();
+    hasher.update(&payload);
+    let mut cache_key = [0u8; 12];
+    hasher.finalize_variable(&mut cache_key).unwrap();
+    let cache_key = hex::encode(cache_key);
+
+    let url = format!("{}/{}", endpoint, cache_key);
     let request = CanisterHttpRequestArgument {
-        url: endpoint.to_string(),
-        method: HttpMethod::POST,
+        url,
+        method: HttpMethod::GET,
         headers: http_headers,
         body: Some(payload),
         max_response_bytes: None,
-        transform: None,
+        transform: Some(TransformContext::from_name(
+            "transform".to_string(),
+            serde_json::to_vec(&Vec::<u8>::new()).unwrap(),
+        )),
     };
 
     match http_request(request, ETH_DEFAULT_CALL_CYCLES as u128).await {

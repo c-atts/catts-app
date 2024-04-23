@@ -14,6 +14,7 @@ use candid::Principal;
 use eas::Uid;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
+use ic_cdk::api::management_canister::http_request::{HttpResponse, TransformArgs};
 use ic_cdk::{export_candid, init, post_upgrade};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{Cell, DefaultMemoryImpl, StableBTreeMap, StableVec};

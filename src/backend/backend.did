@@ -1,3 +1,9 @@
+type HttpHeader = record { value : text; name : text };
+type HttpResponse = record {
+  status : nat;
+  body : blob;
+  headers : vec HttpHeader;
+};
 type Recipe = record {
   created : nat64;
   creator : blob;
@@ -30,6 +36,7 @@ type Run = record {
   payment_transaction_hash : opt text;
 };
 type RunStatus = variant { Failed; Paid; Cancelled; Created; Completed };
+type TransformArgs = record { context : blob; response : HttpResponse };
 type UserProfile = record {
   credits : nat32;
   avatar_url : text;
@@ -47,4 +54,5 @@ service : (text) -> {
   list_recipes : () -> (Result_5) query;
   run : (blob) -> (Result_1);
   save_my_profile : (text, text) -> (Result_2);
+  transform : (TransformArgs) -> (HttpResponse) query;
 }
