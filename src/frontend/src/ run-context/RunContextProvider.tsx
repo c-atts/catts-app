@@ -8,6 +8,7 @@ import { RunContextStateType } from "./run-context-state.type";
 import { RunContextType } from "./run-context.type";
 import { TransactionExecutionError } from "viem";
 import abi from "../components/abi.json";
+import { sepolia } from "viem/chains";
 import { toHex } from "viem/utils";
 import { useCancelRun } from "../catts/hooks/useCancelRun";
 import { useGetAttestationUid } from "../catts/hooks/useGetAttestationUid";
@@ -123,7 +124,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     try {
       const res = await waitForTransactionReceipt(wagmiConfig, {
         hash: run.payment_transaction_hash[0] as `0x${string}`,
-        confirmations: 3,
+        chainId: sepolia.id,
       });
 
       if (res) {

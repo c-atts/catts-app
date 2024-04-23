@@ -23,10 +23,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   // If user switches to an unsupported network, clear the session.
   useEffect(() => {
-    if (!isChainIdSupported(chainId)) {
+    if (identity && !isChainIdSupported(chainId)) {
       clear();
     }
-  }, [chainId, clear]);
+  }, [chainId, clear, identity]);
 
   // If the user switches to a different address, clear the session.
   useEffect(() => {
@@ -38,11 +38,6 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   if (isInitializing) {
     return null;
   }
-
-  // If wallet is not connected or there is no identity, show login page.
-  // if (!isInitializing && (!isConnected || !identity)) {
-  //   return <LoginPage />;
-  // }
 
   return <>{children}</>;
 }

@@ -1,23 +1,12 @@
 import ConnectButton from "./ConnectButton";
 import LoginButton from "./LoginButton";
 import toast from "react-hot-toast";
-import { useAccount } from "wagmi";
 import { useEffect } from "react";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import Section from "../ui/Section";
 
 export default function LoginSection(): React.ReactElement {
-  const { isConnected, address } = useAccount();
-  const { prepareLogin, isPrepareLoginIdle, prepareLoginError, loginError } =
-    useSiweIdentity();
-
-  /**
-   * Preload a Siwe message on every address change.
-   */
-  useEffect(() => {
-    if (!isPrepareLoginIdle || !isConnected || !address) return;
-    prepareLogin();
-  }, [isConnected, address, prepareLogin, isPrepareLoginIdle]);
+  const { prepareLoginError, loginError } = useSiweIdentity();
 
   /**
    * Show an error toast if the prepareLogin() call fails.
