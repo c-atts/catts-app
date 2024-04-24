@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="flex flex-col items-center w-full pb-10">
       <Header />
-      <div className="flex flex-col items-center gap-10 p-5">
+      <div className="flex flex-col items-center gap-10 p-5 pt-36">
         {!identity && <LoginSection />}
         {selectedRecipe ? <RecipeSelectedView /> : <MainView />}
         <GitHubIcon />

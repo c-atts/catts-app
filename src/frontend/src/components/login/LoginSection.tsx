@@ -34,20 +34,18 @@ export default function LoginSection(): React.ReactElement {
     <Section>
       <div className="flex flex-col items-center w-full gap-5">
         <div>
-          <h2 className="text-center text-theme-400">C–ATTS</h2>
+          <h1 className="text-center text-theme-400">C–ATTS</h1>
           <div className="text-center">
             <h3>Move, transform and combine attestations!</h3>
           </div>
-          <p className="text-center">
-            C-ATTS introduces the concept of composite attestations, a new type
-            of attestation combining data from multiple sources to form a
-            unified and verifiable credential.
+          <p className="text-lg leading-8 text-center text-zinc-400">
+            Composite attestations are a new type of attestation combining data
+            from multiple sources to form a unified and verifiable credential.
           </p>
-          <p className="text-center">
+          <p className="text-lg leading-8 text-center text-zinc-400">
             This is an early demo of what is possible using C–ATTS. Sign in with
             your Ethereum wallet to get started simulating and creating
-            composite attestations. All attestations are created on the{" "}
-            <b>Ethereum Sepolia</b> testnet.
+            composite attestations.
           </p>
         </div>
         <ConnectButton />

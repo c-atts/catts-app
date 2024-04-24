@@ -34,7 +34,18 @@ export default function InitRun() {
         <h2>Run recipe</h2>
         <p>
           Once you have simulated to verify the run will produce an attestation,
-          you can go ahead an run the recipe.
+          you can go ahead an run the recipe. All attestations are created on
+          the <b>Ethereum Sepolia</b> testnet. You will need to pay for the
+          transaction using SepoliaETH. Get some free SepoliaETH from a faucet,
+          for example{" "}
+          <a
+            href="https://faucet.quicknode.com/ethereum/sepolia/"
+            rel="noreferrer noopener"
+            target="_ new"
+          >
+            this one
+          </a>
+          .
         </p>
       </div>
       {!buttonHidden && (
