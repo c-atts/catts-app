@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-dotenv.config();
+dotenv.config({ path: "../../.env" });
 
 const processEnvCanisterIds = Object.fromEntries(
   Object.entries(process.env)

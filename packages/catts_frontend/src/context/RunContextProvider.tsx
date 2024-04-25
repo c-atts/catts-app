@@ -2,7 +2,7 @@ import * as R from "remeda";
 
 import { ReactNode, createContext, useState } from "react";
 
-import CattsRunPayments from "../../../catts_payments/artifacts/contracts/CattsRunPayments.sol/CattsRunPayments.json";
+import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
 import { ETH_PAYMENT_CONTRACT_ADDRESS } from "../config";
 import { Run } from "catts_engine/declarations/catts_engine.did";
 import { RunContextStateType } from "./run-context-state.type";
@@ -87,7 +87,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
 
     try {
       const transactionHash = await _usePayForRun.writeContractAsync({
-        abi: CattsRunPayments.abi,
+        abi: CattsPaymentsAbi,
         address: ETH_PAYMENT_CONTRACT_ADDRESS,
         functionName: "payRun",
         args: [toHex(run.id as Uint8Array)],

@@ -35,7 +35,7 @@ const ETH_PAYMENT_CONTRACT_ADDRESS: &str = "0xf4e6652aFF99525b2f38b9A990AA1EB5f4
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
 const ETH_PAYMENTS_CHECK_INTERVAL: u64 = 60 * 60; // 60 minutes
-const ETH_PAYMENTS_LATEST_BLOCK_DEFAULT: u32 = 5759790;
+const ETH_PAYMENTS_LATEST_BLOCK_DEFAULT: u32 = 5775755;
 
 pub fn authenticated() -> Result<(), String> {
     let caller = ic_cdk::api::caller();
