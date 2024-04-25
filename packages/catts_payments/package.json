@@ -1,0 +1,23 @@
+{
+  "name": "catts_payments",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+  "author": "Kristofer Lund <kristofer@kristoferlund.se>",
+  "license": "MIT",
+  "scripts": {
+    "build": "npx hardhat compile",
+    "coverage": "npx hardhat coverage",
+    "test": "REPORT_GAS=true npx hardhat test",
+    "deploy": "npx hardhat ignition deploy ./ignition/modules/CattsCredits.ts --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.6",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "ethers": "^6.11.1",
+    "hardhat": "^2.22.2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2"
+  }
+}

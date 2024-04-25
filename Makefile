@@ -21,7 +21,7 @@ deploy-siwe:
 	        session_expires_in = opt 604800000000000; /* 1 week */ \
 	        targets = opt vec { \
 	            \"$$(dfx canister id ic_siwe_provider)\"; \
-	            \"$$(dfx canister id backend)\"; \
+	            \"$$(dfx canister id catts_engine)\"; \
 	        }; \
 	    } \
 	)"
@@ -39,28 +39,28 @@ upgrade-siwe:
 	        session_expires_in = opt 604800000000000; /* 1 week */ \
 	        targets = opt vec { \
 	            \"$$(dfx canister id ic_siwe_provider)\"; \
-	            \"$$(dfx canister id backend)\"; \
+	            \"$$(dfx canister id catts_engine)\"; \
 	        }; \
 	    } \
 	)"
 
-deploy-catts:
+deploy-engine:
 	export CANISTER_CANDID_PATH_IC_SIWE_PROVIDER=../ic_siwe_provider/ic_siwe_provider.did && \
 	export CANISTER_CANDID_PATH_EVM_RPC=../evm_rpc/evm_rpc.did && \
 	cargo build --target wasm32-wasi && \
 	cargo build --release --target wasm32-wasi && \
 	cd ./target/wasm32-wasi/release && \
-	wasi2ic backend.wasm backend.wasm && \
-	candid-extractor backend.wasm > ../../../src/backend/backend.did && \
-	ic-wasm backend.wasm -o backend.wasm metadata candid:service -f ../../../src/backend/backend.did -v public && \
-	gzip -c backend.wasm > backend.wasm.gz && \
-	dfx deploy backend --argument "(\"dfx_test_key\")"
+	wasi2ic catts_engine.wasm catts_engine.wasm && \
+	candid-extractor catts_engine.wasm > ../../../packages/catts_engine/catts_engine.did && \
+	ic-wasm catts_engine.wasm -o catts_engine.wasm metadata candid:service -f ../../../packages/catts_engine/catts_engine.did -v public && \
+	gzip -c catts_engine.wasm > catts_engine.wasm.gz && \
+	dfx deploy catts_engine --argument "(\"dfx_test_key\")"
 
 deploy-frontend:
 	npm install
-	dfx deploy frontend
+	dfx deploy catts_frontend
 
-deploy-all: create-canisters deploy-siwe deploy-evm-rpc deploy-catts deploy-frontend
+deploy-all: create-canisters deploy-siwe deploy-evm-rpc deploy-engine deploy-frontend
 
 run-frontend:
 	npm install
@@ -68,10 +68,18 @@ run-frontend:
 
 clean:
 	rm -rf .dfx
-	rm -rf dist
 	rm -rf node_modules
-	rm -rf src/declarations
-	rm -rf src/backend/src/declarations
+	rm -rf packages/catts_engine/declarations
+	rm -rf packages/catts_engine/src/declarations
+	rm -rf packages/catts_frontend/declarations
+	rm -rf packages/catts_frontend/dist
+	rm -rf packages/catts_payments/artifacts
+	rm -rf packages/catts_payments/cache
+	rm -rf packages/catts_payments/coverage
+	rm -rf packages/catts_payments/typechain-types
+	rm -rf packages/catts_payments/coverage.json
+	rm -rf packages/evm_rpc/declarations
+	rm -rf packages/ic_siwe_provider/declarations
+	rm -rf target
 	rm -f .env
 	cargo clean
-

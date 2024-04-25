@@ -14,8 +14,7 @@
 canister_ids.json
 
 # Generated files for declarations
-src/declarations/
-src/backend/src/declarations/
+declarations/
 
 # Rust build folder
 target/

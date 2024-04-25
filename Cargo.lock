@@ -138,36 +138,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
-name = "backend"
-version = "0.0.1"
-dependencies = [
- "blake2",
- "boa_engine",
- "candid",
- "dotenv",
- "ethers",
- "ethers-core",
- "futures",
- "getrandom",
- "hex",
- "ic-cdk 0.12.0",
- "ic-cdk-bindgen",
- "ic-cdk-timers",
- "ic-stable-structures",
- "ic-wasi-polyfill",
- "k256",
- "lazy_static",
- "num-bigint",
- "rand",
- "regex",
- "serde",
- "serde_bytes",
- "serde_json",
- "sha2",
- "tiny-keccak",
-]
-
-[[package]]
 name = "backtrace"
 version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -584,6 +554,36 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+]
+
+[[package]]
+name = "catts_engine"
+version = "0.0.1"
+dependencies = [
+ "blake2",
+ "boa_engine",
+ "candid",
+ "dotenv",
+ "ethers",
+ "ethers-core",
+ "futures",
+ "getrandom",
+ "hex",
+ "ic-cdk 0.12.0",
+ "ic-cdk-bindgen",
+ "ic-cdk-timers",
+ "ic-stable-structures",
+ "ic-wasi-polyfill",
+ "k256",
+ "lazy_static",
+ "num-bigint",
+ "rand",
+ "regex",
+ "serde",
+ "serde_bytes",
+ "serde_json",
+ "sha2",
+ "tiny-keccak",
 ]
 
 [[package]]

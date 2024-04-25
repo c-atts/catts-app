@@ -2,13 +2,20 @@
   "canisters": {
     "ic_siwe_provider": {
       "candid": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.did",
+      "declarations": {
+        "output": "packages/ic_siwe_provider/declarations"
+      },
       "type": "custom",
       "wasm": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.wasm.gz"
     },
+
     "evm_rpc": {
       "candid": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.did",
+      "declarations": {
+        "output": "packages/evm_rpc/declarations"
+      },  
       "remote": {
-        "candid": "src/evm_rpc/evm_rpc.did",
+        "candid": "packages/evm_rpc/evm_rpc.did",
         "id": {
           "ic": "7hfb6-caaaa-aaaar-qadga-cai"
         }
@@ -16,17 +23,25 @@
       "type": "custom",
       "wasm": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc_dev.wasm.gz"
     },
-    "backend": {
-      "candid": "src/backend/backend.did",
+    
+    "catts_engine": {
+      "candid": "packages/catts_engine/catts_engine.did",
+      "declarations": {
+        "output": "packages/catts_engine/declarations"
+      },
       "dependencies": ["ic_siwe_provider", "evm_rpc"],
       "package": "backend",
       "type": "custom",
-      "wasm": "target/wasm32-wasi/release/backend.wasm.gz"
+      "wasm": "target/wasm32-wasi/release/catts_engine.wasm.gz"
     },
-    "frontend": {
-      "build": ["npm run build"],
-      "dependencies": ["backend", "ic_siwe_provider"],
-      "source": ["dist"],
+    
+    "catts_frontend": {
+      "build": ["npm run build -w catts_frontend"],
+      "declarations": {
+        "output": "packages/catts_frontend/declarations"
+      },
+      "dependencies": ["catts_engine", "ic_siwe_provider"],
+      "source": ["packages/catts_frontend/dist"],
       "type": "assets"
     }
   },
