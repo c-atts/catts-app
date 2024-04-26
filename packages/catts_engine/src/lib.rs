@@ -1,5 +1,6 @@
 mod declarations;
 mod eas;
+mod error;
 mod eth;
 mod evm_rpc;
 mod payments;
@@ -11,7 +12,7 @@ mod state;
 mod user_profile;
 
 use candid::Principal;
-use eas::Uid;
+use error::Error;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
 use ic_cdk::api::management_canister::http_request::{HttpResponse, TransformArgs};
@@ -19,8 +20,8 @@ use ic_cdk::{export_candid, init, post_upgrade};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{Cell, DefaultMemoryImpl, StableBTreeMap, StableVec};
 use payments::check_latest_eth_payments;
-use recipe::init_recipes;
-use recipe::Recipe;
+use recipe::{init_recipes, RecipeId};
+use recipe::{Recipe, RecipeName};
 use run::{Run, RunId};
 use state::State;
 use std::cell::RefCell;
@@ -35,7 +36,7 @@ const ETH_PAYMENT_CONTRACT_ADDRESS: &str = "0xf4e6652aFF99525b2f38b9A990AA1EB5f4
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
 const ETH_PAYMENTS_CHECK_INTERVAL: u64 = 60 * 60; // 60 minutes
-const ETH_PAYMENTS_LATEST_BLOCK_DEFAULT: u32 = 5775755;
+const ETH_PAYMENTS_LATEST_BLOCK_DEFAULT: u32 = 5780563;
 
 pub fn authenticated() -> Result<(), String> {
     let caller = ic_cdk::api::caller();
@@ -55,7 +56,7 @@ thread_local! {
         )
     );
 
-    static RECIPES: RefCell<StableBTreeMap<Uid, recipe::Recipe, Memory>> = RefCell::new(
+    static RECIPES: RefCell<StableBTreeMap<(RecipeName, RecipeId), recipe::Recipe, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1))),
         )

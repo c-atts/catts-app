@@ -1,3 +1,8 @@
+use crate::{
+    eth::{EthAddress, EthAddressBytes},
+    recipe::{Recipe, RecipeId},
+    RUNS, RUNS_ORDER_INDEX,
+};
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
 use candid::{CandidType, Decode, Encode};
@@ -7,11 +12,19 @@ use std::{
     borrow::Cow,
     fmt::{self, Display, Formatter},
 };
+use thiserror::Error;
 
-use crate::{
-    eth::{EthAddress, EthAddressBytes},
-    RUNS, RUNS_ORDER_INDEX,
-};
+#[derive(Error, Debug)]
+pub enum RunError {
+    #[error("Run not found")]
+    NotFound,
+    #[error("Access denied")]
+    AccessDenied,
+    #[error("Only runs with status Created can be cancelled")]
+    WrongStatus,
+    #[error("You already have an active run")]
+    OnlyOneActiveRun,
+}
 
 const MAX_VALUE_SIZE: u32 = 1024;
 
@@ -45,7 +58,7 @@ impl Display for RunStatus {
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Run {
     pub id: RunId,
-    pub recipe_id: String,
+    pub recipe_id: RecipeId,
     pub creator: EthAddressBytes,
     pub created: u64,
     pub cost: u128,
@@ -72,18 +85,20 @@ impl Storable for Run {
 }
 
 impl Run {
-    pub fn new(address: &EthAddress, cost: u128, recipe_id: &str) -> Result<Self, String> {
+    pub fn new(address: &EthAddress, cost: u128, recipe_id: &[u8; 12]) -> Result<Self, RunError> {
         let active_runs = Self::get_active(&address.as_byte_array());
         if !active_runs.is_empty() {
-            return Err(String::from("You already have an active run"));
+            return Err(RunError::OnlyOneActiveRun);
         }
+
+        Recipe::get_by_id(recipe_id).ok_or(RunError::NotFound)?;
 
         let created = ic_cdk::api::time();
         let id = Self::id(address, created);
 
         let run = Self {
             id,
-            recipe_id: recipe_id.to_string(),
+            recipe_id: *recipe_id,
             creator: address.as_byte_array(),
             created,
             cost,
@@ -121,7 +136,7 @@ impl Run {
         });
     }
 
-    pub fn cancel(address: &EthAddressBytes, run_id: &RunId) -> Result<Run, String> {
+    pub fn cancel(address: &EthAddressBytes, run_id: &RunId) -> Result<Run, RunError> {
         RUNS.with(|r| {
             let address = *address;
             let run_id = *run_id;
@@ -130,33 +145,31 @@ impl Run {
             let mut runs = r.borrow_mut();
             if let Some(mut run) = runs.get(&key) {
                 if run.creator != address {
-                    return Err(String::from("Access denied"));
+                    return Err(RunError::AccessDenied);
                 }
 
-                // if run.status != RunStatus::Pending {
-                //     return Err(String::from("Run is not pending"));
-                // }
+                if run.status != RunStatus::Created {
+                    return Err(RunError::WrongStatus);
+                }
 
                 run.status = RunStatus::Cancelled;
                 runs.insert(key, run.clone());
 
                 Ok(run)
             } else {
-                Err(String::from("Run not found"))
+                Err(RunError::NotFound)
             }
         })
     }
 
     pub fn get(address: &EthAddressBytes, run_id: &RunId) -> Option<Run> {
-        let address = *address;
-        let run_id = *run_id;
-        RUNS.with(|r| r.borrow().get(&(address, run_id)))
+        RUNS.with_borrow(|r| r.get(&(*address, *run_id)))
     }
 
     pub fn get_by_address(address: &EthAddressBytes) -> Vec<Run> {
         RUNS.with(|runs| {
             runs.borrow()
-                .range((*address, [0; 12])..=(*address, [255; 12]))
+                .range((*address, RecipeId::default())..)
                 .map(|(_, run)| run)
                 .collect()
         })

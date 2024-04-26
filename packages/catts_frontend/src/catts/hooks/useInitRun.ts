@@ -7,7 +7,7 @@ export const useInitRun = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (runId: string) => {
+    mutationFn: async (runId: Uint8Array | number[]) => {
       if (!actor) return null;
       const result = await actor.init_run(runId);
       await queryClient.invalidateQueries({ queryKey: ["run_history"] });

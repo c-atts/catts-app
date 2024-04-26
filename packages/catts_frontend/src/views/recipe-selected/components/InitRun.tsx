@@ -71,7 +71,7 @@ export default function InitRun() {
         <div className="pl-10">
           {useInitRun.data && "Err" in useInitRun.data && (
             <div className="flex justify-between w-full">
-              <div>Error: {useInitRun.data.Err}</div>
+              <div>Error: {useInitRun.data.Err.message}</div>
               <div>🔴</div>
             </div>
           )}

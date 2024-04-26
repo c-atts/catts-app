@@ -1,5 +1,3 @@
-import * as R from "remeda";
-
 import { ReactNode, createContext, useState } from "react";
 
 import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
@@ -8,6 +6,7 @@ import { Run } from "catts_engine/declarations/catts_engine.did";
 import { RunContextStateType } from "./run-context-state.type";
 import { RunContextType } from "./run-context.type";
 import { TransactionExecutionError } from "viem";
+import { isError } from "remeda";
 import { sepolia } from "viem/chains";
 import { toHex } from "viem/utils";
 import { useCancelRun } from "../catts/hooks/useCancelRun";
@@ -48,17 +47,18 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      const res = await _useInitRun.mutateAsync(state.selectedRecipe.name);
+      const res = await _useInitRun.mutateAsync(state.selectedRecipe.id);
       if (res) {
         if ("Ok" in res) {
           await payAndCreateAttestation(res.Ok);
         } else {
-          throw new Error(res.Err);
+          console.error(res.Err);
+          throw new Error(res.Err.message); 
         }
       }
     } catch (e) {
       console.error(e);
-      const errorMessage = R.isError(e) ? e.message : "Error initializing run.";
+      const errorMessage = isError(e) ? e.message : "Error initializing run." ;
       setState((s) => {
         return {
           ...s,
@@ -143,7 +143,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       });
     } catch (e) {
       console.error(e);
-      const errorMessage = R.isError(e)
+      const errorMessage = isError(e)
         ? e.message
         : "Error waiting for transaction receipt.";
       setState((s) => {
@@ -188,12 +188,13 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
             };
           });
         } else {
-          throw new Error(res.Err);
+          console.error(res.Err);
+          throw new Error(res.Err.message);
         }
       }
     } catch (e) {
       console.error(e);
-      const errorMessage = R.isError(e) ? e.message : "Error starting run.";
+      const errorMessage = isError(e) ? e.message : "Error starting run.";
       setState((s) => {
         return {
           ...s,
@@ -223,12 +224,13 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
             });
             break;
           } else {
-            throw new Error(res.Err);
+            console.error(res.Err);
+            throw new Error(res.Err.message);
           }
         }
       } catch (e) {
         console.error(e);
-        const errorMessage = R.isError(e)
+        const errorMessage = isError(e)
           ? e.message
           : "Error getting attestation uid.";
         setState((s) => {
@@ -285,6 +287,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </RunContext.Provider>
+    </RunContext.Provider> 
   );
 }

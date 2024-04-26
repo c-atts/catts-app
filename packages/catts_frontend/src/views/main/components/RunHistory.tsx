@@ -26,7 +26,7 @@ export function RunHistoryInner() {
   }
 
   if ("Err" in data) {
-    return <p>Error: {data.Err}</p>;
+    return <p>Error: {data.Err.message}</p>;
   }
 
   if (!Array.isArray(data.Ok) || data.Ok.length === 0) {

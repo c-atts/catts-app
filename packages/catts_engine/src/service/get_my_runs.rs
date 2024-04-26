@@ -1,13 +1,12 @@
 use crate::{
-    authenticated, eth::EthAddress, evm_rpc::eth_get_transaction_receipt, run::Run,
-    siwe::get_address,
+    authenticated, error::Error, evm_rpc::eth_get_transaction_receipt, run::Run,
+    siwe::get_caller_eth_address,
 };
 use ic_cdk::update;
 
 #[update(guard = authenticated)]
-async fn get_my_runs() -> Result<Vec<Run>, String> {
-    let address = get_address().await.map_err(|e| e.to_string())?;
-    let address = EthAddress::new(&address).map_err(|e| e.to_string())?;
+async fn get_my_runs() -> Result<Vec<Run>, Error> {
+    let address = get_caller_eth_address().await?;
 
     let mut runs = Run::get_by_address(&address.as_byte_array());
 

@@ -1,10 +1,27 @@
+type Error = record {
+  code : HttpStatusCode;
+  message : text;
+  details : opt text;
+};
 type HttpHeader = record { value : text; name : text };
 type HttpResponse = record {
   status : nat;
   body : blob;
   headers : vec HttpHeader;
 };
+type HttpStatusCode = variant {
+  "400";
+  BadGateway;
+  MethodNotAllowed;
+  InternalServerError;
+  NotFound;
+  Unauthorized;
+  ServiceUnavailable;
+  NotImplemented;
+  Forbidden;
+};
 type Recipe = record {
+  id : blob;
   created : nat64;
   creator : blob;
   name : text;
@@ -17,12 +34,13 @@ type Recipe = record {
   processor : text;
   query_settings : vec text;
 };
-type Result = variant { Ok : Run; Err : text };
+type Result = variant { Ok : Run; Err : Error };
 type Result_1 = variant { Ok : text; Err : text };
-type Result_2 = variant { Ok : UserProfile; Err : text };
-type Result_3 = variant { Ok : vec Run; Err : text };
-type Result_4 = variant { Ok : vec record { text; UserProfile }; Err : text };
-type Result_5 = variant { Ok : vec Recipe; Err : text };
+type Result_2 = variant { Ok : text; Err : Error };
+type Result_3 = variant { Ok : UserProfile; Err : Error };
+type Result_4 = variant { Ok : vec Run; Err : Error };
+type Result_5 = variant { Ok : vec record { text; UserProfile }; Err : text };
+type Result_6 = variant { Ok : vec Recipe; Err : text };
 type Run = record {
   id : blob;
   status : RunStatus;
@@ -31,7 +49,7 @@ type Run = record {
   attestation_uid : opt text;
   attestation_transaction_hash : opt text;
   cost : nat;
-  recipe_id : text;
+  recipe_id : blob;
   attestation_chain : opt text;
   payment_transaction_hash : opt text;
 };
@@ -46,13 +64,13 @@ type UserProfile = record {
 service : (text) -> {
   cancel_run : (blob) -> (Result);
   canister_eth_address : () -> (Result_1);
-  get_attestation_uid : (blob) -> (Result_1);
-  get_my_profile : () -> (Result_2);
-  get_my_runs : () -> (Result_3);
-  init_run : (text) -> (Result);
-  list_profiles : () -> (Result_4) query;
-  list_recipes : () -> (Result_5) query;
-  run : (blob) -> (Result_1);
-  save_my_profile : (text, text) -> (Result_2);
+  get_attestation_uid : (blob) -> (Result_2);
+  get_my_profile : () -> (Result_3);
+  get_my_runs : () -> (Result_4);
+  init_run : (blob) -> (Result);
+  list_profiles : () -> (Result_5) query;
+  list_recipes : () -> (Result_6) query;
+  run : (blob) -> (Result_2);
+  save_my_profile : (text, text) -> (Result_3);
   transform : (TransformArgs) -> (HttpResponse) query;
 }

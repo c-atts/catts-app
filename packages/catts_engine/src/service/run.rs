@@ -1,11 +1,11 @@
 use crate::{
     authenticated,
     eas::{create_attestation, process_query_result, run_eas_query},
-    eth::EthAddress,
+    error::Error,
     payments::is_run_payed,
     recipe,
     run::{Run, RunId},
-    siwe::get_address,
+    siwe::get_caller_eth_address,
 };
 use candid::CandidType;
 use ic_cdk::update;
@@ -24,25 +24,27 @@ pub struct RunResult {
 }
 
 #[update(guard=authenticated)]
-async fn run(run_id: RunId) -> Result<String, String> {
+async fn run(run_id: RunId) -> Result<String, Error> {
     let cycles_before = ic_cdk::api::canister_balance();
 
-    let address = get_address().await?;
-    let address = EthAddress::new(&address)?;
+    let address = get_caller_eth_address().await?;
 
-    if !is_run_payed(&address.as_byte_array(), &run_id).await? {
-        return Err("Run is not payed".to_string());
+    let payed = is_run_payed(&address.as_byte_array(), &run_id)
+        .await
+        .map_err(Error::internal_server_error)?;
+    if !payed {
+        return Err(Error::forbidden("Run not payed"));
     }
 
-    let mut run =
-        Run::get(&address.as_byte_array(), &run_id).ok_or_else(|| "Run not found".to_string())?;
+    let mut run = Run::get(&address.as_byte_array(), &run_id)
+        .ok_or_else(|| Error::not_found("Run not found."))?;
 
     if run.attestation_transaction_hash.is_some() {
-        return Err("Run already processed".to_string());
+        return Err(Error::bad_request("Run already completed."));
     }
 
-    let recipe =
-        recipe::Recipe::get(&run.recipe_id).ok_or_else(|| "Recipe not found".to_string())?;
+    let recipe = recipe::Recipe::get_by_id(&run.recipe_id)
+        .ok_or_else(|| Error::not_found("Recipe not found."))?;
 
     let mut query_response = Vec::new();
     for i in 0..recipe.queries.len() {
@@ -52,7 +54,8 @@ async fn run(run_id: RunId) -> Result<String, String> {
             &recipe.query_variables[i],
             &recipe.query_settings[i],
         )
-        .await?;
+        .await
+        .map_err(Error::internal_server_error)?;
 
         query_response.push(response);
     }
@@ -65,15 +68,14 @@ async fn run(run_id: RunId) -> Result<String, String> {
 
     ic_cdk::println!("Processed response: {:?}", processed_response);
 
-    let transaction_result =
-        create_attestation(&address, &processed_response, &recipe.output_schema).await;
+    let transaction_hash = create_attestation(&address, &processed_response, &recipe.output_schema)
+        .await
+        .map_err(Error::internal_server_error)?;
 
-    if transaction_result.is_ok() {
-        run.attestation_transaction_hash = Some(transaction_result.clone().unwrap());
-        Run::update(run);
-    }
+    run.attestation_transaction_hash = Some(transaction_hash.clone());
+    Run::update(run);
 
-    ic_cdk::println!("Transaction result: {:?}", transaction_result);
+    ic_cdk::println!("Transaction hash: {:?}", transaction_hash);
 
     let cycles_after = ic_cdk::api::canister_balance();
     ic_cdk::println!(
@@ -81,5 +83,5 @@ async fn run(run_id: RunId) -> Result<String, String> {
         cycles_before - cycles_after
     );
 
-    transaction_result
+    Ok(transaction_hash)
 }

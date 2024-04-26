@@ -1,23 +1,23 @@
 use serde_bytes::ByteBuf;
 
-use crate::declarations::ic_siwe_provider::{ic_siwe_provider, GetAddressResponse};
+use crate::{
+    declarations::ic_siwe_provider::{ic_siwe_provider, GetAddressResponse},
+    error::Error,
+    eth::EthAddress,
+};
 
-pub async fn get_address() -> Result<String, String> {
+pub async fn get_caller_eth_address() -> Result<EthAddress, Error> {
     let response = ic_siwe_provider
         .get_address(ByteBuf::from(ic_cdk::caller().as_slice()))
-        .await;
+        .await
+        .map_err(|e| Error::internal_server_error(format!("Code: {:?}, message: {}", e.0, e.1)))?;
 
-    let address = match response {
-        Ok((inner_result,)) => {
-            // Handle the inner Result (GetAddressResponse)
-            match inner_result {
-                GetAddressResponse::Ok(address) => address, // Successfully got the address
-                GetAddressResponse::Err(e) => return Err(e), // Handle error in GetAddressResponse
-            }
-        }
-        Err(_) => return Err("Failed to get the caller address".to_string()), // Handle ic_cdk::call error
+    let address = match response.0 {
+        GetAddressResponse::Ok(address) => address,
+        GetAddressResponse::Err(e) => return Err(Error::bad_request(e)),
     };
 
-    // Return the calling principal and address
+    let address = EthAddress::new(&address).map_err(Error::internal_server_error)?;
+
     Ok(address)
 }

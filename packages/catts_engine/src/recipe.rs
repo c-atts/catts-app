@@ -1,10 +1,16 @@
 use std::borrow::Cow;
 
+use crate::{
+    eas::Uid,
+    eth::{EthAddress, EthAddressBytes},
+    RECIPES,
+};
+use blake2::digest::{Update, VariableOutput};
+use blake2::Blake2bVar;
 use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
-
-use crate::{eas::Uid, eth::EthAddressBytes, RECIPES};
+use thiserror::Error;
 
 type Query = String;
 type QueryVariable = String;
@@ -13,8 +19,20 @@ type Processor = String;
 
 const MAX_VALUE_SIZE: u32 = 4096;
 
+const RECIPE_NAME_SIZE: usize = 128;
+
+pub type RecipeName = [u8; RECIPE_NAME_SIZE];
+pub type RecipeId = [u8; 12];
+
+#[derive(Error, Debug)]
+pub enum RecipeError {
+    #[error("Name is too long, max length is 128 bytes")]
+    NameTooLong,
+}
+
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Recipe {
+    pub id: RecipeId,
     pub name: String,
     pub creator: EthAddressBytes,
     pub created: u64,
@@ -44,56 +62,64 @@ impl Storable for Recipe {
 }
 
 impl Recipe {
-    // pub fn _new(name: &str, version: &str) -> Self {
-    //     Self {
-    //         name: name.to_string(),
-    //         version: version.to_string(),
-    //         description: None,
-    //         keywords: None,
-    //         homepage: None,
-    //         author: None,
-    //         created: ic_cdk::api::time(),
-    //         queries: vec![],
-    //         query_variables: vec![],
-    //         query_settings: vec![],
-    //         processor: "".to_string(),
-    //         output_schema: "".to_string(),
-    //     }
-    // }
-
-    // pub fn _save(&self) {
-    //     //TODO: Implement business rules
-    //     // - Check if recipe already exists
-    //     // - Check if recipe is valid
-    //    // - Check string lengths
-
-    //     RECIPES.with_borrow_mut(|recipes| {
-    //         recipes.insert(self.name.clone(), self.clone());
-    //     });
-    // }
-
-    pub fn get(name: &str) -> Option<Self> {
-        RECIPES.with_borrow(|recipes| recipes.get(&name.to_string()))
+    fn id(creator: &EthAddress, name: &str, version: &str) -> RecipeId {
+        let mut hasher = Blake2bVar::new(12).unwrap();
+        hasher.update(&creator.as_byte_array());
+        hasher.update(name.as_bytes());
+        hasher.update(version.as_bytes());
+        let mut buf = [0u8; 12];
+        hasher.finalize_variable(&mut buf).unwrap();
+        buf
     }
 
-    pub fn _create(recipe: Self) {
-        RECIPES.with_borrow_mut(|recipes| {
-            recipes.insert(recipe.name.clone(), recipe);
-        });
+    pub fn name_as_bytes(name: &str) -> Result<RecipeName, RecipeError> {
+        if name.as_bytes().len() > RECIPE_NAME_SIZE {
+            return Err(RecipeError::NameTooLong);
+        }
+        let mut buf = [0u8; RECIPE_NAME_SIZE];
+        buf[..name.len()].copy_from_slice(name.as_bytes());
+        Ok(buf)
+    }
+
+    pub fn _get(name: &RecipeName, recipe_id: &RecipeId) -> Option<Self> {
+        RECIPES.with_borrow(|r| r.get(&(*name, *recipe_id)))
+    }
+
+    pub fn _get_by_name(name: &RecipeName) -> Vec<Self> {
+        RECIPES.with_borrow(|r| {
+            r.range((*name, RecipeId::default())..)
+                .map(|(_, recipe)| recipe)
+                .collect()
+        })
+    }
+
+    pub fn get_by_id(recipe_id: &RecipeId) -> Option<Self> {
+        RECIPES.with_borrow(|r| {
+            r.range(([0u8; RECIPE_NAME_SIZE], *recipe_id)..)
+                .map(|(_, recipe)| recipe)
+                .next()
+        })
     }
 
     pub fn list() -> Vec<Self> {
-        RECIPES.with_borrow(|recipes| recipes.iter().map(|(_, recipe)| recipe.clone()).collect())
+        RECIPES.with_borrow(|r| r.iter().map(|(_, recipe)| recipe.clone()).collect())
     }
 }
 
 pub fn init_recipes() {
     RECIPES.with_borrow_mut(|recipes| {
-        recipes.insert("gtc_passport_clone".to_string(), Recipe {
-            name: "gtc_passport_clone".to_string(),
-            creator: EthAddressBytes::from([0u8; 20]),
+        let creator = EthAddress::new("0xa32aECda752cF4EF89956e83d60C04835d4FA867").unwrap();
+        let name = "gtc_passport_clone".to_string();
+        let name_bytes = Recipe::name_as_bytes(&name).unwrap();
+        let version = "0.0.1".to_string();
+        let id = Recipe::id(&creator, &name, &version);
+
+        recipes.insert((name_bytes, id), Recipe {
+            id,
+            name,
+            creator: creator.as_byte_array(),
             created: ic_cdk::api::time(),
-            version: "0.0.1".to_string(),
+            version: version.clone(),
             description: Some("Make a copy of your Gitcoin Passport score to another chain.".to_string()),
             keywords: None,
             queries: vec!["query PassportQuery($where: AttestationWhereInput) { attestations(where: $where) { decodedDataJson }}".to_string()],
@@ -108,11 +134,17 @@ pub fn init_recipes() {
             "#.to_string(),
             output_schema: "uint256 score,uint32 scorer_id,uint8 score_decimals".to_string(),            
         });
-        recipes.insert("eu_gtc_passport_30".to_string(), Recipe {
-            name: "eu_gtc_passport_30".to_string(),
-            creator: EthAddressBytes::from([0u8; 20]),
+
+        let name = "eu_gtc_passport_30".to_string();
+        let name_bytes = Recipe::name_as_bytes(&name).unwrap();
+        let id = Recipe::id(&creator, &name, &version);
+
+        recipes.insert((name_bytes, id), Recipe {
+            id,
+            name,
+            creator: creator.as_byte_array(),
             created: ic_cdk::api::time(),
-            version: "0.0.1".to_string(),
+            version,
             description: Some(r#"Creates an attestation if the following two criteria are met: 
             1. Gitcoin Passport score of 30 or more (Optimism)
             2. Coinbase, country of residence is in the EU (Base)"#.to_string()),
