@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug, CandidType, Clone, Copy)]
 pub enum HttpStatusCode {
-    #[serde(rename = "400")]
     BadRequest = 400,
     Unauthorized = 401,
     Forbidden = 403,
@@ -17,24 +16,15 @@ pub enum HttpStatusCode {
     ServiceUnavailable = 503,
 }
 
-impl Serialize for HttpStatusCode {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_u16(*self as u16)
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Error {
-    code: HttpStatusCode,
+    code: u16,
     message: String,
     details: Option<String>,
 }
 
 impl Error {
-    pub fn new(code: HttpStatusCode, message: String, details: Option<String>) -> Self {
+    pub fn new(code: u16, message: String, details: Option<String>) -> Self {
         Self {
             code,
             message,
@@ -44,15 +34,15 @@ impl Error {
 
     pub fn bad_request<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::BadRequest,
+            HttpStatusCode::BadRequest as u16,
             "Bad request".to_string(),
             Some(message.to_string()),
         )
     }
 
-    pub fn _unauthorized<M: Display>(message: M) -> Self {
+    pub fn unauthorized<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::Unauthorized,
+            HttpStatusCode::Unauthorized as u16,
             "Unauthorized".to_string(),
             Some(message.to_string()),
         )
@@ -60,7 +50,7 @@ impl Error {
 
     pub fn forbidden<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::Forbidden,
+            HttpStatusCode::Forbidden as u16,
             "Forbidden".to_string(),
             Some(message.to_string()),
         )
@@ -68,7 +58,7 @@ impl Error {
 
     pub fn not_found<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::NotFound,
+            HttpStatusCode::NotFound as u16,
             "Not found".to_string(),
             Some(message.to_string()),
         )
@@ -76,7 +66,7 @@ impl Error {
 
     pub fn _method_not_allowed<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::MethodNotAllowed,
+            HttpStatusCode::MethodNotAllowed as u16,
             "Method not allowed".to_string(),
             Some(message.to_string()),
         )
@@ -84,7 +74,7 @@ impl Error {
 
     pub fn internal_server_error<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::InternalServerError,
+            HttpStatusCode::InternalServerError as u16,
             "Internal server error".to_string(),
             Some(message.to_string()),
         )
@@ -92,7 +82,7 @@ impl Error {
 
     pub fn _not_implemented<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::NotImplemented,
+            HttpStatusCode::NotImplemented as u16,
             "Not implemented".to_string(),
             Some(message.to_string()),
         )
@@ -100,7 +90,7 @@ impl Error {
 
     pub fn _bad_gateway<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::BadGateway,
+            HttpStatusCode::BadGateway as u16,
             "Bad gateway".to_string(),
             Some(message.to_string()),
         )
@@ -108,7 +98,7 @@ impl Error {
 
     pub fn _service_unavailable<M: Display>(message: M) -> Self {
         Self::new(
-            HttpStatusCode::ServiceUnavailable,
+            HttpStatusCode::ServiceUnavailable as u16,
             "Service unavailable".to_string(),
             Some(message.to_string()),
         )

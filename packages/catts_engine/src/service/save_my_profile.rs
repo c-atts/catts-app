@@ -1,13 +1,15 @@
 use ic_cdk::update;
 
-use crate::{error::Error, siwe::get_caller_eth_address, user_profile::UserProfile, USER_PROFILES};
+use crate::{
+    error::Error, siwe::get_authenticated_eth_address, user_profile::UserProfile, USER_PROFILES,
+};
 
 #[update]
 async fn save_my_profile(name: String, avatar_url: String) -> Result<UserProfile, Error> {
     // Get the address of the caller from the siwe provider canister, return error if it fails. A failure
     // here means that the caller is not authenticated using the siwe provider. This might happen if the
     // caller uses an anonymous principal or has authenticated using a different identity provider.
-    let address = get_caller_eth_address().await?;
+    let address = get_authenticated_eth_address().await?;
 
     let profile = match USER_PROFILES.with(|p| p.borrow().get(&ic_cdk::caller().to_string())) {
         Some(profile) => profile.clone(),

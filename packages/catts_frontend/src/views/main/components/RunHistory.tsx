@@ -1,12 +1,12 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { RunHistoryListItem } from "./RunHistoryListItem";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { useGetRunHistory } from "../../../catts/hooks/useGetRunHistory";
+import { useListUserRuns } from "../../../catts/hooks/useListUserRuns";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 
 export function RunHistoryInner() {
   const { identity } = useSiweIdentity();
-  const { data, isPending } = useGetRunHistory();
+  const { data, isPending } = useListUserRuns();
 
   if (!identity) {
     return <p>Sign in to view your run history.</p>;

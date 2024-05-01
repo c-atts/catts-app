@@ -3,22 +3,19 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TransactionExecutionError } from "viem";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { formatEther } from "viem/utils";
+import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import useRunContext from "../../../context/useRunContext";
 
 export function PayForRunInner() {
-  const {
-    usePayForRun,
-    runInProgress,
-    isPaymentTransactionConfirmed,
-    progressMessage,
-  } = useRunContext();
+  const { usePayForRun, runInProgress, progressMessage } = useRunContext();
 
   if (!runInProgress) return null;
 
+  const paymentStatus = paymentVerifiedStatusToString(runInProgress);
+
   if (
     usePayForRun.isPending ||
-    (runInProgress.payment_transaction_hash.length > 0 &&
-      !isPaymentTransactionConfirmed)
+    (runInProgress.payment_transaction_hash.length === 0 && !usePayForRun.error)
   ) {
     return (
       <p>
@@ -50,12 +47,23 @@ export function PayForRunInner() {
         <div>Run paid</div>
         <div>✅</div>
       </div>
+      {paymentStatus === "Verified" ? (
+        <div className="flex justify-between w-full">
+          <div>Payment verified</div>
+          <div>✅</div>
+        </div>
+      ) : (
+        <p>
+          <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
+          Verifying payment...
+        </p>
+      )}
     </>
   );
 }
 
 export default function PayForRun() {
-  const { useInitRun } = useRunContext();
+  const { useCreateRun: useInitRun } = useRunContext();
   const { data: initRunData } = useInitRun;
 
   const cost =

@@ -2,19 +2,25 @@ import AttestationUidLink from "../../../components/AttestationUidLink";
 import EthTxLink from "../../../components/EthTxLink";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import useRunContext from "../../../context/useRunContext";
 
 export function CreateAttestationInner() {
-  const { useStartRun, runInProgress } = useRunContext();
+  const { runInProgress } = useRunContext();
+
+  const paymentStatus = paymentVerifiedStatusToString(runInProgress);
 
   return (
     <>
-      {useStartRun.isPending && (
-        <p>
-          <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-          Creating attestation...
-        </p>
-      )}
+      {runInProgress &&
+        runInProgress.payment_transaction_hash.length > 0 &&
+        paymentStatus === "Verified" &&
+        runInProgress.attestation_transaction_hash.length === 0 && (
+          <p>
+            <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
+            Creating attestation...
+          </p>
+        )}
 
       {runInProgress &&
         runInProgress.attestation_transaction_hash.length > 0 && (
@@ -37,7 +43,7 @@ export function CreateAttestationInner() {
 
       {runInProgress && runInProgress.attestation_uid.length > 0 && (
         <div className="flex justify-between w-full">
-          <div className="text-sm text-zinc-500">Attestation UID</div>
+          <div className="text-sm text-zinc-500">Attestation uid</div>
           <div className="text-sm text-zinc-500">
             <AttestationUidLink uid={runInProgress?.attestation_uid[0]} />
           </div>
@@ -51,12 +57,12 @@ export function CreateAttestationInner() {
         </div>
       )}
 
-      {useStartRun.data && "Err" in useStartRun.data && (
+      {/* {useStartRun.data && "Err" in useStartRun.data && (
         <div className="flex justify-between w-full">
           <div>There was an error creating the attestation</div>
           <div>🔴</div>
         </div>
-      )}
+      )} */}
     </>
   );
 }

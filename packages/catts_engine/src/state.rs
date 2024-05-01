@@ -1,19 +1,19 @@
 use std::borrow::Cow;
 
-use candid::{CandidType, Decode, Deserialize, Encode};
+use candid::{CandidType, Decode, Deserialize, Encode, Nat};
 use ic_stable_structures::{storable::Bound, Storable};
 
 const MAX_VALUE_SIZE: u32 = 4;
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
 pub struct State {
-    pub eth_payments_latest_block: u32,
+    pub eth_payments_latest_block: Nat,
 }
 
 impl State {
     pub fn new() -> Self {
         Self {
-            eth_payments_latest_block: 0,
+            eth_payments_latest_block: Nat::from(0u8),
         }
     }
 }

@@ -6,13 +6,14 @@ import { Run } from "catts_engine/declarations/catts_engine.did";
 import { RunContextStateType } from "./run-context-state.type";
 import { RunContextType } from "./run-context.type";
 import { TransactionExecutionError } from "viem";
+import { catts_engine } from "catts_engine/declarations";
 import { isError } from "remeda";
 import { sepolia } from "viem/chains";
 import { toHex } from "viem/utils";
 import { useCancelRun } from "../catts/hooks/useCancelRun";
-import { useGetAttestationUid } from "../catts/hooks/useGetAttestationUid";
-import { useInitRun } from "../catts/hooks/useInitRun";
-import { useStartRun } from "../catts/hooks/useStartRun";
+// import { useGetAttestationUid } from "../catts/hooks/useGetAttestationUid";
+import { useCreateRun } from "../catts/hooks/useCreateRun";
+import { useRegisterRunPayment } from "../catts/hooks/useRegisterRunPayment";
 import { useWriteContract } from "wagmi";
 import { wagmiConfig } from "../wagmi/wagmi.config";
 import { wait } from "../utils/wait";
@@ -20,17 +21,17 @@ import { waitForTransactionReceipt } from "@wagmi/core";
 
 export const RunContext = createContext<RunContextType | undefined>(undefined);
 
-const GET_UID_RETRY_LIMIT = 4;
-const GET_UID_RETRY_INTERVAL = 10000;
+const GET_UID_RETRY_LIMIT = 30;
+const GET_UID_RETRY_INTERVAL = 5_000;
 
 export function RunContextProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RunContextStateType>({});
 
-  const _useInitRun = useInitRun();
+  const _useCreateRun = useCreateRun();
   const _usePayForRun = useWriteContract();
   const _useCancelRun = useCancelRun();
-  const _useStartRun = useStartRun();
-  const _useGetAttestationUid = useGetAttestationUid();
+  const _useRegisterRunPayment = useRegisterRunPayment();
+  // const _useGetAttestationUid = useGetAttestationUid();
 
   async function initPayAndCreateAttestation() {
     if (!state.selectedRecipe) {
@@ -47,18 +48,18 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      const res = await _useInitRun.mutateAsync(state.selectedRecipe.id);
+      const res = await _useCreateRun.mutateAsync(state.selectedRecipe.id);
       if (res) {
         if ("Ok" in res) {
           await payAndCreateAttestation(res.Ok);
         } else {
           console.error(res.Err);
-          throw new Error(res.Err.message); 
+          throw new Error(res.Err.message);
         }
       }
     } catch (e) {
       console.error(e);
-      const errorMessage = isError(e) ? e.message : "Error initializing run." ;
+      const errorMessage = isError(e) ? e.message : "Error initializing run.";
       setState((s) => {
         return {
           ...s,
@@ -80,7 +81,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         ...s,
         runInProgress: run,
         progressMessage: "Paying...",
-        isPaymentTransactionConfirmed: false,
         errorMessage: undefined,
       };
     });
@@ -154,7 +154,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         };
       });
     }
-
     await createAttestation(run);
   }
 
@@ -174,24 +173,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      const res = await _useStartRun.mutateAsync(run.id);
-      if (res) {
-        if ("Ok" in res) {
-          run.attestation_transaction_hash = [res.Ok];
-          setState((s) => {
-            return {
-              ...s,
-              runInProgress: {
-                ...run,
-              },
-              progressMessage: "Attestation created, getting UID...",
-            };
-          });
-        } else {
-          console.error(res.Err);
-          throw new Error(res.Err.message);
-        }
-      }
+      await _useRegisterRunPayment.mutateAsync(run);
     } catch (e) {
       console.error(e);
       const errorMessage = isError(e) ? e.message : "Error starting run.";
@@ -210,20 +192,49 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       await wait(GET_UID_RETRY_INTERVAL);
 
       try {
-        const res = await _useGetAttestationUid.mutateAsync(run.id);
+        const res = await catts_engine.run_get(run.id);
         if (res) {
           if ("Ok" in res) {
-            run.attestation_uid = [res.Ok];
-            setState((s) => {
-              return {
-                ...s,
-                runInProgress: {
-                  ...run,
-                },
-              };
-            });
-            break;
-          } else {
+            if (res.Ok.payment_verified_status.length > 0) {
+              run.payment_verified_status = res.Ok.payment_verified_status;
+              setState((s) => {
+                return {
+                  ...s,
+                  runInProgress: {
+                    ...run,
+                  },
+                  progressMessage: "Payment verified, creating attestation...",
+                };
+              });
+            }
+
+            if (res.Ok.attestation_transaction_hash.length > 0) {
+              run.attestation_transaction_hash =
+                res.Ok.attestation_transaction_hash;
+              setState((s) => {
+                return {
+                  ...s,
+                  runInProgress: {
+                    ...run,
+                  },
+                  progressMessage: "Attestation created, getting UID...",
+                };
+              });
+            }
+
+            if (res.Ok.attestation_uid.length > 0) {
+              run.attestation_uid = res.Ok.attestation_uid;
+              setState((s) => {
+                return {
+                  ...s,
+                  runInProgress: {
+                    ...run,
+                  },
+                };
+              });
+              break;
+            }
+          } else if ("Err" in res) {
             console.error(res.Err);
             throw new Error(res.Err.message);
           }
@@ -246,7 +257,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
   }
 
   const resetRun = () => {
-    _useInitRun.reset();
+    _useCreateRun.reset();
     setState((s) => {
       return {
         ...s,
@@ -254,7 +265,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         runInProgress: undefined,
         progressMessage: undefined,
         errorMessage: undefined,
-        isPaymentTransactionConfirmed: undefined,
       };
     });
   };
@@ -275,10 +285,9 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         runInProgress: state?.runInProgress,
         progressMessage: state?.progressMessage,
         errorMessage: state?.errorMessage,
-        isPaymentTransactionConfirmed: state?.isPaymentTransactionConfirmed,
-        useInitRun: _useInitRun,
+        useCreateRun: _useCreateRun,
         usePayForRun: _usePayForRun,
-        useStartRun: _useStartRun,
+        useRegisterRunPayment: _useRegisterRunPayment,
         useCancelRun: _useCancelRun,
         initPayAndCreateAttestation,
         payAndCreateAttestation,
@@ -287,6 +296,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </RunContext.Provider> 
+    </RunContext.Provider>
   );
 }

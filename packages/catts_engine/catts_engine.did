@@ -1,25 +1,13 @@
-type Error = record {
-  code : HttpStatusCode;
-  message : text;
-  details : opt text;
-};
+type Error = record { code : nat16; message : text; details : opt text };
 type HttpHeader = record { value : text; name : text };
 type HttpResponse = record {
   status : nat;
   body : blob;
   headers : vec HttpHeader;
 };
-type HttpStatusCode = variant {
-  "400";
-  BadGateway;
-  MethodNotAllowed;
-  InternalServerError;
-  NotFound;
-  Unauthorized;
-  ServiceUnavailable;
-  NotImplemented;
-  Forbidden;
-};
+type LogItem = record { level : LogLevel; message : text; timestamp : nat64 };
+type LogLevel = variant { Error; Info; Warn; Debug };
+type PaymentVerifiedStatus = variant { VerificationFailed; Verified; Pending };
 type Recipe = record {
   id : blob;
   created : nat64;
@@ -34,26 +22,27 @@ type Recipe = record {
   processor : text;
   query_settings : vec text;
 };
-type Result = variant { Ok : Run; Err : Error };
-type Result_1 = variant { Ok : text; Err : text };
-type Result_2 = variant { Ok : text; Err : Error };
-type Result_3 = variant { Ok : UserProfile; Err : Error };
-type Result_4 = variant { Ok : vec Run; Err : Error };
-type Result_5 = variant { Ok : vec record { text; UserProfile }; Err : text };
-type Result_6 = variant { Ok : vec Recipe; Err : text };
+type Result = variant { Ok : text; Err : text };
+type Result_1 = variant { Ok : UserProfile; Err : Error };
+type Result_2 = variant { Ok : Recipe; Err : Error };
+type Result_3 = variant { Ok : vec record { text; UserProfile }; Err : text };
+type Result_4 = variant { Ok : vec Recipe; Err : text };
+type Result_5 = variant { Ok : Run; Err : Error };
+type Result_6 = variant { Ok : vec Run; Err : Error };
 type Run = record {
   id : blob;
-  status : RunStatus;
   created : nat64;
   creator : blob;
   attestation_uid : opt text;
   attestation_transaction_hash : opt text;
   cost : nat;
   recipe_id : blob;
+  is_cancelled : bool;
+  attestation_create_error : opt text;
   attestation_chain : opt text;
+  payment_verified_status : opt PaymentVerifiedStatus;
   payment_transaction_hash : opt text;
 };
-type RunStatus = variant { Failed; Paid; Cancelled; Created; Completed };
 type TransformArgs = record { context : blob; response : HttpResponse };
 type UserProfile = record {
   credits : nat32;
@@ -62,15 +51,18 @@ type UserProfile = record {
   address : text;
 };
 service : (text) -> {
-  cancel_run : (blob) -> (Result);
-  canister_eth_address : () -> (Result_1);
-  get_attestation_uid : (blob) -> (Result_2);
-  get_my_profile : () -> (Result_3);
-  get_my_runs : () -> (Result_4);
-  init_run : (blob) -> (Result);
-  list_profiles : () -> (Result_5) query;
-  list_recipes : () -> (Result_6) query;
-  run : (blob) -> (Result_2);
-  save_my_profile : (text, text) -> (Result_3);
+  canister_eth_address : () -> (Result);
+  get_my_profile : () -> (Result_1);
+  get_recipe : (blob) -> (Result_2) query;
+  list_profiles : () -> (Result_3) query;
+  list_recipes : () -> (Result_4) query;
+  logs : () -> (vec LogItem) query;
+  recipe_get : (blob) -> (Result_2) query;
+  run_cancel : (blob) -> (Result_5);
+  run_create : (blob) -> (Result_5);
+  run_get : (blob) -> (Result_5) query;
+  run_list_for_user : () -> (Result_6);
+  run_register_payment : (blob, text) -> (Result_5);
+  save_my_profile : (text, text) -> (Result_1);
   transform : (TransformArgs) -> (HttpResponse) query;
 }

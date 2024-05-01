@@ -1,52 +1,62 @@
+use crate::logger::warn;
+use crate::tasks::{Task, TaskError, TaskExecutor, TaskOkResult, TaskType};
+use crate::TASKS;
 use crate::{
     declarations::evm_rpc::{
         evm_rpc, BlockTag, EthSepoliaService, GetLogsArgs, GetLogsResult, LogEntry,
         MultiGetLogsResult, RpcConfig, RpcServices,
     },
-    eth::{remove_address_padding, EthAddress, EthAddressBytes},
-    run::{vec_to_run_id, Run, RunId, RunStatus},
+    eth::{remove_address_padding, EthAddress},
+    logger::debug,
+    run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
     ETH_DEFAULT_CALL_CYCLES, ETH_PAYMENT_CONTRACT_ADDRESS, ETH_PAYMENT_EVENT_SIGNATURE,
     STABLE_STATE,
 };
 use candid::Nat;
 use ethers_core::abi::ParamType;
+use futures::Future;
 use ic_cdk::api::call::{call_with_payment, CallResult};
+use std::pin::Pin;
 
-pub async fn is_run_payed(address: &EthAddressBytes, id: &RunId) -> Result<bool, String> {
-    let is_payed = Run::get(address, id)
-        .map(|run| run.payment_transaction_hash.is_some())
-        .ok_or_else(|| "Run not found".to_string())?;
+const CREATE_ATTESTATION_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
+const CREATE_ATTESTATION_MAX_RETRIES: u32 = 3;
 
-    if is_payed {
-        return Ok(true);
+pub struct ProcessRunPaymentsExecutor {}
+
+impl TaskExecutor for ProcessRunPaymentsExecutor {
+    fn execute(
+        &self,
+        _args: Vec<u8>,
+    ) -> Pin<Box<dyn Future<Output = Result<TaskOkResult, TaskError>> + Send>> {
+        Box::pin(async move {
+            match process_run_payments().await {
+                Ok(_) => Ok(TaskOkResult::retry_allowed()),
+                Err(e) => Err(TaskError::Failed(format!(
+                    "ProcessRunPaymentsExecutor: Error checking payments: {}",
+                    e
+                ))),
+            }
+        })
     }
-
-    check_latest_eth_payments().await?;
-
-    Run::get(address, id)
-        .map(|run| run.payment_transaction_hash.is_some())
-        .ok_or_else(|| "Run not found".to_string())
 }
 
-pub async fn check_latest_eth_payments() -> Result<(), String> {
-    let mut latest_processed_block: u32 =
-        STABLE_STATE.with(|state| state.borrow().get().eth_payments_latest_block);
+pub async fn process_run_payments() -> Result<(), String> {
+    let mut latest_processed_block =
+        STABLE_STATE.with_borrow(|state| state.get().eth_payments_latest_block.to_owned());
 
-    let logs_result = get_latest_payment_logs(latest_processed_block).await?;
+    let block_to_process = latest_processed_block.to_owned() + 1u8;
+    let logs_result = get_latest_payment_logs(block_to_process).await?;
 
     match logs_result.0 {
         MultiGetLogsResult::Consistent(log_result) => match log_result {
             GetLogsResult::Ok(entries) => {
                 for entry in entries {
                     process_log_entry(&entry).unwrap_or_else(|err| {
-                        log_entry_process_error(&entry, err);
+                        log_entry_process_warn(&entry, err);
                     });
                     if let Some(block_number) = entry.blockNumber {
-                        let block_number: u32 = block_number
-                            .0
-                            .try_into()
-                            .map_err(|_| "Failed to convert block number to u32".to_string())?;
                         if block_number > latest_processed_block {
+                            debug("Updating latest processed block");
                             latest_processed_block = block_number;
                         }
                     }
@@ -56,34 +66,11 @@ pub async fn check_latest_eth_payments() -> Result<(), String> {
                 return Err(format!("Error fetching logs: {:?}", err));
             }
         },
-        MultiGetLogsResult::Inconsistent(results) => {
-            for (_, log_result) in results {
-                if let GetLogsResult::Ok(entries) = log_result {
-                    for entry in entries {
-                        process_log_entry(&entry).unwrap_or_else(|err| {
-                            log_entry_process_error(&entry, err);
-                        });
-                        if let Some(block_number) = entry.blockNumber {
-                            let block_number: u32 = block_number
-                                .0
-                                .try_into()
-                                .map_err(|_| "Failed to convert block number to u32".to_string())?;
-                            if block_number > latest_processed_block {
-                                latest_processed_block = block_number;
-                            }
-                        }
-                    }
-                } else {
-                    return Err("Error fetching logs".to_string());
-                }
-            }
+        MultiGetLogsResult::Inconsistent(_) => {
+            debug("Fetching logs returned inconsistent results");
+            return Ok(());
         }
     }
-
-    ic_cdk::println!(
-        "Updating latest processed block to {}",
-        latest_processed_block
-    );
 
     STABLE_STATE.with_borrow_mut(|state_cell| {
         let mut current_state = state_cell.get().clone();
@@ -94,9 +81,7 @@ pub async fn check_latest_eth_payments() -> Result<(), String> {
     Ok(())
 }
 
-pub async fn get_latest_payment_logs(from_block: u32) -> Result<(MultiGetLogsResult,), String> {
-    let from_block = Nat::from(from_block);
-
+pub async fn get_latest_payment_logs(from_block: Nat) -> Result<(MultiGetLogsResult,), String> {
     let res: CallResult<(MultiGetLogsResult,)> = call_with_payment(
         evm_rpc.0,
         "eth_getLogs",
@@ -163,9 +148,23 @@ fn process_log_entry(entry: &LogEntry) -> Result<(), String> {
                 .ok_or_else(|| "Found payment for non-existent run".to_string())?;
 
             if amount >= run.cost {
-                run.status = RunStatus::Paid;
+                debug("Payment registered");
                 run.payment_transaction_hash = entry.transactionHash.clone();
-                Run::update(run);
+                run.payment_verified_status = Some(PaymentVerifiedStatus::Verified);
+                Run::update(&run);
+
+                TASKS.with_borrow_mut(|tasks| {
+                    tasks.insert(
+                        0, // Run ASAP
+                        Task {
+                            task_type: TaskType::CreateAttestation,
+                            args: run_id.to_vec(),
+                            max_retries: CREATE_ATTESTATION_MAX_RETRIES,
+                            execute_count: 0,
+                            retry_interval: CREATE_ATTESTATION_RETRY_INTERVAL,
+                        },
+                    );
+                });
             } else {
                 return Err("Payment did not cover the cost of the run".to_string());
             }
@@ -179,10 +178,12 @@ fn process_log_entry(entry: &LogEntry) -> Result<(), String> {
     Ok(())
 }
 
-fn log_entry_process_error(entry: &LogEntry, error: String) {
-    ic_cdk::println!(
-        "Error processing log entry: {:?} with error: {}",
-        entry,
-        error
+fn log_entry_process_warn(entry: &LogEntry, error_message: String) {
+    warn(
+        format!(
+            "Error processing log entry: {:?} with error: {}",
+            entry, error_message
+        )
+        .as_str(),
     );
 }

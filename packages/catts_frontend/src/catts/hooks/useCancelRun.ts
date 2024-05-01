@@ -9,7 +9,7 @@ export const useCancelRun = () => {
   return useMutation({
     mutationFn: async (runId: Uint8Array | number[]) => {
       if (!actor) return null;
-      const result = await actor.cancel_run(runId);
+      const result = await actor.run_cancel(runId);
       await queryClient.invalidateQueries({ queryKey: ["run_history"] });
       return result;
     },

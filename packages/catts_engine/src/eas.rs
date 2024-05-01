@@ -14,9 +14,28 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::str::FromStr;
+use std::sync::Arc;
 pub type Uid = String;
+
+lazy_static! {
+    static ref EAS_CHAIN_GQL_ENDPOINT: HashMap<u32, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert(
+            10,
+            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/optimism",
+        );
+        m.insert(
+            11155111,
+            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/sepolia",
+        );
+        m.insert(
+            8453,
+            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/base",
+        );
+        m
+    };
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct AbiValue {
@@ -117,25 +136,6 @@ pub fn insert_dynamic_variables(
             .unwrap_or_else(|| caps[0].to_string())
     })
     .to_string()
-}
-
-lazy_static! {
-    static ref EAS_CHAIN_GQL_ENDPOINT: HashMap<u32, &'static str> = {
-        let mut m = HashMap::new();
-        m.insert(
-            10,
-            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/optimism",
-        );
-        m.insert(
-            11155111,
-            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/sepolia",
-        );
-        m.insert(
-            8453,
-            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/base",
-        );
-        m
-    };
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -261,7 +261,7 @@ pub async fn create_attestation(
 
     eth_transaction(
         String::from("0xC2679fBD37d54388Ce493F1DB75320D236e1815e"),
-        &ETH_EAS_CONTRACT.with(Rc::clone),
+        &Arc::clone(&ETH_EAS_CONTRACT),
         "attest",
         &[attest_request],
     )

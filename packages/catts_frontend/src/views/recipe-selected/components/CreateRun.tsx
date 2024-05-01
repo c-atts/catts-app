@@ -2,15 +2,15 @@ import Button from "../../../components/ui/Button";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { isChainIdSupported } from "../../../wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
-import { useSiweIdentity } from "ic-use-siwe-identity";
 import useRunContext from "../../../context/useRunContext";
+import { useSiweIdentity } from "ic-use-siwe-identity";
 
 export default function InitRun() {
   const { identity } = useSiweIdentity();
   const { chainId } = useAccount();
   const {
     isSimulationOk: isSelectedRecipeValid,
-    useInitRun,
+    useCreateRun: useInitRun,
     selectedRecipe,
     initPayAndCreateAttestation,
   } = useRunContext();

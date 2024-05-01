@@ -64,7 +64,7 @@ impl EthAddress {
 
         hex::decode(&address[2..]).map_err(EthError::DecodingError)?;
 
-        Ok(EthAddress(address.to_owned()))
+        Ok(EthAddress(address.to_lowercase().to_owned()))
     }
 
     /// Returns a string slice of the Ethereum address.
@@ -85,6 +85,28 @@ impl EthAddress {
         let mut array = [0; 20];
         array.copy_from_slice(&bytes);
         array
+    }
+}
+
+impl From<[u8; 20]> for EthAddress {
+    fn from(address_bytes: [u8; 20]) -> Self {
+        let hex_str = hex::encode(address_bytes);
+        let eth_address_str = format!("0x{}", hex_str);
+        EthAddress::new(&eth_address_str).expect("Valid length and hex encoding")
+    }
+}
+
+impl TryFrom<Vec<u8>> for EthAddress {
+    type Error = EthError;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        if value.len() != 20 {
+            return Err(EthError::AddressFormatError(
+                "Must be 20 bytes long".to_string(),
+            ));
+        }
+        let address_array: [u8; 20] = value.try_into().expect("Checked length to be 20");
+        Ok(EthAddress::from(address_array))
     }
 }
 

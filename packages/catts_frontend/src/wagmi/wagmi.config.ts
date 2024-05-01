@@ -12,6 +12,8 @@ export const wagmiConfig = createConfig({
   connectors: [walletConnect({ projectId: WALLETCONNECT_PROJECT_ID })],
   pollingInterval: 2_000,
   transports: {
-    [sepolia.id]: http(),
+    [sepolia.id]: http(
+      "https://eth-sepolia.g.alchemy.com/v2/fA4yD502lz4utnhMnmZz5Kq4ztHOM1Yg",
+    ),
   },
 });

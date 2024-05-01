@@ -1,6 +1,6 @@
 import BackButton from "./components/BackButton";
 import CreateAttestation from "./components/CreateAttestation";
-import InitRun from "./components/InitRun";
+import InitRun from "./components/CreateRun";
 import PayForRun from "./components/PayForRun";
 import RecipeBasics from "./components/RecipeBasics";
 import RecipeDetails from "./components/RecipeDetails";
