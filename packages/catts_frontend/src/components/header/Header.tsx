@@ -20,7 +20,7 @@ export default function Header() {
   };
 
   return (
-    <div className="flex flex-col justify-between w-full gap-10 p-5 md:flex-row  bg-theme-100/20">
+    <div className="flex flex-col justify-between w-full gap-10 p-5 md:flex-row">
       <div
         className="hidden text-xl font-bold text-center md:block text-theme-400 cursor-pointer"
         onClick={handleClick}

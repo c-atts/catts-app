@@ -5,7 +5,7 @@ export const useListRecipes = () => {
   return useQuery({
     queryKey: ["recipes"],
     queryFn: async () => {
-      return catts_engine.list_recipes();
+      return catts_engine.recipe_list();
     },
   });
 };

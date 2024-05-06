@@ -27,7 +27,7 @@ export default function EditProfile({
   useEffect(() => {
     (async () => {
       if (!actor) return;
-      const response = await actor.get_my_profile();
+      const response = await actor.profile_get_current();
       if (response && "Ok" in response) {
         setName(response.Ok.name);
         setAvatarUrl(response.Ok.avatar_url);
@@ -61,7 +61,7 @@ export default function EditProfile({
     event.preventDefault();
     if (!actor) return;
     setSaving(true);
-    const response = await actor.save_my_profile(name, avatarUrl);
+    const response = await actor.profile_save_current(name, avatarUrl);
 
     if (response && "Ok" in response) {
       toast.success("Profile saved");

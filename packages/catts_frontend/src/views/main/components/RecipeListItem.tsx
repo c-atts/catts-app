@@ -16,7 +16,7 @@ export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
 
   return (
     <li
-      className="border-zinc-700/50 border-[1px] bg-zinc-900 drop-shadow-xl rounded-3xl flex flex-col p-10 cursor-pointer w-full mb-10 hover:bg-zinc-950 "
+      className="border-zinc-700/50 border-[1px] bg-zinc-800 drop-shadow-xl rounded-3xl flex flex-col p-10 cursor-pointer w-full mb-10 hover:bg-zinc-900 "
       key={name}
       onClick={handleClick}
     >

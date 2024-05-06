@@ -1,5 +1,5 @@
 use crate::declarations::evm_rpc::*;
-use crate::ECDSA_KEY;
+use crate::ECDSA_KEY_ID;
 use candid::Nat;
 use ethers_core::abi::ethereum_types::{Address, U256, U64};
 use ethers_core::abi::{Contract, FunctionExt, Token};
@@ -52,7 +52,7 @@ struct JsonRpcError {
 fn ecdsa_key_id() -> EcdsaKeyId {
     EcdsaKeyId {
         curve: ic_cdk::api::management_canister::ecdsa::EcdsaCurve::Secp256k1,
-        name: ECDSA_KEY.with(|key| key.borrow().clone()),
+        name: ECDSA_KEY_ID.with(|key| key.borrow().clone()),
     }
 }
 

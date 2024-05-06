@@ -1,13 +1,13 @@
 import RecipesList from "./components/RecipesList";
-import RunHistory from "./components/RunHistory";
-import Section from "../../components/ui/Section";
-import { useActor } from "../../ic/Actors";
+// import RunHistory from "./components/RunHistory";
+// import Section from "../../components/ui/Section";
+// import { useActor } from "../../ic/Actors";
 // import { useAtom } from "jotai";
 // import { welcomeMessageShownAtom } from "../../state";
 // import WelcomeDialog from "../../components/WelcomeDialog";
 
 export default function MainView() {
-  const { actor } = useActor();
+  // const { actor } = useActor();
   // const [welcomeMessageShowed, setWelcomeMessageShowed] = useAtom(
   //   welcomeMessageShownAtom,
   // );

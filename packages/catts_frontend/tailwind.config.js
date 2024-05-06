@@ -7,6 +7,11 @@ export default {
     },
     extend: {
       colors: {
+        "theme-1": "#F4F6F5",
+        "theme-2": "#7B8588",
+        "theme-3": "#DAC17D",
+        "theme-4": "#B83B52",
+        "theme-5": "#292035",
         "theme-950": "#3A5334",
         "theme-900": "#516742",
         "theme-800": "#6A7B50",

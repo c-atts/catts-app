@@ -29,26 +29,26 @@ export default function Button({
 }: ButtonProps) {
   className = twMerge(
     `flex text-zinc-200 rounded-xl px-4 py-2 items-center gap-2 drop-shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 justify-center`,
-    className
+    className,
   );
   iconClassName = twMerge("w-4 h-4", iconClassName);
 
   className = {
     primary: twMerge(
       "bg-theme-800 hover:bg-theme-700 disabled:bg-theme-800",
-      className
+      className,
     ),
     secondary: twMerge(
       "bg-amber-800 hover:bg-amber-700 disabled:bg-amber-800",
-      className
+      className,
     ),
     outline: twMerge(
       "bg-transparent border border-zinc-500 hover:bg-zinc-500/10 disabled:bg-transparent disabled:border-zinc-500",
-      className
+      className,
     ),
     dark: twMerge(
-      "bg-zinc-900 hover:bg-zinc-950 disabled:bg-zinc-900",
-      className
+      "bg-zinc-950 hover:bg-zinc-950 disabled:bg-zinc-900",
+      className,
     ),
   }[variant || "primary"];
 

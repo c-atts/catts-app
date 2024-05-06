@@ -20,7 +20,7 @@ export function NoProfileMessage() {
   useEffect(() => {
     (async () => {
       if (!actor) return;
-      const response = await actor.get_my_profile();
+      const response = await actor.profile_get_current();
       if (response && "Ok" in response) {
         if (response.Ok.name === "No Name") {
           setHasProfile(false);
@@ -43,16 +43,13 @@ export function NoProfileMessage() {
           Ethereum address and your Internet Computer identity.
         </div>
         <div>
-          <AddressPill
-            address={address}
-            className="inline-block bg-theme-800"
-          />
+          <AddressPill address={address} className="inline-block bg-theme-5" />
           <FontAwesomeIcon
             className="w-5 h-5 mx-3 text-emerald-500"
             icon={faLeftRight}
           />
           <PrincipalPill
-            className="inline-block bg-theme-800 "
+            className="inline-block bg-theme-5"
             principal={identity?.getPrincipal().toString()}
           />
         </div>

@@ -15,7 +15,7 @@ export default function BackButton() {
   return (
     <div>
       <div
-        className="inline-flex p-2 px-5 py-2 text-white cursor-pointer hover:bg-zinc-700 rounded-3xl bg-zinc-800"
+        className="inline-flex p-2 px-5 py-2 text-white cursor-pointer hover:bg-zinc-700 rounded-3xl bg-zinc-600"
         onClick={handleClick}
       >
         &lt; Back

@@ -22,7 +22,7 @@ export default function Credits({ className }: EditProfileProps) {
   useEffect(() => {
     (async () => {
       if (!actor) return;
-      const response = await actor.get_my_profile();
+      const response = await actor.profile_get_current();
       if (response && "Ok" in response) {
         setProfile(response.Ok);
       }

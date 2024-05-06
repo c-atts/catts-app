@@ -30,7 +30,7 @@ export function RunHistoryInner() {
   }
 
   if (!Array.isArray(data.Ok) || data.Ok.length === 0) {
-    return <p>You have not run any recipes yet.</p>;
+    return <div>You have not run any recipes yet.</div>;
   }
 
   // Sorting the runs by the 'created' timestamp, newest first using BigInt comparison

@@ -24,7 +24,6 @@
   ],
   "type": "module",
   "scripts": {
-    "prebuild": "dfx generate",
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint ./packages/catts_frontend/src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -60,7 +59,6 @@
     "viem": "2.8.4",
     "wagmi": "2.5.7",
     "zod": "^3.22.4"
-
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.12",

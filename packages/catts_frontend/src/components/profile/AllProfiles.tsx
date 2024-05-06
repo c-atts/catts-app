@@ -14,7 +14,7 @@ export default function AllProfiles() {
   useEffect(() => {
     if (!actor) return;
     (async () => {
-      const response = await actor.list_profiles();
+      const response = await actor.profile_list();
       if (response && "Ok" in response) {
         setProfiles(response.Ok);
       }

@@ -24,8 +24,8 @@ type Recipe = record {
 };
 type Result = variant { Ok : text; Err : text };
 type Result_1 = variant { Ok : UserProfile; Err : Error };
-type Result_2 = variant { Ok : Recipe; Err : Error };
-type Result_3 = variant { Ok : vec record { text; UserProfile }; Err : text };
+type Result_2 = variant { Ok : vec record { text; UserProfile }; Err : text };
+type Result_3 = variant { Ok : Recipe; Err : Error };
 type Result_4 = variant { Ok : vec Recipe; Err : text };
 type Result_5 = variant { Ok : Run; Err : Error };
 type Result_6 = variant { Ok : vec Run; Err : Error };
@@ -52,17 +52,16 @@ type UserProfile = record {
 };
 service : (text) -> {
   canister_eth_address : () -> (Result);
-  get_my_profile : () -> (Result_1);
-  get_recipe : (blob) -> (Result_2) query;
-  list_profiles : () -> (Result_3) query;
-  list_recipes : () -> (Result_4) query;
   logs : () -> (vec LogItem) query;
-  recipe_get : (blob) -> (Result_2) query;
+  profile_get_current : () -> (Result_1);
+  profile_list : () -> (Result_2) query;
+  profile_save_current : (text, text) -> (Result_1);
+  recipe_get : (blob) -> (Result_3) query;
+  recipe_list : () -> (Result_4) query;
   run_cancel : (blob) -> (Result_5);
   run_create : (blob) -> (Result_5);
   run_get : (blob) -> (Result_5) query;
   run_list_for_user : () -> (Result_6);
   run_register_payment : (blob, text, nat) -> (Result_5);
-  save_my_profile : (text, text) -> (Result_1);
   transform : (TransformArgs) -> (HttpResponse) query;
 }

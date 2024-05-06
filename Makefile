@@ -1,7 +1,7 @@
 create-canisters:
 	dfx canister create --all
 
-deploy-evm-rpc: 
+deploy-evm-rpc:
 	dfx deploy evm_rpc --with-cycles 1t --argument "( \
 		record { \
 			nodesInSubnet = 25; \
@@ -57,6 +57,7 @@ deploy-engine:
 	dfx deploy catts_engine --argument "(\"dfx_test_key\")"
 
 deploy-frontend:
+	dfx generate
 	npm install
 	dfx deploy catts_frontend
 
@@ -64,7 +65,7 @@ deploy-all: create-canisters deploy-siwe deploy-evm-rpc deploy-engine deploy-fro
 
 run-frontend:
 	npm install
-	npm run dev
+	npm run dev -w catts_frontend
 
 clean:
 	rm -rf .dfx

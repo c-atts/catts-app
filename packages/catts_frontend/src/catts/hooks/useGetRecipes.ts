@@ -5,7 +5,7 @@ export const useGetRecipe = (recipeId: Uint8Array | number[]) => {
   return useQuery({
     queryKey: ["recipe", recipeId],
     queryFn: async () => {
-      return catts_engine.get_recipe(recipeId);
+      return catts_engine.recipe_get(recipeId);
     },
   });
 };
