@@ -4,7 +4,7 @@ use crate::{
     logger::debug,
     recipe::Recipe,
     run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
-    tasks::{Task, TaskError, TaskExecutor, TaskOkResult, TaskType},
+    tasks::{Task, TaskError, TaskExecutor, TaskResult, TaskType},
     TASKS,
 };
 use futures::Future;
@@ -19,7 +19,7 @@ impl TaskExecutor for CreateAttestationExecutor {
     fn execute(
         &self,
         args: Vec<u8>,
-    ) -> Pin<Box<dyn Future<Output = Result<TaskOkResult, TaskError>> + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>> {
         Box::pin(async move {
             let run_id = vec_to_run_id(args).map_err(|_| {
                 TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
@@ -30,15 +30,16 @@ impl TaskExecutor for CreateAttestationExecutor {
             ))?;
 
             // Run is already attested, cancel
-            if run.attestation_transaction_hash.is_some() {
-                debug("CreateAttestationExecutor: Run already attested");
-                return Ok(TaskOkResult::cancel());
+            if let Some(_) = run.attestation_transaction_hash {
+                return Err(TaskError::Failed(
+                    "CreateAttestationExecutor: Run already attested".to_string(),
+                ));
             }
 
             // Run is not yet paid, pause and retry
             if run.payment_verified_status != Some(PaymentVerifiedStatus::Verified) {
                 debug("CreateAttestationExecutor: Run not yet paid");
-                return Ok(TaskOkResult::retry_allowed());
+                return Ok(TaskResult::retry());
             }
 
             let recipe = Recipe::get_by_id(&run.recipe_id).ok_or(TaskError::Failed(
@@ -87,7 +88,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                     },
                 );
             });
-            Ok(TaskOkResult::cancel())
+            Ok(TaskResult::success())
         })
     }
 }

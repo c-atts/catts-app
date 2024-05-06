@@ -123,14 +123,14 @@ pub fn init_recipes() {
             1. Gitcoin Passport score of 30 or more (Optimism)
             2. Coinbase, country of residence is in the EU (Base)"#.to_string()),
             keywords: None,
-            queries: vec!["query PassportQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string(), "query CountryQuery($where: AttestationWhereInput) { attestations(where: $where) { decodedDataJson }}".to_string()],
+            queries: vec!["query PassportQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string(), "query CountryQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string()],
             query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0x6ab5d34260fca0cfcf0e76e96d439cace6aa7c3c019d7c4580ed52c6845e9c89" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string(), r#"{ "where": { "schemaId": { "equals": "0x1801901fabd0e6189356b4fb52bb0ab855276d84f7ec140839fbd1f6801ca065" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string()],
             query_settings: vec![r#"{"chain_id": 10}"#.to_string(), r#"{"chain_id": 8453}"#.to_string()],
             processor: r#"
                 if (!queryResult[0].attestations[0]) {
                     throw new Error("Couldn't find a Gitcoin Passport score for this address.");
                 }
-                if (!queryResult[0].attestations[1]) {
+                if (!queryResult[1].attestations[0]) {
                     throw new Error("Couldn't find country of residence for this address.");
                 }
                 const euCountries = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];

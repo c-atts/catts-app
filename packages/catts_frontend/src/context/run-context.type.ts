@@ -24,7 +24,10 @@ export type RunContextType = {
   useRegisterRunPayment: UseMutationResult<
     Result_5 | null,
     Error,
-    Run,
+    {
+      run: Run;
+      block: bigint;
+    },
     unknown
   >;
   usePayForRun: UseWriteContractReturnType<Config, unknown>;
@@ -36,6 +39,6 @@ export type RunContextType = {
   >;
   initPayAndCreateAttestation: () => Promise<void>;
   payAndCreateAttestation: (run: Run) => Promise<void>;
-  createAttestation: (run: Run) => Promise<void>;
+  createAttestation: (run: Run, block: bigint) => Promise<void>;
   resetRun: () => void;
 };

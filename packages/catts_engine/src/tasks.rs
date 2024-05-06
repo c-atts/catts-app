@@ -1,7 +1,7 @@
 use crate::logger::debug;
 use crate::run::tasks::create_attestation::CreateAttestationExecutor;
 use crate::run::tasks::get_attestation_uid::GetAttestationUidExecutor;
-use crate::run::tasks::process_run_payments::ProcessRunPaymentsExecutor;
+use crate::run::tasks::process_run_payment::ProcessRunPaymentExecutor;
 use crate::{logger::error, TASKS};
 use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
@@ -19,7 +19,7 @@ pub enum TaskError {
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
 pub enum TaskType {
-    ProcessRunPayments,
+    ProcessRunPayment,
     CreateAttestation,
     GetAttestationUid,
 }
@@ -45,20 +45,33 @@ impl Storable for Task {
     const BOUND: Bound = Bound::Unbounded;
 }
 
-pub struct TaskOkResult {
-    pub retry_allowed: bool,
+#[derive(PartialEq)]
+pub enum TaskResultEnum {
+    Retry,
+    Success,
+    Cancel,
 }
 
-impl TaskOkResult {
-    pub fn retry_allowed() -> Self {
-        TaskOkResult {
-            retry_allowed: true,
+pub struct TaskResult {
+    pub result: TaskResultEnum,
+}
+
+impl TaskResult {
+    pub fn success() -> Self {
+        TaskResult {
+            result: TaskResultEnum::Success,
+        }
+    }
+
+    pub fn retry() -> Self {
+        TaskResult {
+            result: TaskResultEnum::Retry,
         }
     }
 
     pub fn cancel() -> Self {
-        TaskOkResult {
-            retry_allowed: false,
+        TaskResult {
+            result: TaskResultEnum::Cancel,
         }
     }
 }
@@ -67,7 +80,7 @@ pub trait TaskExecutor {
     fn execute(
         &self,
         args: Vec<u8>,
-    ) -> Pin<Box<dyn Future<Output = Result<TaskOkResult, TaskError>> + Send>>;
+    ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>>;
 }
 
 pub fn execute_tasks() {
@@ -113,21 +126,26 @@ fn execute_task(task: Task) {
 
 fn get_executor_for_task(task: &Task) -> Box<dyn TaskExecutor> {
     match task.task_type {
-        TaskType::ProcessRunPayments => Box::new(ProcessRunPaymentsExecutor {}),
+        TaskType::ProcessRunPayment => Box::new(ProcessRunPaymentExecutor {}),
         TaskType::CreateAttestation => Box::new(CreateAttestationExecutor {}),
         TaskType::GetAttestationUid => Box::new(GetAttestationUidExecutor {}),
     }
 }
 
-fn handle_task_result(mut task: Task, result: TaskOkResult) {
-    if result.retry_allowed && task.execute_count + 1 < task.max_retries {
-        task.execute_count += 1;
-        TASKS.with_borrow_mut(|tasks| {
-            tasks.insert(ic_cdk::api::time() + task.retry_interval, task);
-        });
-    } else if !result.retry_allowed {
-        debug("Task executed without needing retry.");
-    } else {
-        error("Task failed after max retries");
+fn handle_task_result(mut task: Task, result: TaskResult) {
+    match result.result {
+        TaskResultEnum::Success => debug("Task executed successfully"),
+        TaskResultEnum::Retry => {
+            if task.execute_count + 1 < task.max_retries {
+                task.execute_count += 1;
+                TASKS.with_borrow_mut(|tasks| {
+                    tasks.insert(ic_cdk::api::time() + task.retry_interval, task);
+                });
+                debug("Task failed, retrying");
+            } else {
+                debug("Task failed, max retries reached");
+            }
+        }
+        TaskResultEnum::Cancel => debug("Task cancelled"),
     }
 }

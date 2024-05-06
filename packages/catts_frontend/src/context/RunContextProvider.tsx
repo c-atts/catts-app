@@ -105,7 +105,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           runInProgress: {
             ...run,
           },
-          progressMessage: "Waiting for 3 confirmations...",
+          progressMessage: "Waiting for confirmations...",
         };
       });
     } catch (e) {
@@ -141,6 +141,8 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           isPaymentTransactionConfirmed: true,
         };
       });
+
+      await createAttestation(run, res.blockNumber);
     } catch (e) {
       console.error(e);
       const errorMessage = isError(e)
@@ -154,10 +156,9 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         };
       });
     }
-    await createAttestation(run);
   }
 
-  async function createAttestation(run: Run) {
+  async function createAttestation(run: Run, block: bigint) {
     if (!run) {
       console.error("No run to create attestation for.");
       return;
@@ -173,7 +174,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      await _useRegisterRunPayment.mutateAsync(run);
+      await _useRegisterRunPayment.mutateAsync({ run, block });
     } catch (e) {
       console.error(e);
       const errorMessage = isError(e) ? e.message : "Error starting run.";

@@ -4,7 +4,7 @@ use crate::{
     evm_rpc::eth_get_transaction_receipt,
     logger::debug,
     run::run_service::{vec_to_run_id, Run},
-    tasks::{TaskError, TaskExecutor, TaskOkResult},
+    tasks::{TaskError, TaskExecutor, TaskResult},
 };
 use futures::Future;
 
@@ -14,7 +14,7 @@ impl TaskExecutor for GetAttestationUidExecutor {
     fn execute(
         &self,
         args: Vec<u8>,
-    ) -> Pin<Box<dyn Future<Output = Result<TaskOkResult, TaskError>> + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>> {
         Box::pin(async move {
             let run_id = vec_to_run_id(args).map_err(|_| {
                 TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
@@ -25,15 +25,16 @@ impl TaskExecutor for GetAttestationUidExecutor {
             ))?;
 
             if run.attestation_uid.is_some() {
-                debug("CreateAttestationExecutor: Run attestation uid already exists");
-                return Ok(TaskOkResult::cancel());
+                return Err(TaskError::Failed(
+                    "CreateAttestationExecutor: Run already attested".to_string(),
+                ));
             }
 
             let attestation_transaction_hash = match run.attestation_transaction_hash {
                 Some(ref hash) => hash.clone(),
                 None => {
                     debug("CreateAttestationExecutor: Run not yet attested");
-                    return Ok(TaskOkResult::retry_allowed());
+                    return Ok(TaskResult::retry());
                 }
             };
 
@@ -44,13 +45,13 @@ impl TaskExecutor for GetAttestationUidExecutor {
                         "CreateAttestationExecutor: Error getting transaction receipt: {}",
                         err
                     ));
-                    return Ok(TaskOkResult::retry_allowed());
+                    return Ok(TaskResult::retry());
                 }
             };
 
             if receipt.logs.is_empty() {
                 debug("CreateAttestationExecutor: No logs in transaction receipt");
-                return Ok(TaskOkResult::retry_allowed());
+                return Ok(TaskResult::retry());
             }
 
             debug("CreateAttestationExecutor: Attestation uid found");
@@ -58,7 +59,7 @@ impl TaskExecutor for GetAttestationUidExecutor {
             run.attestation_uid = Some(uid);
             Run::update(&run);
 
-            Ok(TaskOkResult::cancel())
+            Ok(TaskResult::success())
         })
     }
 }

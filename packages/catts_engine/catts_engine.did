@@ -62,7 +62,7 @@ service : (text) -> {
   run_create : (blob) -> (Result_5);
   run_get : (blob) -> (Result_5) query;
   run_list_for_user : () -> (Result_6);
-  run_register_payment : (blob, text) -> (Result_5);
+  run_register_payment : (blob, text, nat) -> (Result_5);
   save_my_profile : (text, text) -> (Result_1);
   transform : (TransformArgs) -> (HttpResponse) query;
 }

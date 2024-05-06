@@ -1,19 +1,28 @@
-use crate::error::Error;
-use crate::logger::info;
-use crate::run::run_service::{Run, RunError, RunId};
-use crate::siwe::get_authenticated_eth_address;
-use crate::tasks::{Task, TaskType};
-use crate::TASKS;
-use ic_cdk::update;
+use ic_cdk::{api::canister_balance, update};
 
-const PROCESS_PAYMENTS_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
-const PROCESS_PAYMENTS_MAX_RETRIES: u32 = 3;
+use crate::{
+    error::Error,
+    logger::info,
+    run::{
+        run_service::{Run, RunError, RunId},
+        tasks::process_run_payment::ProcessRunPaymentArgs,
+    },
+    siwe::get_authenticated_eth_address,
+    tasks::{Task, TaskType},
+    TASKS,
+};
+
+const PROCESS_RUN_PAYMENT_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
+const PROCESS_RUN_PAYMENT_MAX_RETRIES: u32 = 3;
 
 #[update]
-async fn run_register_payment(run_id: RunId, transaction_hash: String) -> Result<Run, Error> {
-    let cycles_before = ic_cdk::api::canister_balance();
+async fn run_register_payment(
+    run_id: RunId,
+    transaction_hash: String,
+    block_to_process: u128,
+) -> Result<Run, Error> {
+    let cycles_before = canister_balance();
     let address = get_authenticated_eth_address().await?;
-
     let run = match Run::get(&address.as_byte_array(), &run_id) {
         Some(run) => run,
         None => return Err(Error::not_found(RunError::NotFound)),
@@ -26,27 +35,34 @@ async fn run_register_payment(run_id: RunId, transaction_hash: String) -> Result
 
     let result = match Run::register_payment(&address.as_byte_array(), &run_id, &transaction_hash) {
         Ok(run) => {
+            let args: Vec<u8> = bincode::serialize(&ProcessRunPaymentArgs {
+                block_to_process,
+                from_address: address.as_byte_array(),
+                run_id,
+            })
+            .unwrap();
+
             TASKS.with_borrow_mut(|tasks| {
                 tasks.insert(
                     0, // Run task immediately
                     Task {
-                        task_type: TaskType::ProcessRunPayments,
-                        args: vec![],
-                        max_retries: PROCESS_PAYMENTS_MAX_RETRIES,
+                        task_type: TaskType::ProcessRunPayment,
+                        args,
+                        max_retries: PROCESS_RUN_PAYMENT_MAX_RETRIES,
                         execute_count: 0,
-                        retry_interval: PROCESS_PAYMENTS_RETRY_INTERVAL,
+                        retry_interval: PROCESS_RUN_PAYMENT_RETRY_INTERVAL,
                     },
                 );
             });
             Ok(run)
         }
         Err(e) => match e {
-            RunError::AlreadyPaid => Err(Error::bad_request(e)),
+            RunError::TransactionHashAlreadyRegistered => Err(Error::bad_request(e)),
             RunError::NotFound => Err(Error::not_found(e)),
         },
     };
 
-    let cycles_after = ic_cdk::api::canister_balance();
+    let cycles_after = canister_balance();
     info(
         format!(
             "run_register_payment, cycles spent: {:?}",

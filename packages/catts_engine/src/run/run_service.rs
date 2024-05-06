@@ -6,6 +6,7 @@ use crate::{
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
 use candid::{CandidType, Decode, Encode};
+use ic_cdk::api::time;
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
@@ -15,8 +16,8 @@ use thiserror::Error;
 pub enum RunError {
     #[error("Run not found")]
     NotFound,
-    #[error("Run have already been paid")]
-    AlreadyPaid,
+    #[error("A transaction hash is already registered for this run")]
+    TransactionHashAlreadyRegistered,
 }
 
 pub type RunId = [u8; 12];
@@ -71,7 +72,7 @@ impl Run {
     pub fn new(address: &EthAddress, cost: u128, recipe_id: &[u8; 12]) -> Result<Self, RunError> {
         Recipe::get_by_id(recipe_id).ok_or(RunError::NotFound)?;
 
-        let created = ic_cdk::api::time();
+        let created = time();
         let id = Self::id(address, created);
 
         let run = Self {
@@ -96,7 +97,6 @@ impl Run {
         Ok(run)
     }
 
-    // hash of creator+created
     fn id(creator: &EthAddress, created: u64) -> RunId {
         let mut hasher = Blake2bVar::new(12).unwrap();
         hasher.update(&creator.as_byte_array());
@@ -125,7 +125,7 @@ impl Run {
                 let can_cancel = run.payment_transaction_hash.is_none()
                     || run.payment_verified_status == Some(PaymentVerifiedStatus::Pending);
                 if !can_cancel {
-                    return Err(RunError::AlreadyPaid);
+                    return Err(RunError::TransactionHashAlreadyRegistered);
                 }
 
                 run.is_cancelled = true;
@@ -151,15 +151,6 @@ impl Run {
         })
     }
 
-    // pub fn get_by_id(run_id: &RunId) -> Option<Run> {
-    //     RUNS.with(|r| {
-    //         r.borrow()
-    //             .range(([0; 20], *run_id)..=([255; 20], *run_id))
-    //             .map(|(_, run)| run)
-    //             .next()
-    //     })
-    // }
-
     pub fn get_by_id(run_id: &RunId) -> Option<Run> {
         RUNS.with(|r| {
             // Directly iterate through all entries if no direct lookup is possible
@@ -183,7 +174,7 @@ impl Run {
             let mut runs = r.borrow_mut();
             if let Some(mut run) = runs.get(&key) {
                 if run.payment_transaction_hash.is_some() {
-                    return Err(RunError::AlreadyPaid);
+                    return Err(RunError::TransactionHashAlreadyRegistered);
                 }
 
                 run.payment_transaction_hash = Some(transaction_hash.to_string());
