@@ -1,11 +1,15 @@
-import useRunContext from "../../../context/useRunContext";
+import { useSetAtom } from "jotai";
+import useRunContext from "../context/useRunContext";
+import { routeAtom } from "../state";
 
 export default function BackButton() {
   const { setSelectedRecipe, resetRun } = useRunContext();
+  const setRoute = useSetAtom(routeAtom);
 
   const handleClick = () => {
     resetRun();
     setSelectedRecipe(undefined);
+    setRoute("/");
   };
 
   return (

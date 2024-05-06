@@ -2,23 +2,23 @@ import RecipesList from "./components/RecipesList";
 import RunHistory from "./components/RunHistory";
 import Section from "../../components/ui/Section";
 import { useActor } from "../../ic/Actors";
-import { useAtom } from "jotai";
-import { welcomeMessageShownAtom } from "../../state";
-import WelcomeDialog from "../../components/WelcomeDialog";
+// import { useAtom } from "jotai";
+// import { welcomeMessageShownAtom } from "../../state";
+// import WelcomeDialog from "../../components/WelcomeDialog";
 
 export default function MainView() {
   const { actor } = useActor();
-  const [welcomeMessageShowed, setWelcomeMessageShowed] = useAtom(
-    welcomeMessageShownAtom,
-  );
+  // const [welcomeMessageShowed, setWelcomeMessageShowed] = useAtom(
+  //   welcomeMessageShownAtom,
+  // );
 
   return (
     <>
-      <WelcomeDialog
+      {/* <WelcomeDialog
         isOpen={!welcomeMessageShowed}
         setIsOpen={() => setWelcomeMessageShowed(true)}
-      />
-      <Section>
+      /> */}
+      {/* <Section>
         <h2 className="text-theme-400">Recipes</h2>
         <p>
           Recipes define the ingredients that make up a composite attestation -
@@ -33,12 +33,8 @@ export default function MainView() {
           versions will allow you to create and share your own recipes!
         </p>
         <RecipesList />
-      </Section>
-      {actor && (
-        <Section>
-          <RunHistory />
-        </Section>
-      )}
+      </Section> */}
+      <RecipesList />
     </>
   );
 }

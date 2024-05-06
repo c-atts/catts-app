@@ -14,7 +14,7 @@ export default function RecipesList() {
 
   if ("Ok" in data) {
     return (
-      <ul className="w-full mt-5">
+      <ul className="w-[750px]">
         {data.Ok.map((recipe) => (
           <RecipeListItem key={recipe.name} recipe={recipe} />
         ))}

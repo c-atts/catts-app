@@ -51,7 +51,6 @@ export function RunHistoryInner() {
 export default function RunHistory() {
   return (
     <div>
-      <h2 className="text-theme-400">Run History</h2>
       <RunHistoryInner />
     </div>
   );
