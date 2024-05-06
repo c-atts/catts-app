@@ -2,6 +2,8 @@ import { useSiweIdentity } from "ic-use-siwe-identity";
 import EthButton from "./EthButton";
 import IdentityButton from "./IdentityButton";
 import WrongNetworkButton from "./WrongNetworkButton";
+import LoginButton from "./LoginButton";
+import ConnectButton from "./ConnectButton";
 
 export default function Header() {
   const { identity } = useSiweIdentity();
@@ -11,6 +13,8 @@ export default function Header() {
         C–ATTS
       </div>
       <div className="flex flex-col items-center justify-center gap-5 text-sm md:text-base md:flex-row">
+        <ConnectButton />
+        {!identity && <LoginButton />}
         {identity && <WrongNetworkButton />}
         <IdentityButton />
         <EthButton />

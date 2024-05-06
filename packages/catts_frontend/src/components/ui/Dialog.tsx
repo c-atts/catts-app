@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Dialog as HeadlessDialog } from "@headlessui/react";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { twMerge } from "tailwind-merge";
 
 type DialogProps = {
@@ -31,7 +31,7 @@ export default function Dialog({
 
   className = twMerge(
     "w-full max-w-xl border-zinc-700/50 border-[1px] bg-zinc-800 px-5 drop-shadow-xl rounded-3xl flex flex-col items-center relative transform transition-transform ease-out duration-300",
-    className
+    className,
   );
   className += animate ? " translate-y-0" : " translate-y-full";
 
@@ -44,7 +44,7 @@ export default function Dialog({
       <div className="fixed inset-0 flex w-screen items-center justify-center p-4 bg-[#00000070]">
         <HeadlessDialog.Panel className={className}>
           <div className="absolute right-5 top-5">
-            <button onClick={() => setIsOpen(false)}>
+            <button className="outline-none" onClick={() => setIsOpen(false)}>
               <FontAwesomeIcon
                 className="w-3 h-3 p-2 bg-transparent border rounded-full border-zinc-500/50 hover:scale-105 text-zinc-500 hover:bg-emerald-500/10 hover:text-zinc-200"
                 icon={faXmark}

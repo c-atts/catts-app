@@ -2,12 +2,22 @@ import RecipesList from "./components/RecipesList";
 import RunHistory from "./components/RunHistory";
 import Section from "../../components/ui/Section";
 import { useActor } from "../../ic/Actors";
+import { useAtom } from "jotai";
+import { welcomeMessageShownAtom } from "../../state";
+import WelcomeDialog from "../../components/WelcomeDialog";
 
 export default function MainView() {
   const { actor } = useActor();
+  const [welcomeMessageShowed, setWelcomeMessageShowed] = useAtom(
+    welcomeMessageShownAtom,
+  );
 
   return (
     <>
+      <WelcomeDialog
+        isOpen={!welcomeMessageShowed}
+        setIsOpen={() => setWelcomeMessageShowed(true)}
+      />
       <Section>
         <h2 className="text-theme-400">Recipes</h2>
         <p>
