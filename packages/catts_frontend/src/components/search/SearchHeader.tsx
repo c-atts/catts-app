@@ -1,18 +1,16 @@
 export default function SearchHeader() {
   return (
-    <div>
-      <h1 className="text-3xl text-white font-bold">
-        Move, transform and combine attestations!
+    <div className="pb-10">
+      <h1 className="text-5xl text-white font-bold leading-[60px] text-center">
+        Create, combine, move and transform attestations!
       </h1>
-      {/* <p>
-        Composite attestations are a new type of attestation combining data from
-        multiple sources to form a unified and verifiable credential.
-      </p>
-      <p>
-        This is an early demo of what is possible using C–ATTS. Sign in with
-        your Ethereum wallet to get started simulating and creating composite
-        attestations.
-      </p> */}
+      <div className="flex flex-col items-center gap-5">
+        <div>Supports:</div>
+        <div className="flex justify-center gap-10 w-full">
+          <img src="/thegraph.svg" className="w-14 h-14" />
+          <img src="/eas.png" className="w-14 h-14" />
+        </div>
+      </div>
     </div>
   );
 }

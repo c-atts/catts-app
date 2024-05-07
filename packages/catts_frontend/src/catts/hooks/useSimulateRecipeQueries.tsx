@@ -82,9 +82,7 @@ function theGraphRequest(
   querySettings: RecipeSettings,
 ) {
   if (!querySettings.thegraph_query_url) {
-    console.error(
-      `Missing thegraph_query_url in query_settings for query ${i}`,
-    );
+    console.error(`Missing thegraph_query_url in query_settings.`);
     return null;
   }
 
@@ -101,9 +99,7 @@ function easRequest(
   querySettings: RecipeSettings,
 ) {
   if (!querySettings.eas_chain_id) {
-    console.error(
-      `Missing thegraph_query_url in query_settings for query ${i}`,
-    );
+    console.error(`Missing eas_chain_id in query_settings.`);
     return null;
   }
 
