@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useState } from "react";
 
 import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
-import { ETH_PAYMENT_CONTRACT_ADDRESS } from "../config";
+import { ETH_PAYMENT_CONTRACT_ADDRESS, wagmiConfig } from "../config";
 import { Run } from "catts_engine/declarations/catts_engine.did";
 import { RunContextStateType } from "./run-context-state.type";
 import { RunContextType } from "./run-context.type";
@@ -15,7 +15,6 @@ import { useCancelRun } from "../catts/hooks/useCancelRun";
 import { useCreateRun } from "../catts/hooks/useCreateRun";
 import { useRegisterRunPayment } from "../catts/hooks/useRegisterRunPayment";
 import { useWriteContract } from "wagmi";
-import { wagmiConfig } from "../wagmi/wagmi.config";
 import { wait } from "../utils/wait";
 import { waitForTransactionReceipt } from "@wagmi/core";
 

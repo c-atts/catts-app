@@ -1,19 +1,39 @@
+import { formatDistance } from "date-fns";
 import useRunContext from "../../../context/useRunContext";
+import { mainnet } from "viem/chains";
+import { useEnsName } from "wagmi";
+import { fromBytes } from "viem";
+import { shortenEthAddress } from "../../../eth/utils/shortenEthAddress";
 
 export default function RecipeBasics() {
   const { selectedRecipe } = useRunContext();
+  const creatorAddress = selectedRecipe
+    ? fromBytes(selectedRecipe.creator as Uint8Array, "hex")
+    : undefined;
+  const { data: creatorEnsName } = useEnsName({
+    address: creatorAddress,
+    chainId: mainnet.id,
+  });
 
   if (!selectedRecipe) {
     return null;
   }
 
-  const { name, description, version } = selectedRecipe;
+  const { name, description, version, created } = selectedRecipe;
+
+  const createdDate = new Date(Number(created / BigInt(1_000_000)));
+  const when = formatDistance(new Date(createdDate), new Date(), {
+    addSuffix: true,
+  });
 
   return (
-    <div>
-      <h2>{name}</h2>
-      {description}
-      <p className="text-sm text-zinc-500">Version {version}, 8 days ago.</p>
+    <div className="flex flex-col gap-3">
+      <div className="text-3xl font-bold leading-loose">{name}</div>
+      <div className="leading-relaxed">{description}</div>
+      <div className="text-sm text-zinc-500">
+        {creatorEnsName || shortenEthAddress(creatorAddress)} created {version}{" "}
+        • {when}
+      </div>
     </div>
   );
 }

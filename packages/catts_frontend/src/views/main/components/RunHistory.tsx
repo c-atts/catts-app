@@ -9,7 +9,7 @@ export function RunHistoryInner() {
   const { data, isPending } = useListUserRuns();
 
   if (!identity) {
-    return <p>Sign in to view your run history.</p>;
+    return <div>Sign in to view your run history.</div>;
   }
 
   if (isPending) {

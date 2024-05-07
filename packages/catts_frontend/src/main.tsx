@@ -13,8 +13,7 @@ import { SiweIdentityProvider } from "ic-use-siwe-identity";
 import { Toaster } from "react-hot-toast";
 import { WagmiProvider } from "wagmi";
 import { _SERVICE } from "ic_siwe_provider/declarations/ic_siwe_provider.did";
-import { wagmiConfig } from "./wagmi/wagmi.config.ts";
-import { GQL_QUERY_STALE_TIME } from "./config.ts";
+import { GQL_QUERY_STALE_TIME, wagmiConfig } from "./config.ts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
