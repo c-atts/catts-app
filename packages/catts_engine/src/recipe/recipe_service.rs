@@ -17,6 +17,13 @@ type QueryVariable = String;
 type QuerySetting = String;
 type Processor = String;
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RecipeQuerySettings {
+    pub query_type: String,
+    pub eas_chain_id: Option<u32>,
+    pub thegraph_query_url: Option<String>,
+}
+
 pub type RecipeId = [u8; 12];
 
 #[derive(Error, Debug)]
@@ -99,7 +106,7 @@ pub fn init_recipes() {
             keywords: None,
             queries: vec!["query PassportQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string()],
             query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0x6ab5d34260fca0cfcf0e76e96d439cace6aa7c3c019d7c4580ed52c6845e9c89" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string()],
-            query_settings: vec![r#"{ "type" : "eas", "eas_chain_id": 10 }"#.to_string()],
+            query_settings: vec![r#"{ "query_type" : "eas", "eas_chain_id": 10 }"#.to_string()],
             processor: r#"
                 if (!queryResult[0].attestations[0]) {
                     throw new Error("Couldn't find a Gitcoin Passport score for this address.");
@@ -125,7 +132,7 @@ pub fn init_recipes() {
             keywords: None,
             queries: vec!["query PassportQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string(), "query CountryQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string()],
             query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0x6ab5d34260fca0cfcf0e76e96d439cace6aa7c3c019d7c4580ed52c6845e9c89" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string(), r#"{ "where": { "schemaId": { "equals": "0x1801901fabd0e6189356b4fb52bb0ab855276d84f7ec140839fbd1f6801ca065" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string()],
-            query_settings: vec![r#"{ "type" : "eas", "eas_chain_id": 10 }"#.to_string(), r#"{ "type" : "eas", "eas_chain_id": 8453 }"#.to_string()],
+            query_settings: vec![r#"{ "query_type" : "eas", "eas_chain_id": 10 }"#.to_string(), r#"{ "query_type" : "eas", "eas_chain_id": 8453 }"#.to_string()],
             processor: r#"
                 if (!queryResult[0].attestations[0]) {
                     throw new Error("Couldn't find a Gitcoin Passport score for this address.");
@@ -158,7 +165,7 @@ pub fn init_recipes() {
             keywords: None,
             queries: vec!["query Delegate($id: ID!) { delegate(id: $id ) { numberVotes } }".to_string()],
             query_variables: vec![r#"{ "id": "{user_eth_address}" }"#.to_string()],
-            query_settings: vec![r#"{ "type" : "thegraph", "thegraph_query_url": "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/subgraphs/id/GyijYxW9yiSRcEd5u2gfquSvneQKi5QuvU3WZgFyfFSn" }"#.to_string()],
+            query_settings: vec![r#"{ "query_type" : "thegraph", "thegraph_query_url": "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/subgraphs/id/GyijYxW9yiSRcEd5u2gfquSvneQKi5QuvU3WZgFyfFSn" }"#.to_string()],
             processor: r#"
                 const delegate = queryResult[0].delegate;
                 if (!delegate) {

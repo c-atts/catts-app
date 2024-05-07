@@ -47,7 +47,7 @@ export function useSimulateRecipeQueries() {
         );
 
         let queryResponse: unknown;
-        if (querySettings.type == "thegraph") {
+        if (querySettings.query_type == "thegraph") {
           queryResponse = await theGraphRequest(
             selectedRecipe.queries[i],
             queryVariables,

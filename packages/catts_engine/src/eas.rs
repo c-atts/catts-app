@@ -1,5 +1,6 @@
 use crate::eth::EthAddress;
 use crate::evm_rpc::eth_transaction;
+use crate::recipe::RecipeQuerySettings;
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
@@ -144,16 +145,11 @@ struct EasQueryPayload {
     variables: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct EasQuerySettings {
-    pub chain_id: u32,
-}
-
 pub async fn run_eas_query(
     address: &EthAddress,
     query: &str,
     query_variables: &str,
-    query_settings: &str,
+    query_settings: &RecipeQuerySettings,
 ) -> Result<String, String> {
     let mut dynamic_values: HashMap<String, String> = HashMap::new();
     dynamic_values.insert("user_eth_address".to_string(), address.as_str().to_string());
@@ -166,12 +162,13 @@ pub async fn run_eas_query(
     let payload = serde_json::to_string(&payload).map_err(|err| err.to_string())?;
     let payload = payload.into_bytes();
 
-    let settings =
-        serde_json::from_str::<EasQuerySettings>(query_settings).map_err(|err| err.to_string())?;
+    let chain_id = query_settings
+        .eas_chain_id
+        .ok_or_else(|| "Chain ID is required for EAS query".to_string())?;
 
     let endpoint = EAS_CHAIN_GQL_ENDPOINT
-        .get(&settings.chain_id)
-        .ok_or_else(|| format!("Chain ID {} is not supported", settings.chain_id))?;
+        .get(&chain_id)
+        .ok_or_else(|| format!("Chain ID {} is not supported", chain_id))?;
 
     let http_headers = get_eas_http_headers();
 

@@ -2,7 +2,7 @@ use crate::{
     eas::{create_attestation, process_query_result, run_eas_query},
     eth::EthAddress,
     logger::debug,
-    recipe::Recipe,
+    recipe::{Recipe, RecipeQuerySettings},
     run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
     tasks::{Task, TaskError, TaskExecutor, TaskResult, TaskType},
     TASKS,
@@ -49,11 +49,20 @@ impl TaskExecutor for CreateAttestationExecutor {
             let creator_address = EthAddress::from(run.creator);
             let mut query_response = Vec::new();
             for i in 0..recipe.queries.len() {
+                let query_settings =
+                    serde_json::from_str::<RecipeQuerySettings>(&recipe.query_settings[i])
+                        .map_err(|err| {
+                            TaskError::Failed(format!(
+                                "Error parsing query settings: {}",
+                                err.to_string()
+                            ))
+                        })?;
+
                 let response = run_eas_query(
                     &creator_address,
                     &recipe.queries[i],
                     &recipe.query_variables[i],
-                    &recipe.query_settings[i],
+                    &query_settings,
                 )
                 .await
                 .map_err(|err| {
