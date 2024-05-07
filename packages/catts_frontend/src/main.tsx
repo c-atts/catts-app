@@ -1,10 +1,7 @@
 import "./index.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  canisterId,
-  idlFactory,
-} from "ic_siwe_provider/declarations";
+import { canisterId, idlFactory } from "ic_siwe_provider/declarations";
 
 import Actors from "./ic/Actors.tsx";
 import App from "./App.tsx";
@@ -17,8 +14,13 @@ import { Toaster } from "react-hot-toast";
 import { WagmiProvider } from "wagmi";
 import { _SERVICE } from "ic_siwe_provider/declarations/ic_siwe_provider.did";
 import { wagmiConfig } from "./wagmi/wagmi.config.ts";
+import { GQL_QUERY_STALE_TIME } from "./config.ts";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { staleTime: GQL_QUERY_STALE_TIME, gcTime: GQL_QUERY_STALE_TIME },
+  },
+});
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -39,5 +41,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       </QueryClientProvider>
     </WagmiProvider>
     <Toaster />
-  </React.StrictMode>
+  </React.StrictMode>,
 );

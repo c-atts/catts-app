@@ -11,18 +11,18 @@ export function simulateRun({
 }) {
   console.log(
     "Data returned by the recipe queries:",
-    JSON.stringify(queryData, null, 2)
+    JSON.stringify(queryData, null, 2),
   );
 
   // Define the function that processes the data returned by the recipe queries
   //TODO  Replace this with secure sandboxed evaluation
-  const processFunction = `            
-  const queryResult = JSON.parse(queryResultRaw); 
+  const processFunction = `
+  const queryResult = JSON.parse(queryResultRaw);
   ${recipe.processor}
 `;
   const process: (data: string) => string = new Function(
     "queryResultRaw",
-    processFunction
+    processFunction,
   ) as (data: string) => string;
 
   // Process the data returned by the recipe queries

@@ -99,7 +99,7 @@ pub fn init_recipes() {
             keywords: None,
             queries: vec!["query PassportQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string()],
             query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0x6ab5d34260fca0cfcf0e76e96d439cace6aa7c3c019d7c4580ed52c6845e9c89" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string()],
-            query_settings: vec![r#"{"chain_id": 10}"#.to_string()],
+            query_settings: vec![r#"{ "type" : "eas", "eas_chain_id": 10 }"#.to_string()],
             processor: r#"
                 if (!queryResult[0].attestations[0]) {
                     throw new Error("Couldn't find a Gitcoin Passport score for this address.");
@@ -118,14 +118,14 @@ pub fn init_recipes() {
             name,
             creator: creator.as_byte_array(),
             created: ic_cdk::api::time(),
-            version,
+            version: version.clone(),
             description: Some(r#"Creates an attestation if the following two criteria are met:
             1. Gitcoin Passport score of 30 or more (Optimism)
             2. Coinbase, country of residence is in the EU (Base)"#.to_string()),
             keywords: None,
             queries: vec!["query PassportQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string(), "query CountryQuery($where: AttestationWhereInput, $take: Int) { attestations(where: $where, take: $take) { decodedDataJson }}".to_string()],
             query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0x6ab5d34260fca0cfcf0e76e96d439cace6aa7c3c019d7c4580ed52c6845e9c89" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string(), r#"{ "where": { "schemaId": { "equals": "0x1801901fabd0e6189356b4fb52bb0ab855276d84f7ec140839fbd1f6801ca065" }, "recipient": {  "equals": "{user_eth_address}", "mode": "insensitive" } }, "take": 1 }"#.to_string()],
-            query_settings: vec![r#"{"chain_id": 10}"#.to_string(), r#"{"chain_id": 8453}"#.to_string()],
+            query_settings: vec![r#"{ "type" : "eas", "eas_chain_id": 10 }"#.to_string(), r#"{ "type" : "eas", "eas_chain_id": 8453 }"#.to_string()],
             processor: r#"
                 if (!queryResult[0].attestations[0]) {
                     throw new Error("Couldn't find a Gitcoin Passport score for this address.");
@@ -143,6 +143,30 @@ pub fn init_recipes() {
                 return JSON.stringify([{name: "eu_gtc_passport_30", type: "bool", value: true}]);
             "#.to_string(),
             output_schema: "bool eu_gtc_passport_30".to_string(),
+        });
+
+        let name = "ens_delegate".to_string();
+        let id = Recipe::id(&creator, &name, &version);
+
+        recipes.insert(id, Recipe {
+            id,
+            name,
+            creator: creator.as_byte_array(),
+            created: ic_cdk::api::time(),
+            version: version.clone(),
+            description: Some("ENS delegate".to_string()),
+            keywords: None,
+            queries: vec!["query Delegate($id: ID!) { delegate(id: $id ) { numberVotes } }".to_string()],
+            query_variables: vec![r#"{ "id": "{user_eth_address}" }"#.to_string()],
+            query_settings: vec![r#"{ "type" : "thegraph", "thegraph_query_url": "https://gateway-arbitrum.network.thegraph.com/api/[api-key]/subgraphs/id/GyijYxW9yiSRcEd5u2gfquSvneQKi5QuvU3WZgFyfFSn" }"#.to_string()],
+            processor: r#"
+                const delegate = queryResult[0].delegate;
+                if (!delegate) {
+                    throw new Error("You are not an ENS delegate.");
+                }
+                return JSON.stringify([{name: "isEnsDelegate", type: "bool", value: true}]);
+            "#.to_string(),
+            output_schema: "bool isEnsDelegate".to_string(),
         });
     });
 }

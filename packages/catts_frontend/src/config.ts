@@ -1,3 +1,6 @@
+// Tanstack Query
+export const GQL_QUERY_STALE_TIME = 1000 * 60 * 30; // 30 minutes
+
 // Ethereum
 
 export const ETH_PAYMENT_CONTRACT_ADDRESS =
@@ -40,3 +43,8 @@ export const EAS_CONFIG: EasConfig[] = [
     graphqlUrl: "https://base.easscan.org/graphql",
   },
 ];
+
+// The Graph
+
+export const THEGRAPH_QUERY_PROXY_URL =
+  "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
