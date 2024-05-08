@@ -117,6 +117,31 @@ pub fn init_recipes() {
             output_schema: "uint256 score,uint32 scorer_id,uint8 score_decimals".to_string(),
         });
 
+
+        let name = "ens_name_holder".to_string();
+        let id = Recipe::id(&creator, &name, &version);
+
+        recipes.insert(id, Recipe {
+            id,
+            name,
+            creator: creator.as_byte_array(),
+            created: ic_cdk::api::time(),
+            version: version.clone(),
+            description: Some(r#"Attests to the ownership of at least one ENS domain."#.to_string()),
+            keywords: Some(vec!["ENS".to_string()]),
+            queries: vec!["query getNamesForAddress($whereFilter: Domain_filter) { domains(where: $whereFilter) { labelName } }".to_string()],
+            query_variables: vec![r#"{ "whereFilter":{ "or":[ { "owner":"{user_eth_address_lowercase}" }, { "registrant":"{user_eth_address_lowercase}" }, { "wrappedOwner":"{user_eth_address_lowercase}" } ] } }"#.to_string()],
+            query_settings: vec![r#"{ "query_type" : "thegraph", "thegraph_query_url": "https://api.thegraph.com/subgraphs/name/ensdomains/ens" }"#.to_string()],
+            processor: r#"
+                const domains = queryResult[0].domains;
+                if (!Array.isArray(domains) || domains.length === 0) {
+                    throw new Error("You are not the owner of any ENS domains.");
+                }
+                return JSON.stringify([{name: "isEnsNameOwner", type: "bool", value: true}]);
+            "#.to_string(),
+            output_schema: "bool isEnsNameOwner".to_string(),
+        });
+
         let name = "eu_gtc_passport_30".to_string();
         let id = Recipe::id(&creator, &name, &version);
 
@@ -161,7 +186,7 @@ pub fn init_recipes() {
             creator: creator.as_byte_array(),
             created: ic_cdk::api::time(),
             version: version.clone(),
-            description: Some("ENS delegate".to_string()),
+            description: Some("Attest to being an ENS delegate".to_string()),
             keywords: None,
             queries: vec!["query Delegate($id: ID!) { delegate(id: $id ) { numberVotes } }".to_string()],
             query_variables: vec![r#"{ "id": "{user_eth_address}" }"#.to_string()],
@@ -174,6 +199,34 @@ pub fn init_recipes() {
                 return JSON.stringify([{name: "isEnsDelegate", type: "bool", value: true}]);
             "#.to_string(),
             output_schema: "bool isEnsDelegate".to_string(),
+        });
+
+        let name = "armitage_contributor".to_string();
+        let id = Recipe::id(&creator, &name, &version);
+
+        recipes.insert(id, Recipe {
+            id,
+            name,
+            creator: creator.as_byte_array(),
+            created: ic_cdk::api::time(),
+            version: version.clone(),
+            description: Some(r#"Attests to active contributors to the Armitage project. Armitage tracks GitHub contributions using SourceCred. A SourceCred score of at least 100 is required for this attestation."#.to_string()),
+            keywords: None,
+            queries: vec!["query ArmitageContributorQuery($where: AttestationWhereInput) { attestations(where: $where) { decodedDataJson }}".to_string()],
+            query_variables: vec![r#"{ "where": { "schemaId": { "equals": "0xdd55069b521b51585a2d09bed03cecde4524d4392683dc3c3c3cf09755a2a5b2" }, "attester": {  "equals": "{user_eth_address}", "mode": "insensitive" } } }"#.to_string()],
+            query_settings: vec![r#"{ "query_type" : "eas", "eas_chain_id": 11155111 }"#.to_string()],
+            processor: r#"
+                if (!queryResult[0].attestations[0]) {
+                    throw new Error("Couldn't find any Armitage contributions for this address.");
+                }
+                const decodedDataJson = JSON.parse(queryResult[0].attestations[0].decodedDataJson);
+                const userCredScore = +decodedDataJson.find((item) => item.name === "userCredScore")?.value?.value;
+                if (userCredScore < 100) {
+                    throw new Error("A cred score of 100 is required for this attestation.");
+                }
+                return JSON.stringify([{name: "armitage_contributor", type: "bool", value: true}]);
+            "#.to_string(),
+            output_schema: "bool armitage_contributor".to_string(),
         });
     });
 }
