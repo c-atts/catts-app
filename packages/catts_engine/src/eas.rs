@@ -1,5 +1,6 @@
 use crate::eth::EthAddress;
 use crate::evm_rpc::eth_transaction;
+use crate::graphql::insert_dynamic_variables;
 use crate::recipe::RecipeQuerySettings;
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
 use blake2::digest::{Update, VariableOutput};
@@ -12,7 +13,6 @@ use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
 };
 use lazy_static::lazy_static;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -120,31 +120,6 @@ pub fn get_eas_http_headers() -> Vec<HttpHeader> {
     ]
 }
 
-pub fn insert_dynamic_variables(
-    variables_template: &str,
-    dynamic_values: &HashMap<String, String>,
-) -> String {
-    if variables_template.is_empty() {
-        return variables_template.to_string();
-    }
-
-    let re = Regex::new(r"\{(\w+)\}").unwrap();
-
-    re.replace_all(variables_template, |caps: &regex::Captures| {
-        dynamic_values
-            .get(&caps[1])
-            .cloned()
-            .unwrap_or_else(|| caps[0].to_string())
-    })
-    .to_string()
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct EasQueryPayload {
-    query: String,
-    variables: String,
-}
-
 pub async fn run_eas_query(
     address: &EthAddress,
     query: &str,
@@ -158,12 +133,7 @@ pub async fn run_eas_query(
         address.as_str().to_lowercase(),
     );
     let variables = insert_dynamic_variables(query_variables, &dynamic_values);
-
-    let payload = EasQueryPayload {
-        query: query.to_string(),
-        variables,
-    };
-    let payload = serde_json::to_string(&payload).map_err(|err| err.to_string())?;
+    let payload = format!(r#"{{"query":"{}","variables":{}}}"#, query, variables);
     let payload = payload.into_bytes();
 
     let chain_id = query_settings

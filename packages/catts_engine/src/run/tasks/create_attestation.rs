@@ -5,13 +5,14 @@ use crate::{
     recipe::{Recipe, RecipeQuerySettings},
     run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
     tasks::{Task, TaskError, TaskExecutor, TaskResult, TaskType},
+    thegraph::run_thegraph_query,
     TASKS,
 };
 use futures::Future;
 use std::pin::Pin;
 
-const GET_ATTESTATION_UID_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
-const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 3;
+const GET_ATTESTATION_UID_RETRY_INTERVAL: u64 = 30_000_000_000; // 15 seconds
+const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 5;
 
 pub struct CreateAttestationExecutor {}
 
@@ -58,21 +59,42 @@ impl TaskExecutor for CreateAttestationExecutor {
                             ))
                         })?;
 
-                let response = run_eas_query(
-                    &creator_address,
-                    &recipe.queries[i],
-                    &recipe.query_variables[i],
-                    &query_settings,
-                )
-                .await
-                .map_err(|err| {
-                    run.attestation_create_error = Some(err.to_string());
-                    Run::update(&run);
-                    TaskError::Failed(format!("Error running query: {}", err))
-                })?;
+                let response = match query_settings.query_type.as_str() {
+                    "eas" => run_eas_query(
+                        &creator_address,
+                        &recipe.queries[i],
+                        &recipe.query_variables[i],
+                        &query_settings,
+                    )
+                    .await
+                    .map_err(|err| {
+                        run.attestation_create_error = Some(err.to_string());
+                        Run::update(&run);
+                        TaskError::Failed(format!("Error running EAS query: {}", err))
+                    })?,
+                    "thegraph" => run_thegraph_query(
+                        &creator_address,
+                        &recipe.queries[i],
+                        &recipe.query_variables[i],
+                        &query_settings,
+                    )
+                    .await
+                    .map_err(|err| {
+                        run.attestation_create_error = Some(err.to_string());
+                        Run::update(&run);
+                        TaskError::Failed(format!("Error running TheGraph query: {}", err))
+                    })?,
+                    _ => {
+                        return Err(TaskError::Failed(format!(
+                            "CreateAttestationExecutor: Unsupported query type: {}",
+                            query_settings.query_type
+                        )));
+                    }
+                };
                 query_response.push(response);
             }
             let aggregated_response = format!("[{}]", query_response.join(","));
+
             let processed_response = process_query_result(&recipe.processor, &aggregated_response);
 
             let attestation_transaction_hash =

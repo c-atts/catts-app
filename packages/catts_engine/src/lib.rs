@@ -4,12 +4,14 @@ mod eas;
 mod error;
 mod eth;
 mod evm_rpc;
+mod graphql;
 mod logger;
 mod profile;
 mod recipe;
 mod run;
 mod siwe;
 mod tasks;
+mod thegraph;
 
 use error::Error;
 use eth::EthAddressBytes;
@@ -38,6 +40,9 @@ const ETH_PAYMENT_CONTRACT_ADDRESS: &str = "0xf4e6652aFF99525b2f38b9A990AA1EB5f4
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
 const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
+
+const THEGRAPH_QUERY_PROXY_URL: &str =
+    "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
 
 thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
