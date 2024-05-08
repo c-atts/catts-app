@@ -50,7 +50,7 @@ export function RunHistoryInner() {
 
 export default function RunHistory() {
   return (
-    <div>
+    <div className="w-[750px]">
       <RunHistoryInner />
     </div>
   );

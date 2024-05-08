@@ -20,8 +20,10 @@ export function RunHistoryListItem({ run }: { run: Run }) {
 
   return (
     <li className="flex flex-col">
-      <h3>{recipe ? recipe.name : ""}</h3>
-      <div className="border-zinc-700/50 border-[1px]  drop-shadow-xl rounded-2xl flex flex-col p-10 w-full mt-2">
+      <div className="border-zinc-700/50 border-[1px] bg-zinc-800 drop-shadow-xl rounded-2xl flex flex-col p-10 w-full mt-2">
+        <div className="text-2xl font-bold pb-3">
+          {recipe ? recipe.name : ""}
+        </div>
         <div className="flex flex-col gap-2 text-sm text-zinc-500">
           <div className="flex items-center justify-between w-full h-8">
             <div>Created</div>

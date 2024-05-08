@@ -28,7 +28,7 @@ export default function RecipeBasics() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-3xl font-bold leading-loose">{name}</div>
+      <div className="text-3xl font-bold pb-4">{name}</div>
       <div className="leading-relaxed">{description}</div>
       <div className="text-sm text-zinc-500">
         {creatorEnsName || shortenEthAddress(creatorAddress)} created {version}{" "}
