@@ -26,6 +26,7 @@ export function useSimulateRecipeQueries() {
 
   const dynamicVariables = {
     user_eth_address: address ?? "",
+    user_eth_address_lowercase: (address ?? "").toLowerCase(),
   };
 
   return useQuery({

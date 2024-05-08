@@ -153,6 +153,10 @@ pub async fn run_eas_query(
 ) -> Result<String, String> {
     let mut dynamic_values: HashMap<String, String> = HashMap::new();
     dynamic_values.insert("user_eth_address".to_string(), address.as_str().to_string());
+    dynamic_values.insert(
+        "user_eth_address_lowercase".to_string(),
+        address.as_str().to_lowercase(),
+    );
     let variables = insert_dynamic_variables(query_variables, &dynamic_values);
 
     let payload = EasQueryPayload {
