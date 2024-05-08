@@ -28,14 +28,14 @@ export default function Button({
   type,
 }: ButtonProps) {
   className = twMerge(
-    `flex text-zinc-200 rounded-xl px-4 py-2 items-center gap-2 drop-shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 justify-center`,
+    `flex text-zinc-200 rounded-xl px-4 py-2 items-center gap-2 drop-shadow-lg hover:scale-105 disabled:cursor-not-allowed disabled:scale-100 justify-center`,
     className,
   );
   iconClassName = twMerge("w-4 h-4", iconClassName);
 
   className = {
     primary: twMerge(
-      "bg-theme-800 hover:bg-theme-700 disabled:bg-theme-800",
+      "bg-theme-800 hover:bg-theme-700 disabled:bg-theme-700 disabled:text-theme-600",
       className,
     ),
     secondary: twMerge(

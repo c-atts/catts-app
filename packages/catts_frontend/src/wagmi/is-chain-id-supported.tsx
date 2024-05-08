@@ -1,5 +1,6 @@
-import { wagmiConfig } from "../config";
+import { allowedChains } from "../config";
 
 export function isChainIdSupported(id?: number) {
-  return wagmiConfig.chains.find((c) => c.id === id) !== undefined;
+  if (!id) return false;
+  return allowedChains.includes(id);
 }

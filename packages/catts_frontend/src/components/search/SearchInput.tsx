@@ -35,7 +35,7 @@ export default function SearchInput() {
         />
 
         <input
-          className="w-full p-2 pl-10 text-gray-500 placeholder-gray-400 border-none hover:ring-4 hover:ring-theme-3 hover:ring-opacity-40 focus:ring-4 focus:ring-theme-3 rounded-xl shadow-theme-3 focus:shadow-theme-3 focus:outline-none"
+          className="w-full p-2 pl-10 text-gray-500 placeholder-gray-400 border-none hover:ring-4 hover:ring-theme-800 hover:ring-opacity-40 focus:ring-4 focus:ring-theme-800 rounded-xl shadow-theme-3 focus:shadow-theme-3 focus:outline-none"
           onKeyUp={handleKeyUp}
           placeholder="Search recipes"
           spellCheck={false}

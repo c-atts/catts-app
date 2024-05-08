@@ -30,6 +30,9 @@ export const wagmiConfig = createConfig({
   },
 });
 
+// C–ATTS attestations can only be created on allowed chains
+export const allowedChains: number[] = [sepolia.id];
+
 // Ethererum Attestation Service (EAS)
 
 type EasConfig = {
