@@ -8,8 +8,7 @@ use crate::{
         tasks::process_run_payment::ProcessRunPaymentArgs,
     },
     siwe::get_authenticated_eth_address,
-    tasks::{Task, TaskType},
-    TASKS,
+    tasks::{add_task, Task, TaskType},
 };
 
 const PROCESS_RUN_PAYMENT_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
@@ -42,18 +41,17 @@ async fn run_register_payment(
             })
             .unwrap();
 
-            TASKS.with_borrow_mut(|tasks| {
-                tasks.insert(
-                    0, // Run task immediately
-                    Task {
-                        task_type: TaskType::ProcessRunPayment,
-                        args,
-                        max_retries: PROCESS_RUN_PAYMENT_MAX_RETRIES,
-                        execute_count: 0,
-                        retry_interval: PROCESS_RUN_PAYMENT_RETRY_INTERVAL,
-                    },
-                );
-            });
+            add_task(
+                0, // Run ASAP
+                Task {
+                    task_type: TaskType::ProcessRunPayment,
+                    args,
+                    max_retries: PROCESS_RUN_PAYMENT_MAX_RETRIES,
+                    execute_count: 0,
+                    retry_interval: PROCESS_RUN_PAYMENT_RETRY_INTERVAL,
+                },
+            );
+
             Ok(run)
         }
         Err(e) => match e {

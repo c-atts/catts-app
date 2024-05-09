@@ -4,15 +4,14 @@ use crate::{
     logger::debug,
     recipe::{Recipe, RecipeQuerySettings},
     run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
-    tasks::{Task, TaskError, TaskExecutor, TaskResult, TaskType},
+    tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType},
     thegraph::run_thegraph_query,
-    TASKS,
 };
 use futures::Future;
 use std::pin::Pin;
-
-const GET_ATTESTATION_UID_RETRY_INTERVAL: u64 = 30_000_000_000; // 15 seconds
-const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 5;
+const GET_ATTESTATION_UID_FIRST_TIME_INTERVAL: u64 = 10_000_000_000; // 10 seconds
+const GET_ATTESTATION_UID_RETRY_INTERVAL: u64 = 30_000_000_000; // 30 seconds
+const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 6;
 
 pub struct CreateAttestationExecutor {}
 
@@ -107,18 +106,17 @@ impl TaskExecutor for CreateAttestationExecutor {
             run.attestation_transaction_hash = Some(attestation_transaction_hash.clone());
             Run::update(&run);
 
-            TASKS.with_borrow_mut(|tasks| {
-                tasks.insert(
-                    ic_cdk::api::time() + GET_ATTESTATION_UID_RETRY_INTERVAL,
-                    Task {
-                        task_type: TaskType::GetAttestationUid,
-                        args: run_id.to_vec(),
-                        max_retries: GET_ATTESTATION_UID_MAX_RETRIES,
-                        execute_count: 0,
-                        retry_interval: GET_ATTESTATION_UID_RETRY_INTERVAL,
-                    },
-                );
-            });
+            add_task(
+                ic_cdk::api::time() + GET_ATTESTATION_UID_FIRST_TIME_INTERVAL,
+                Task {
+                    task_type: TaskType::GetAttestationUid,
+                    args: run_id.to_vec(),
+                    max_retries: GET_ATTESTATION_UID_MAX_RETRIES,
+                    execute_count: 0,
+                    retry_interval: GET_ATTESTATION_UID_RETRY_INTERVAL,
+                },
+            );
+
             Ok(TaskResult::success())
         })
     }

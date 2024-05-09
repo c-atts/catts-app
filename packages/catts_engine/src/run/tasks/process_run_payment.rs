@@ -1,6 +1,5 @@
 use crate::logger::{error, info};
-use crate::tasks::{Task, TaskError, TaskExecutor, TaskResult, TaskType};
-use crate::TASKS;
+use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType};
 use crate::{
     declarations::evm_rpc::{
         evm_rpc, BlockTag, EthSepoliaService, GetLogsArgs, GetLogsResult, LogEntry,
@@ -49,18 +48,16 @@ impl TaskExecutor for ProcessRunPaymentExecutor {
 
             match process_run_payment(args.clone()).await {
                 Ok(_) => {
-                    TASKS.with_borrow_mut(|tasks| {
-                        tasks.insert(
-                            0, // Run ASAP
-                            Task {
-                                task_type: TaskType::CreateAttestation,
-                                args: args.run_id.to_vec(),
-                                max_retries: CREATE_ATTESTATION_MAX_RETRIES,
-                                execute_count: 0,
-                                retry_interval: CREATE_ATTESTATION_RETRY_INTERVAL,
-                            },
-                        );
-                    });
+                    add_task(
+                        0, // Run ASAP
+                        Task {
+                            task_type: TaskType::CreateAttestation,
+                            args: args.run_id.to_vec(),
+                            max_retries: CREATE_ATTESTATION_MAX_RETRIES,
+                            execute_count: 0,
+                            retry_interval: CREATE_ATTESTATION_RETRY_INTERVAL,
+                        },
+                    );
 
                     Ok(TaskResult::success())
                 }

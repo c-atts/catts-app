@@ -1,4 +1,5 @@
 use crate::logger::debug;
+use crate::run::run_service::Timestamp;
 use crate::run::tasks::create_attestation::CreateAttestationExecutor;
 use crate::run::tasks::get_attestation_uid::GetAttestationUidExecutor;
 use crate::run::tasks::process_run_payment::ProcessRunPaymentExecutor;
@@ -81,6 +82,17 @@ pub trait TaskExecutor {
         &self,
         args: Vec<u8>,
     ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>>;
+}
+
+pub fn add_task(when: Timestamp, task: Task) {
+    // If the task is scheduled to run in the past, execute it immediately
+    if when < ic_cdk::api::time() {
+        execute_task(task);
+        return;
+    }
+    TASKS.with_borrow_mut(|tasks| {
+        tasks.insert(when, task);
+    });
 }
 
 pub fn execute_tasks() {
