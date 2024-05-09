@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleNotch, faLock } from "@fortawesome/free-solid-svg-icons";
+import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { useListUserRuns } from "../../../catts/hooks/useListUserRuns";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { RunHistoryListItem } from "./RunHistoryListItem";
