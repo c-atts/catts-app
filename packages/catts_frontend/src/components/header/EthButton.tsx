@@ -1,7 +1,7 @@
 import { useAccount, useEnsName } from "wagmi";
 
 import Button from "../ui/Button";
-import ConnectDialog from "../ConnectDialog";
+import ConnectDialog from "./ConnectDialog";
 import { EthAccountDialog } from "./EthAccountDialog";
 import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { faWaveSquare } from "@fortawesome/free-solid-svg-icons";

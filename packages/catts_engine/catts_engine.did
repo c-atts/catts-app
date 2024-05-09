@@ -56,7 +56,8 @@ service : (text) -> {
   profile_get_current : () -> (Result_1);
   profile_list : () -> (Result_2) query;
   profile_save_current : (text, text) -> (Result_1);
-  recipe_get : (blob) -> (Result_3) query;
+  recipe_get_by_id : (blob) -> (Result_3) query;
+  recipe_get_by_name : (text) -> (Result_3) query;
   recipe_list : () -> (Result_4) query;
   run_cancel : (blob) -> (Result_5);
   run_create : (blob) -> (Result_5);

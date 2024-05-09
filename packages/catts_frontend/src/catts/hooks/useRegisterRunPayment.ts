@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Run } from "catts_engine/declarations/catts_engine.did";
-import { useActor } from "../../ic/Actors";
+import { useActor } from "../../ic/ActorProvider";
 
 export const useRegisterRunPayment = () => {
   const { actor } = useActor();
@@ -17,7 +17,7 @@ export const useRegisterRunPayment = () => {
       const result = await actor.run_register_payment(
         run.id,
         transactionHash,
-        block
+        block,
       );
       await queryClient.invalidateQueries({ queryKey: ["run_history"] });
       return result;

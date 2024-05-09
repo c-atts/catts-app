@@ -1,14 +1,13 @@
 import { Recipe } from "catts_engine/declarations/catts_engine.did";
-import useRunContext from "../../../context/useRunContext";
 import { formatDistance } from "date-fns";
 import { fromBytes } from "viem/utils";
 import { mainnet } from "wagmi/chains";
 import { useEnsName } from "wagmi";
 import { shortenEthAddress } from "../../../eth/utils/shortenEthAddress";
+import { Link } from "@tanstack/react-router";
 
 export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
   const { name, description, version, created, creator } = recipe;
-  const { setSelectedRecipe, resetRun } = useRunContext();
 
   const creatorAddress = fromBytes(creator as Uint8Array, "hex");
   const { data: creatorEnsName } = useEnsName({
@@ -21,10 +20,11 @@ export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
     addSuffix: true,
   });
 
-  const handleClick = () => {
-    resetRun();
-    setSelectedRecipe(recipe);
-  };
+  // const handleClick = () => {
+  //   resetRun();
+  //   setSelectedRecipe(recipe);
+  //   navigate({ to: "/recipe/$recipeName", params: { recipeName: name } });
+  // };
 
   return (
     <li
@@ -32,12 +32,12 @@ export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
       key={name}
     >
       <div className="flex flex-col gap-3">
-        <div
-          className="text-2xl font-bold hover:underline  cursor-pointer"
-          onClick={handleClick}
-        >
-          {name}
-        </div>
+        <Link params={{ recipeName: name }} to={`/recipe/$recipeName`}>
+          <div className="text-2xl font-bold hover:underline  cursor-pointer">
+            {name}
+          </div>
+        </Link>
+
         <div className="leading-relaxed">{description}</div>
         <div className="text-sm text-zinc-500">
           {creatorEnsName || shortenEthAddress(creatorAddress)} created{" "}

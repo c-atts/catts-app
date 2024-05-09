@@ -2,17 +2,18 @@ import * as dotenv from "dotenv";
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 
 dotenv.config({ path: "../../.env" });
 
 const processEnvCanisterIds = Object.fromEntries(
   Object.entries(process.env)
     .filter(([key]) => key.startsWith("CANISTER_ID"))
-    .map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
+    .map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)]),
 );
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), TanStackRouterVite()],
   root: ".",
   build: {
     target: "es2020",

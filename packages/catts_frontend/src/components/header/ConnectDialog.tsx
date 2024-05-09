@@ -1,10 +1,10 @@
 import { Connector, useAccount, useConnect } from "wagmi";
 
-import Button from "./ui/Button";
-import Dialog from "./ui/Dialog";
 import { Dialog as HeadlessDialog } from "@headlessui/react";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect } from "react";
+import Button from "../ui/Button";
+import Dialog from "../ui/Dialog";
 
 export default function ConnectDialog({
   isOpen,

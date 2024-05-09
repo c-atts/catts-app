@@ -1,16 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
 import {
-  ActorProvider,
+  ActorProvider as _ActorProvider,
   InterceptorErrorData,
   InterceptorRequestData,
   createActorContext,
   createUseActorHook,
   isIdentityExpiredError,
 } from "ic-use-actor";
-import {
-  canisterId,
-  idlFactory,
-} from "catts_engine/declarations";
+import { canisterId, idlFactory } from "catts_engine/declarations";
 
 import { ReactNode } from "react";
 import { _SERVICE } from "catts_engine/declarations/catts_engine.did";
@@ -20,7 +17,7 @@ import { useSiweIdentity } from "ic-use-siwe-identity";
 const actorContext = createActorContext<_SERVICE>();
 export const useActor = createUseActorHook<_SERVICE>(actorContext);
 
-export default function Actors({ children }: { children: ReactNode }) {
+export default function ActorProvider({ children }: { children: ReactNode }) {
   const { identity, clear } = useSiweIdentity();
 
   const errorToast = (error: unknown) => {
@@ -56,7 +53,7 @@ export default function Actors({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ActorProvider<_SERVICE>
+    <_ActorProvider<_SERVICE>
       canisterId={canisterId}
       context={actorContext}
       identity={identity}
@@ -66,6 +63,6 @@ export default function Actors({ children }: { children: ReactNode }) {
       onResponseError={handleResponseError}
     >
       {children}
-    </ActorProvider>
+    </_ActorProvider>
   );
 }

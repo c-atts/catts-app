@@ -57,11 +57,15 @@ deploy-engine:
 	dfx deploy catts_engine --argument "(\"dfx_test_key\")"
 
 deploy-frontend:
-	dfx generate
+	dfx generate catts_engine
 	npm install
 	dfx deploy catts_frontend
 
 deploy-all: create-canisters deploy-siwe deploy-evm-rpc deploy-engine deploy-frontend
+
+build-frontend:
+	npm install
+	npm run build -w catts_frontend
 
 run-frontend:
 	npm install

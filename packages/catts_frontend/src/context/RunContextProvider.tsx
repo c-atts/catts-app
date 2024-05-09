@@ -11,7 +11,6 @@ import { isError } from "remeda";
 import { sepolia } from "viem/chains";
 import { toHex } from "viem/utils";
 import { useCancelRun } from "../catts/hooks/useCancelRun";
-// import { useGetAttestationUid } from "../catts/hooks/useGetAttestationUid";
 import { useCreateRun } from "../catts/hooks/useCreateRun";
 import { useRegisterRunPayment } from "../catts/hooks/useRegisterRunPayment";
 import { useWriteContract } from "wagmi";
@@ -273,10 +272,12 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     <RunContext.Provider
       value={{
         selectedRecipe: state?.selectedRecipe,
-        setSelectedRecipe: (recipe) =>
+        setSelectedRecipe: (recipe) => {
           setState((s) => {
             return { ...s, selectedRecipe: recipe };
-          }),
+          });
+          resetRun();
+        },
         isSimulationOk: state?.isSimulationOk,
         setIsSimulationOk: (ok) =>
           setState((s) => {

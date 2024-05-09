@@ -60,15 +60,21 @@ thread_local! {
         )
     );
 
-    static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::run_service::Run, Memory>> = RefCell::new(
+    static RECIPE_ID_BY_NAME: RefCell<StableBTreeMap<String, recipe::RecipeId, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2))),
         )
     );
 
+    static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::run_service::Run, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(3))),
+        )
+    );
+
     static TASKS: RefCell<StableBTreeMap<Timestamp, tasks::Task, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(7))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(4))),
         )
     );
 

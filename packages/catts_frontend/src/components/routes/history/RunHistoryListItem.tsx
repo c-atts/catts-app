@@ -1,14 +1,14 @@
 import AttestationUidLink from "../../../components/AttestationUidLink";
-import CancelRunButton from "./CancelRunButton";
 import EthTxLink from "../../../components/EthTxLink";
 import { Run } from "catts_engine/declarations/catts_engine.did";
 import { formatDistance } from "date-fns";
 import { formatEther } from "viem";
 import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
-import { useGetRecipe } from "../../../catts/hooks/useGetRecipes";
+import { useGetRecipeById } from "../../../catts/hooks/useGetRecipeById";
+import CancelRunButton from "../index/CancelRunButton";
 
 export function RunHistoryListItem({ run }: { run: Run }) {
-  const { data } = useGetRecipe(run.recipe_id);
+  const { data } = useGetRecipeById(run.recipe_id);
   const runCreatedDate = new Date(Number(run.created / BigInt(1_000_000)));
   const when = formatDistance(new Date(runCreatedDate), new Date(), {
     addSuffix: true,

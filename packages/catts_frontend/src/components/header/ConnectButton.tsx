@@ -1,9 +1,9 @@
 import Button from "../ui/Button";
-import ConnectDialog from "../ConnectDialog";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { useAccount } from "wagmi";
 import { useState } from "react";
+import ConnectDialog from "./ConnectDialog";
 
 export default function ConnectButton() {
   const { isConnecting, isConnected } = useAccount();
