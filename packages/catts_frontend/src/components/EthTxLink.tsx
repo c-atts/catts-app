@@ -13,7 +13,7 @@ export default function EthTxLink({
   if (!tx) return null;
 
   className = twMerge(
-    "text-sm border-b-2 border-cyan-600 hover:border-opacity-100  border-opacity-0",
+    "text-sm text-cyan-600 border-b-2 border-cyan-600 hover:border-opacity-100  border-opacity-0",
     className,
   );
 
