@@ -1,5 +1,6 @@
+use crate::chain_config::ChainConfig;
 use crate::declarations::evm_rpc::*;
-use crate::ECDSA_KEY_ID;
+use crate::{ECDSA_KEY_ID, ETH_AVG_FEE_HISTORY_BLOCK_COUNT, ETH_DEFAULT_CALL_CYCLES};
 use candid::Nat;
 use ethers_core::abi::ethereum_types::{Address, U256, U64};
 use ethers_core::abi::{Contract, FunctionExt, Token};
@@ -14,14 +15,10 @@ use ic_cdk::api::{
 };
 use k256::elliptic_curve::sec1::ToEncodedPoint;
 use k256::PublicKey;
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::str::FromStr;
-
-const CHAIN_ID: u128 = 11155111;
-const GAS: u128 = 300_000;
-const MAX_FEE_PER_GAS: u128 = 156_083_066_522_u128;
-const MAX_PRIORITY_FEE_PER_GAS: u128 = 3_000_000_000;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct JsonRpcRequest {
@@ -56,19 +53,19 @@ fn ecdsa_key_id() -> EcdsaKeyId {
     }
 }
 
-async fn next_id() -> Nat {
+async fn next_id(chain_config: &ChainConfig) -> Nat {
     let res: CallResult<(MultiGetTransactionCountResult,)> = call_with_payment(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_getTransactionCount",
         (
-            RpcServices::EthSepolia(Some(vec![EthSepoliaService::BlockPi])),
+            chain_config.eth_service(),
             None::<RpcConfig>,
             GetTransactionCountArgs {
                 address: get_self_eth_address().await,
                 block: BlockTag::Latest,
             },
         ),
-        2_000_000_000,
+        ETH_DEFAULT_CALL_CYCLES,
     )
     .await;
     match res {
@@ -78,12 +75,54 @@ async fn next_id() -> Nat {
     }
 }
 
+pub async fn update_base_fee(chain_config: &ChainConfig) -> Result<ChainConfig, String> {
+    let res: CallResult<(MultiFeeHistoryResult,)> = call_with_payment(
+        crate::declarations::evm_rpc::evm_rpc.0,
+        "eth_feeHistory",
+        (
+            chain_config.eth_service(),
+            None::<RpcConfig>,
+            FeeHistoryArgs {
+                blockCount: ETH_AVG_FEE_HISTORY_BLOCK_COUNT.into(),
+                newestBlock: BlockTag::Latest,
+                rewardPercentiles: None,
+            },
+        ),
+        ETH_DEFAULT_CALL_CYCLES,
+    )
+    .await;
+
+    match res {
+        Ok((MultiFeeHistoryResult::Consistent(FeeHistoryResult::Ok(fee_history)),)) => {
+            let fee_history = fee_history.ok_or_else(|| "Fee history is None")?;
+            let mut sum: BigUint = 0u8.into();
+            for fee in fee_history.baseFeePerGas.iter() {
+                sum += fee.0.clone();
+            }
+            let avg = sum / fee_history.baseFeePerGas.len();
+            let mut chain_config = chain_config.clone();
+            chain_config.base_fee = avg.into();
+            Ok(chain_config)
+        }
+        Ok((inconsistent,)) => ic_cdk::trap(&format!("Inconsistent: {inconsistent:?}")),
+        Err(err) => ic_cdk::trap(&format!("{:?}", err)),
+    }
+}
+
+pub fn max_fee_per_gas(chain_config: &ChainConfig) -> Nat {
+    chain_config.base_fee.clone()
+        + chain_config.priority_fee.clone()
+        + chain_config.priority_fee.clone()
+}
+
 /// Submit an ETH TX.
 pub async fn eth_transaction(
     contract_address: String,
     abi: &Contract,
     function_name: &str,
     args: &[Token],
+    gas: Nat,
+    chain_config: &ChainConfig,
 ) -> Result<String, String> {
     let f = match abi.functions_by_name(function_name).map(|v| &v[..]) {
         Ok([f]) => f,
@@ -103,14 +142,15 @@ pub async fn eth_transaction(
     let data = f
         .encode_input(args)
         .expect("Error while encoding input args");
+
     let signed_data = sign_transaction(SignRequest {
-        chain_id: CHAIN_ID.into(),
+        chain_id: chain_config.chain_id.into(),
         to: contract_address,
-        gas: GAS.into(),
-        max_fee_per_gas: MAX_FEE_PER_GAS.into(),
-        max_priority_fee_per_gas: MAX_PRIORITY_FEE_PER_GAS.into(),
+        gas,
+        max_fee_per_gas: max_fee_per_gas(chain_config).into(),
+        max_priority_fee_per_gas: chain_config.priority_fee.clone(),
         value: 0_u8.into(),
-        nonce: next_id().await,
+        nonce: next_id(&chain_config).await,
         data: Some(data.into()),
     })
     .await;
@@ -119,15 +159,11 @@ pub async fn eth_transaction(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_sendRawTransaction",
         (
-            RpcServices::EthSepolia(Some(vec![
-                EthSepoliaService::PublicNode,
-                EthSepoliaService::BlockPi,
-                EthSepoliaService::Ankr,
-            ])),
+            chain_config.eth_service(),
             None::<RpcConfig>,
             signed_data.clone(),
         ),
-        2_000_000_000,
+        ETH_DEFAULT_CALL_CYCLES,
     )
     .await
     .unwrap();
@@ -143,22 +179,17 @@ pub async fn eth_transaction(
     }
 }
 
-pub async fn eth_get_transaction_receipt(hash: &str) -> Result<TransactionReceipt, String> {
+pub async fn eth_get_transaction_receipt(
+    hash: &str,
+    chain_config: &ChainConfig,
+) -> Result<TransactionReceipt, String> {
     ic_cdk::println!("eth_get_transaction_receipt: {}", hash);
 
     let (res,): (MultiGetTransactionReceiptResult,) = call_with_payment(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_getTransactionReceipt",
-        (
-            RpcServices::EthSepolia(Some(vec![
-                EthSepoliaService::PublicNode,
-                EthSepoliaService::BlockPi,
-                EthSepoliaService::Ankr,
-            ])),
-            None::<RpcConfig>,
-            hash,
-        ),
-        2_000_000_000,
+        (chain_config.eth_service(), None::<RpcConfig>, hash),
+        ETH_DEFAULT_CALL_CYCLES,
     )
     .await
     .unwrap();
@@ -171,6 +202,33 @@ pub async fn eth_get_transaction_receipt(hash: &str) -> Result<TransactionReceip
             }
         }
         other => Err(format!("{:?}", other)),
+    }
+}
+
+pub async fn get_payment_logs_for_block(
+    block_number: u128,
+    chain_config: &ChainConfig,
+) -> Result<(MultiGetLogsResult,), String> {
+    let res: CallResult<(MultiGetLogsResult,)> = call_with_payment(
+        evm_rpc.0,
+        "eth_getLogs",
+        (
+            chain_config.eth_service(),
+            1,
+            GetLogsArgs {
+                addresses: vec![chain_config.payment_contract.clone()],
+                fromBlock: Some(BlockTag::Number(block_number.into())),
+                toBlock: Some(BlockTag::Number(block_number.into())),
+                topics: None,
+            },
+        ),
+        ETH_DEFAULT_CALL_CYCLES,
+    )
+    .await;
+
+    match res {
+        Ok(result) => Ok(result),
+        Err(err) => Err(format!("{:?}", err)),
     }
 }
 

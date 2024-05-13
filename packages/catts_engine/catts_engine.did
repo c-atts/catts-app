@@ -10,6 +10,7 @@ type LogLevel = variant { Error; Info; Warn; Debug };
 type PaymentVerifiedStatus = variant { VerificationFailed; Verified; Pending };
 type Recipe = record {
   id : blob;
+  gas : nat;
   created : nat64;
   creator : blob;
   name : text;
@@ -31,15 +32,15 @@ type Result_5 = variant { Ok : Run; Err : Error };
 type Result_6 = variant { Ok : vec Run; Err : Error };
 type Run = record {
   id : blob;
+  fee : nat;
   created : nat64;
   creator : blob;
   attestation_uid : opt text;
   attestation_transaction_hash : opt text;
-  cost : nat;
   recipe_id : blob;
   is_cancelled : bool;
+  chain_id : nat64;
   attestation_create_error : opt text;
-  attestation_chain : opt text;
   payment_verified_status : opt PaymentVerifiedStatus;
   payment_transaction_hash : opt text;
 };
@@ -60,7 +61,7 @@ service : (text) -> {
   recipe_get_by_name : (text) -> (Result_3) query;
   recipe_list : () -> (Result_4) query;
   run_cancel : (blob) -> (Result_5);
-  run_create : (blob) -> (Result_5);
+  run_create : (blob, nat64) -> (Result_5);
   run_get : (blob) -> (Result_5) query;
   run_list_for_user : () -> (Result_6);
   run_register_payment : (blob, text, nat) -> (Result_5);

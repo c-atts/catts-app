@@ -7,7 +7,7 @@ use crate::{
 };
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
-use candid::{CandidType, Decode, Encode};
+use candid::{CandidType, Decode, Encode, Nat};
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -46,6 +46,7 @@ pub struct Recipe {
     pub query_settings: Vec<QuerySetting>,
     pub processor: Processor,
     pub output_schema: Uid,
+    pub gas: Nat,
 }
 
 impl Storable for Recipe {
@@ -112,6 +113,7 @@ pub fn init_recipes() {
                     return JSON.stringify(decodedDataJson.map((item) => item.value));
                 "#.to_string(),
                 output_schema: "uint256 score,uint32 scorer_id,uint8 score_decimals".to_string(),
+                gas: Nat::from(260_000_u32),
             });
             recipe_id_by_name.insert(name, id);
 
@@ -138,6 +140,7 @@ pub fn init_recipes() {
                     return JSON.stringify([{name: "isEnsNameOwner", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool isEnsNameOwner".to_string(),
+                gas: Nat::from(210_000_u32),
             });
             recipe_id_by_name.insert(name, id);
 
@@ -174,6 +177,7 @@ pub fn init_recipes() {
                     return JSON.stringify([{name: "eu_gtc_passport_30", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool eu_gtc_passport_30".to_string(),
+                gas: Nat::from(210_000_u32),
             });
             recipe_id_by_name.insert(name, id);
 
@@ -199,6 +203,7 @@ pub fn init_recipes() {
                     return JSON.stringify([{name: "isEnsDelegate", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool isEnsDelegate".to_string(),
+                gas: Nat::from(210_000_u32),
             });
             recipe_id_by_name.insert(name, id);
 
@@ -228,6 +233,7 @@ pub fn init_recipes() {
                     return JSON.stringify([{name: "armitage_contributor", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool armitage_contributor".to_string(),
+                gas: Nat::from(210_000_u32),
             });
             recipe_id_by_name.insert(name, id);
         });

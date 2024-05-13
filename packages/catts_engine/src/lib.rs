@@ -1,3 +1,4 @@
+mod chain_config;
 mod controllers;
 mod declarations;
 mod eas;
@@ -13,6 +14,7 @@ mod siwe;
 mod tasks;
 mod thegraph;
 
+use chain_config::{init_chain_configs, ChainConfig};
 use error::Error;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
@@ -36,7 +38,8 @@ use tasks::execute_tasks;
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
 const ETH_DEFAULT_CALL_CYCLES: u64 = 30_000_000_000;
-const ETH_PAYMENT_CONTRACT_ADDRESS: &str = "0xf4e6652aFF99525b2f38b9A990AA1EB5f42ABdF0";
+const ETH_AVG_FEE_HISTORY_BLOCK_COUNT: u64 = 4;
+
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
 const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
@@ -78,6 +81,12 @@ thread_local! {
         )
     );
 
+    static CHAIN_CONFIGS: RefCell<StableBTreeMap<u64, ChainConfig, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5))),
+        )
+    );
+
     static ECDSA_KEY_ID: RefCell<String> = RefCell::new(String::default());
 }
 
@@ -100,6 +109,7 @@ fn init_and_upgrade(key_id: String) {
 
     // Mock data
     init_recipes();
+    init_chain_configs();
 }
 
 #[init]

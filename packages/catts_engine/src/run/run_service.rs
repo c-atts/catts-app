@@ -5,7 +5,7 @@ use crate::{
 };
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
-use candid::{CandidType, Decode, Encode};
+use candid::{CandidType, Decode, Encode, Nat};
 use ic_cdk::api::time;
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
@@ -46,14 +46,14 @@ pub struct Run {
     pub recipe_id: RecipeId,
     pub creator: EthAddressBytes,
     pub created: Timestamp,
-    pub cost: u128,
-    pub is_cancelled: bool,
+    pub chain_id: u64,
+    pub fee: Nat,
     pub payment_transaction_hash: Option<String>,
     pub payment_verified_status: Option<PaymentVerifiedStatus>,
     pub attestation_transaction_hash: Option<String>,
     pub attestation_create_error: Option<String>,
     pub attestation_uid: Option<String>,
-    pub attestation_chain: Option<String>,
+    pub is_cancelled: bool,
 }
 
 impl Storable for Run {
@@ -69,29 +69,34 @@ impl Storable for Run {
 }
 
 impl Run {
-    pub fn new(address: &EthAddress, cost: u128, recipe_id: &[u8; 12]) -> Result<Self, RunError> {
+    pub fn new(
+        recipe_id: &[u8; 12],
+        chain_id: u64,
+        fee: Nat,
+        creator: &EthAddress,
+    ) -> Result<Self, RunError> {
         Recipe::get_by_id(recipe_id).ok_or(RunError::NotFound)?;
 
         let created = time();
-        let id = Self::id(address, created);
+        let id = Self::id(creator, created);
 
         let run = Self {
             id,
             recipe_id: *recipe_id,
-            creator: address.as_byte_array(),
+            creator: creator.as_byte_array(),
             created,
-            cost,
-            is_cancelled: false,
+            chain_id,
+            fee,
             payment_transaction_hash: None,
             payment_verified_status: None,
             attestation_transaction_hash: None,
             attestation_create_error: None,
             attestation_uid: None,
-            attestation_chain: None,
+            is_cancelled: false,
         };
 
         RUNS.with_borrow_mut(|r| {
-            r.insert((address.as_byte_array(), id), run.clone());
+            r.insert((creator.as_byte_array(), id), run.clone());
         });
 
         Ok(run)

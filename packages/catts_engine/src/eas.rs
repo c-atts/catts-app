@@ -1,7 +1,8 @@
+use crate::chain_config::ChainConfig;
 use crate::eth::EthAddress;
 use crate::evm_rpc::eth_transaction;
 use crate::graphql::insert_dynamic_variables;
-use crate::recipe::RecipeQuerySettings;
+use crate::recipe::{Recipe, RecipeQuerySettings};
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
@@ -209,16 +210,20 @@ pub fn process_query_result(processor: &str, query_result: &str) -> String {
 }
 
 pub async fn create_attestation(
-    recipient: &EthAddress,
+    recipe: &Recipe,
     attestation_data: &str,
-    schema: &str,
+    recipient: &EthAddress,
+    chain_config: &ChainConfig,
 ) -> Result<String, String> {
+    let schema_uid = get_schema_uid(
+        &recipe.output_schema,
+        "0x0000000000000000000000000000000000000000",
+        false,
+    )?;
+
     let encoded_abi_data = encode_abi_data(attestation_data);
 
-    let schema_uid = get_schema_uid(schema, "0x0000000000000000000000000000000000000000", false)?;
-
     let schema_token = Token::FixedBytes(schema_uid.to_vec());
-
     let attestation_request_data = Token::Tuple(vec![
         Token::Address(H160(recipient.as_byte_array())), // recipient
         Token::Uint((0).into()),                         // expirationTime
@@ -231,10 +236,12 @@ pub async fn create_attestation(
     let attest_request = Token::Tuple(vec![schema_token, attestation_request_data]);
 
     eth_transaction(
-        String::from("0xC2679fBD37d54388Ce493F1DB75320D236e1815e"),
+        chain_config.eas_contract.clone(),
         &Arc::clone(&ETH_EAS_CONTRACT),
         "attest",
         &[attest_request],
+        recipe.gas.clone(),
+        chain_config,
     )
     .await
 }

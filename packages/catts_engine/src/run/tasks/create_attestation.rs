@@ -1,4 +1,5 @@
 use crate::{
+    chain_config::ChainConfig,
     eas::{create_attestation, process_query_result, run_eas_query},
     eth::EthAddress,
     logger::debug,
@@ -29,6 +30,14 @@ impl TaskExecutor for CreateAttestationExecutor {
                 "CreateAttestationExecutor: Run not found".to_string(),
             ))?;
 
+            let recipe = Recipe::get_by_id(&run.recipe_id).ok_or(TaskError::Failed(
+                "CreateAttestationExecutor: Recipe not found".to_string(),
+            ))?;
+
+            let chain_config = ChainConfig::get(run.chain_id).ok_or(TaskError::Failed(
+                "CreateAttestationExecutor: Chain config not found".to_string(),
+            ))?;
+
             // Run is already attested, cancel
             if let Some(_) = run.attestation_transaction_hash {
                 return Err(TaskError::Failed(
@@ -42,11 +51,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 return Ok(TaskResult::retry());
             }
 
-            let recipe = Recipe::get_by_id(&run.recipe_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Recipe not found".to_string(),
-            ))?;
-
-            let creator_address = EthAddress::from(run.creator);
+            let recipient = EthAddress::from(run.creator);
             let mut query_response = Vec::new();
             for i in 0..recipe.queries.len() {
                 let query_settings =
@@ -60,7 +65,7 @@ impl TaskExecutor for CreateAttestationExecutor {
 
                 let response = match query_settings.query_type.as_str() {
                     "eas" => run_eas_query(
-                        &creator_address,
+                        &recipient,
                         &recipe.queries[i],
                         &recipe.query_variables[i],
                         &query_settings,
@@ -72,7 +77,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                         TaskError::Failed(format!("Error running EAS query: {}", err))
                     })?,
                     "thegraph" => run_thegraph_query(
-                        &creator_address,
+                        &recipient,
                         &recipe.queries[i],
                         &recipe.query_variables[i],
                         &query_settings,
@@ -94,10 +99,10 @@ impl TaskExecutor for CreateAttestationExecutor {
             }
             let aggregated_response = format!("[{}]", query_response.join(","));
 
-            let processed_response = process_query_result(&recipe.processor, &aggregated_response);
+            let attestation_data = process_query_result(&recipe.processor, &aggregated_response);
 
             let attestation_transaction_hash =
-                create_attestation(&creator_address, &processed_response, &recipe.output_schema)
+                create_attestation(&recipe, &attestation_data, &recipient, &chain_config)
                     .await
                     .map_err(|err| {
                         TaskError::Failed(format!("Error creating attestation: {}", err))

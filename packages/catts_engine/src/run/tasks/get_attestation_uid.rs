@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
 use crate::{
+    chain_config::ChainConfig,
     evm_rpc::eth_get_transaction_receipt,
     logger::debug,
     run::run_service::{vec_to_run_id, Run},
@@ -30,6 +31,10 @@ impl TaskExecutor for GetAttestationUidExecutor {
                 ));
             }
 
+            let chain_config = ChainConfig::get(run.chain_id).ok_or(TaskError::Failed(
+                "CreateAttestationExecutor: Chain config not found".to_string(),
+            ))?;
+
             let attestation_transaction_hash = match run.attestation_transaction_hash {
                 Some(ref hash) => hash.clone(),
                 None => {
@@ -38,16 +43,19 @@ impl TaskExecutor for GetAttestationUidExecutor {
                 }
             };
 
-            let receipt = match eth_get_transaction_receipt(&attestation_transaction_hash).await {
-                Ok(receipt) => receipt,
-                Err(err) => {
-                    debug(&format!(
-                        "CreateAttestationExecutor: Error getting transaction receipt: {}",
-                        err
-                    ));
-                    return Ok(TaskResult::retry());
-                }
-            };
+            let receipt =
+                match eth_get_transaction_receipt(&attestation_transaction_hash, &chain_config)
+                    .await
+                {
+                    Ok(receipt) => receipt,
+                    Err(err) => {
+                        debug(&format!(
+                            "CreateAttestationExecutor: Error getting transaction receipt: {}",
+                            err
+                        ));
+                        return Ok(TaskResult::retry());
+                    }
+                };
 
             if receipt.logs.is_empty() {
                 debug("CreateAttestationExecutor: No logs in transaction receipt");

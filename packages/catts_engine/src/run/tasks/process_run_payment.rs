@@ -1,18 +1,16 @@
+use crate::chain_config::ChainConfig;
+use crate::evm_rpc::get_payment_logs_for_block;
 use crate::logger::{error, info};
 use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType};
 use crate::{
-    declarations::evm_rpc::{
-        evm_rpc, BlockTag, EthSepoliaService, GetLogsArgs, GetLogsResult, LogEntry,
-        MultiGetLogsResult, RpcConfig, RpcServices,
-    },
+    declarations::evm_rpc::{GetLogsResult, LogEntry, MultiGetLogsResult},
     eth::{remove_address_padding, EthAddress},
     logger::warn,
     run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
-    ETH_DEFAULT_CALL_CYCLES, ETH_PAYMENT_CONTRACT_ADDRESS, ETH_PAYMENT_EVENT_SIGNATURE,
+    ETH_PAYMENT_EVENT_SIGNATURE,
 };
 use ethers_core::abi::ParamType;
 use futures::Future;
-use ic_cdk::api::call::{call_with_payment, CallResult};
 use serde::{Deserialize, Serialize};
 use std::pin::Pin;
 use thiserror::Error;
@@ -46,7 +44,15 @@ impl TaskExecutor for ProcessRunPaymentExecutor {
             let args: ProcessRunPaymentArgs = bincode::deserialize(&args)
                 .map_err(|_| TaskError::Failed("Invalid arguments".to_string()))?;
 
-            match process_run_payment(args.clone()).await {
+            let run = Run::get_by_id(&args.run_id).ok_or(TaskError::Failed(
+                "CreateAttestationExecutor: Run not found".to_string(),
+            ))?;
+
+            let chain_config = ChainConfig::get(run.chain_id).ok_or(TaskError::Failed(
+                "CreateAttestationExecutor: Chain config not found".to_string(),
+            ))?;
+
+            match process_run_payment(args.clone(), &chain_config).await {
                 Ok(_) => {
                     add_task(
                         0, // Run ASAP
@@ -76,14 +82,19 @@ impl TaskExecutor for ProcessRunPaymentExecutor {
     }
 }
 
-pub async fn process_run_payment(args: ProcessRunPaymentArgs) -> Result<(), PaymentError> {
-    let logs_result = get_payment_logs_for_block(args.block_to_process).await?;
+pub async fn process_run_payment(
+    args: ProcessRunPaymentArgs,
+    chain_config: &ChainConfig,
+) -> Result<(), PaymentError> {
+    let logs_result = get_payment_logs_for_block(args.block_to_process, chain_config)
+        .await
+        .map_err(|e| PaymentError::Fail(format!("Error fetching logs: {:?}", e)))?;
 
     match logs_result.0 {
         MultiGetLogsResult::Consistent(log_result) => match log_result {
             GetLogsResult::Ok(entries) => {
                 for entry in entries {
-                    match process_log_entry(&entry, &args) {
+                    match process_log_entry(&entry, &args, &chain_config) {
                         Ok(_) => {
                             info("Payment registered successfully");
                             return Ok(());
@@ -114,37 +125,12 @@ pub async fn process_run_payment(args: ProcessRunPaymentArgs) -> Result<(), Paym
     ))
 }
 
-async fn get_payment_logs_for_block(
-    block_number: u128,
-) -> Result<(MultiGetLogsResult,), PaymentError> {
-    let res: CallResult<(MultiGetLogsResult,)> = call_with_payment(
-        evm_rpc.0,
-        "eth_getLogs",
-        (
-            RpcServices::EthSepolia(Some(vec![EthSepoliaService::BlockPi])),
-            None::<RpcConfig>,
-            GetLogsArgs {
-                addresses: vec![ETH_PAYMENT_CONTRACT_ADDRESS.to_string()],
-                fromBlock: Some(BlockTag::Number(block_number.into())),
-                toBlock: Some(BlockTag::Number(block_number.into())),
-                topics: None,
-            },
-        ),
-        ETH_DEFAULT_CALL_CYCLES,
-    )
-    .await;
-
-    match res {
-        Ok(result) => Ok(result),
-        Err(err) => Err(PaymentError::Warn(format!(
-            "Error fetching logs: {:?}",
-            err
-        ))),
-    }
-}
-
-fn process_log_entry(entry: &LogEntry, args: &ProcessRunPaymentArgs) -> Result<(), PaymentError> {
-    if entry.address.to_lowercase() != ETH_PAYMENT_CONTRACT_ADDRESS.to_lowercase() {
+fn process_log_entry(
+    entry: &LogEntry,
+    args: &ProcessRunPaymentArgs,
+    chain_config: &ChainConfig,
+) -> Result<(), PaymentError> {
+    if entry.address.to_lowercase() != chain_config.payment_contract.to_lowercase() {
         return Err(PaymentError::Warn(
             "Payment log entry address does not match the expected address".to_string(),
         ));
@@ -225,7 +211,7 @@ fn process_log_entry(entry: &LogEntry, args: &ProcessRunPaymentArgs) -> Result<(
                 ));
             }
 
-            if event_amount >= run.cost {
+            if event_amount >= run.fee {
                 run.payment_transaction_hash = entry.transactionHash.clone();
                 run.payment_verified_status = Some(PaymentVerifiedStatus::Verified);
                 Run::update(&run);
