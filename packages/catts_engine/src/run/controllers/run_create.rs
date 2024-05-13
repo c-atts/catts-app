@@ -23,14 +23,10 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, Error> {
         .await
         .map_err(|e| Error::internal_server_error(e))?;
 
-    let evm_calls_usd = 0.25_f64;
-    let evm_calls_gwei = evm_calls_usd / chain_config.eth_usd_price * 10e9_f64;
+    let evm_calls_usd = 0.1_f64;
+    let evm_calls_wei = evm_calls_usd / chain_config.eth_usd_price * 1e18_f64;
+    let fee = recipe.gas * max_fee_per_gas(&chain_config) + evm_calls_wei as u64;
 
-    ic_cdk::println!("evm_calls_gwei: {:?}", evm_calls_gwei);
-
-    let fee = recipe.gas * max_fee_per_gas(&chain_config) + evm_calls_gwei as u64;
-
-    ic_cdk::println!("fee: {:?}", fee);
     ChainConfig::set(chain_config);
 
     let run = Run::new(&recipe_id, chain_id, fee, &address).map_err(Error::bad_request)?;

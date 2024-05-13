@@ -68,7 +68,21 @@ pub fn init_chain_configs() {
                     "https://eth-sepolia.g.alchemy.com/v2/fA4yD502lz4utnhMnmZz5Kq4ztHOM1Yg"
                         .to_string(),
                 eas_contract: "0xC2679fBD37d54388Ce493F1DB75320D236e1815e".to_string(),
-                payment_contract: "0xf4e6652aFF99525b2f38b9A990AA1EB5f42ABdF0".to_string(),
+                payment_contract: "0xe498539Cad0E4325b88d6F6a1B89af7e4C8dF404".to_string(),
+            },
+        );
+        configs.insert(
+            10, // Optimism
+            ChainConfig {
+                chain_id: 10,
+                base_fee: Nat::from(100_000_000u64),
+                priority_fee: Nat::from(3_000_000u64),
+                eth_usd_price: 2959.0,
+                rpc_api_endpoint:
+                    "https://opt-mainnet.g.alchemy.com/v2/fA4yD502lz4utnhMnmZz5Kq4ztHOM1Yg"
+                        .to_string(),
+                eas_contract: "0x4200000000000000000000000000000000000021".to_string(),
+                payment_contract: "0x15a9a0f3bf24f9ff438f18f83ecc8b7cb2e15f9a".to_string(),
             },
         );
     });

@@ -110,9 +110,7 @@ pub async fn update_base_fee(chain_config: &ChainConfig) -> Result<ChainConfig, 
 }
 
 pub fn max_fee_per_gas(chain_config: &ChainConfig) -> Nat {
-    chain_config.base_fee.clone()
-        + chain_config.priority_fee.clone()
-        + chain_config.priority_fee.clone()
+    chain_config.base_fee.clone() * 2_u8
 }
 
 /// Submit an ETH TX.
