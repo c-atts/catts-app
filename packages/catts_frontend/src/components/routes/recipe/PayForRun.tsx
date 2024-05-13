@@ -5,6 +5,7 @@ import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { formatEther } from "viem/utils";
 import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import useRunContext from "../../../context/useRunContext";
+import { CHAIN_CONFIG } from "../../../config";
 
 export function PayForRunInner() {
   const { usePayForRun, runInProgress, progressMessage } = useRunContext();
@@ -41,7 +42,10 @@ export function PayForRunInner() {
     <>
       <div className="flex justify-between w-full">
         <div className="text-sm text-zinc-500">Payment tx</div>
-        <EthTxLink tx={runInProgress.payment_transaction_hash[0]} />
+        <EthTxLink
+          chainId={Number(runInProgress.chain_id)}
+          tx={runInProgress.payment_transaction_hash[0]}
+        />
       </div>
       <div className="flex justify-between w-full">
         <div>Run paid</div>
@@ -63,11 +67,11 @@ export function PayForRunInner() {
 }
 
 export default function PayForRun() {
-  const { useCreateRun: useInitRun } = useRunContext();
+  const { useCreateRun: useInitRun, runInProgress } = useRunContext();
   const { data: initRunData } = useInitRun;
 
   const cost =
-    initRunData && "Ok" in initRunData ? initRunData?.Ok?.cost : undefined;
+    initRunData && "Ok" in initRunData ? initRunData?.Ok?.fee : undefined;
 
   return (
     <div className="flex flex-col gap-2">
@@ -82,7 +86,8 @@ export default function PayForRun() {
           <div className="flex justify-between w-full">
             <div className="text-sm text-zinc-500">Transaction fee</div>
             <div className="text-sm text-zinc-500">
-              {formatEther(cost)} SepoilaETH{" "}
+              {formatEther(cost)}{" "}
+              {CHAIN_CONFIG[Number(runInProgress?.chain_id)].nativeTokenName}
             </div>
           </div>
         )}

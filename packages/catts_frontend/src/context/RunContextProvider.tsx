@@ -1,19 +1,18 @@
 import { ReactNode, createContext, useState } from "react";
 
 import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
-import { ETH_PAYMENT_CONTRACT_ADDRESS, wagmiConfig } from "../config";
+import { CHAIN_CONFIG, wagmiConfig } from "../config";
 import { Run } from "catts_engine/declarations/catts_engine.did";
 import { RunContextStateType } from "./run-context-state.type";
 import { RunContextType } from "./run-context.type";
 import { TransactionExecutionError } from "viem";
 import { catts_engine } from "catts_engine/declarations";
 import { isError } from "remeda";
-import { sepolia } from "viem/chains";
 import { toHex } from "viem/utils";
 import { useCancelRun } from "../catts/hooks/useCancelRun";
 import { useCreateRun } from "../catts/hooks/useCreateRun";
 import { useRegisterRunPayment } from "../catts/hooks/useRegisterRunPayment";
-import { useWriteContract } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 import { wait } from "../utils/wait";
 import { waitForTransactionReceipt } from "@wagmi/core";
 
@@ -24,6 +23,7 @@ const GET_UID_RETRY_INTERVAL = 5_000;
 
 export function RunContextProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RunContextStateType>({});
+  const { chainId } = useAccount();
 
   const _useCreateRun = useCreateRun();
   const _usePayForRun = useWriteContract();
@@ -46,7 +46,10 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      const res = await _useCreateRun.mutateAsync(state.selectedRecipe.id);
+      const res = await _useCreateRun.mutateAsync({
+        recipeId: state.selectedRecipe.id,
+        chainId,
+      });
       if (res) {
         if ("Ok" in res) {
           await payAndCreateAttestation(res.Ok);
@@ -74,6 +77,11 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (!chainId) {
+      console.error("No chain connected.");
+      return;
+    }
+
     setState((s) => {
       return {
         ...s,
@@ -86,10 +94,10 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     try {
       const transactionHash = await _usePayForRun.writeContractAsync({
         abi: CattsPaymentsAbi,
-        address: ETH_PAYMENT_CONTRACT_ADDRESS,
+        address: CHAIN_CONFIG[chainId].paymentContractAddress as `0x${string}`,
         functionName: "payRun",
         args: [toHex(run.id as Uint8Array)],
-        value: run.cost,
+        value: run.fee,
       });
 
       if (!transactionHash) {
@@ -120,9 +128,14 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      if (chainId != 1 && chainId != 10 && chainId != 11155111) {
+        console.error("No chain connected.");
+        return;
+      }
+
       const res = await waitForTransactionReceipt(wagmiConfig, {
         hash: run.payment_transaction_hash[0] as `0x${string}`,
-        chainId: sepolia.id,
+        chainId,
       });
 
       if (res) {

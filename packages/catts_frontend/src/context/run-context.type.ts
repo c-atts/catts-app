@@ -18,7 +18,10 @@ export type RunContextType = {
   useCreateRun: UseMutationResult<
     Result_5 | null,
     Error,
-    Uint8Array | number[],
+    {
+      recipeId: Uint8Array | number[];
+      chainId: number | undefined;
+    },
     unknown
   >;
   useRegisterRunPayment: UseMutationResult<

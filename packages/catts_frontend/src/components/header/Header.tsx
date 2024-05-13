@@ -6,6 +6,7 @@ import ConnectButton from "./ConnectButton";
 import Button from "../ui/Button";
 import { Link } from "@tanstack/react-router";
 import { faHistory, faScroll } from "@fortawesome/free-solid-svg-icons";
+import { Chain } from "./Chain";
 
 export default function Header() {
   const { identity } = useSiweIdentity();
@@ -22,6 +23,7 @@ export default function Header() {
           <ConnectButton />
           {!identity && <LoginButton />}
           {identity && <WrongNetworkButton />}
+          <Chain />
           <EthButton />
         </div>
         <div className="block text-xl font-bold text-center md:hidden">

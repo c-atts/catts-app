@@ -6,6 +6,8 @@ import { formatEther } from "viem";
 import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import { useGetRecipeById } from "../../../catts/hooks/useGetRecipeById";
 import CancelRunButton from "../index/CancelRunButton";
+import { CHAIN_CONFIG } from "../../../config";
+import { ChainIcon } from "../../ChainIcon";
 
 export function RunHistoryListItem({ run }: { run: Run }) {
   const { data } = useGetRecipeById(run.recipe_id);
@@ -21,8 +23,12 @@ export function RunHistoryListItem({ run }: { run: Run }) {
   return (
     <li className="flex flex-col">
       <div className="border-zinc-700/50 border-[1px] bg-zinc-800 drop-shadow-xl rounded-2xl flex flex-col p-10 w-full mt-2">
-        <div className="text-2xl font-bold pb-3">
-          {recipe ? recipe.name : ""}
+        <div className=" pb-3 flex w-full justify-between">
+          <div className="text-2xl font-bold">{recipe ? recipe.name : ""}</div>
+          <ChainIcon
+            chainName={CHAIN_CONFIG[Number(run.chain_id)]?.name}
+            className="w-6 h-6"
+          />
         </div>
         <div className="flex flex-col gap-2 text-sm text-zinc-500">
           <div className="flex items-center justify-between w-full h-8">
@@ -33,14 +39,20 @@ export function RunHistoryListItem({ run }: { run: Run }) {
         <div className="flex flex-col gap-2 text-sm text-zinc-500">
           <div className="flex items-center justify-between w-full h-8">
             <div>Transaction fee</div>
-            <div>{formatEther(run.cost)} SepoliaETH</div>
+            <div>
+              {formatEther(run.fee)}{" "}
+              {CHAIN_CONFIG[Number(run.chain_id)]?.nativeTokenName}
+            </div>
           </div>
         </div>
         {run.payment_transaction_hash.length > 0 && (
           <div className="flex flex-col gap-2 text-sm text-zinc-500">
             <div className="flex items-center justify-between w-full h-8">
               <div>Payment Tx</div>
-              <EthTxLink tx={run.payment_transaction_hash[0]} />
+              <EthTxLink
+                chainId={Number(run.chain_id)}
+                tx={run.payment_transaction_hash[0]}
+              />
             </div>
           </div>
         )}
@@ -68,7 +80,10 @@ export function RunHistoryListItem({ run }: { run: Run }) {
           <div className="flex flex-col gap-2 text-sm text-zinc-500">
             <div className="flex items-center justify-between w-full h-8">
               <div>Attestation Tx</div>
-              <EthTxLink tx={run.attestation_transaction_hash[0]} />
+              <EthTxLink
+                chainId={Number(run.chain_id)}
+                tx={run.attestation_transaction_hash[0]}
+              />
             </div>
           </div>
         )}
@@ -76,7 +91,10 @@ export function RunHistoryListItem({ run }: { run: Run }) {
           <div className="flex flex-col gap-2 text-sm text-zinc-500">
             <div className="flex items-center justify-between w-full h-8">
               <div>Attestation Uid</div>
-              <AttestationUidLink uid={run.attestation_uid[0]} />
+              <AttestationUidLink
+                chainId={Number(run.chain_id)}
+                uid={run.attestation_uid[0]}
+              />
             </div>
           </div>
         )}

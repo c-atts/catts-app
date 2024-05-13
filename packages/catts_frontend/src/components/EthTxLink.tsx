@@ -3,11 +3,15 @@ import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { shortenEthAddress } from "../eth/utils/shortenEthAddress";
 import { twMerge } from "tailwind-merge";
 
+import { CHAIN_CONFIG } from "../config";
+
 export default function EthTxLink({
   tx,
+  chainId,
   className,
 }: {
   tx?: string;
+  chainId: number;
   className?: string;
 }) {
   if (!tx) return null;
@@ -20,7 +24,7 @@ export default function EthTxLink({
   return (
     <a
       className="no-underline"
-      href={`https://sepolia.etherscan.io/tx/${tx}`}
+      href={`${CHAIN_CONFIG[chainId]?.blockExplorerUrl}/tx/${tx}`}
       rel="noreferrer"
       target="_blank"
     >

@@ -27,7 +27,10 @@ export function CreateAttestationInner() {
           <div className="flex justify-between w-full">
             <div className="text-sm text-zinc-500">Attesttation tx</div>
             <div className="text-sm text-zinc-500">
-              <EthTxLink tx={runInProgress?.attestation_transaction_hash[0]} />
+              <EthTxLink
+                chainId={Number(runInProgress.chain_id)}
+                tx={runInProgress?.attestation_transaction_hash[0]}
+              />
             </div>
           </div>
         )}
@@ -45,7 +48,10 @@ export function CreateAttestationInner() {
         <div className="flex justify-between w-full">
           <div className="text-sm text-zinc-500">Attestation uid</div>
           <div className="text-sm text-zinc-500">
-            <AttestationUidLink uid={runInProgress?.attestation_uid[0]} />
+            <AttestationUidLink
+              chainId={Number(runInProgress.chain_id)}
+              uid={runInProgress?.attestation_uid[0]}
+            />
           </div>
         </div>
       )}

@@ -1,9 +1,4 @@
-import {
-  faGithub,
-  faTwitter,
-  faXTwitter,
-} from "@fortawesome/free-brands-svg-icons";
-import { faX } from "@fortawesome/free-solid-svg-icons";
+import { faGithub, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function GitHubIcon() {

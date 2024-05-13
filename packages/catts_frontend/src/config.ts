@@ -1,6 +1,6 @@
 import { createConfig, http } from "wagmi";
 
-import { mainnet, sepolia } from "wagmi/chains";
+import { mainnet, optimism, sepolia } from "wagmi/chains";
 import { walletConnect } from "wagmi/connectors";
 
 // Tanstack Query
@@ -9,18 +9,41 @@ export const GQL_QUERY_STALE_TIME = 1000 * 60 * 30; // 30 minutes
 // Ethereum
 
 export const ETH_DEFAULT_CHAIN_ID = 11155111;
-export const ETH_PAYMENT_CONTRACT_ADDRESS =
-  "0xf4e6652aFF99525b2f38b9A990AA1EB5f42ABdF0";
+
+type ChainConfig = {
+  name: string;
+  paymentContractAddress: string;
+  nativeTokenName: string;
+  blockExplorerUrl: string;
+};
+
+export const CHAIN_CONFIG: { [key: string]: ChainConfig } = {
+  [optimism.id]: {
+    name: "OP Mainnet",
+    paymentContractAddress: "0x15a9a0f3bf24f9ff438f18f83ecc8b7cb2e15f9a",
+    nativeTokenName: "ETH",
+    blockExplorerUrl: "https://optimistic.etherscan.io",
+  },
+  [sepolia.id]: {
+    name: "Sepolia",
+    paymentContractAddress: "0xe498539Cad0E4325b88d6F6a1B89af7e4C8dF404",
+    nativeTokenName: "SepoliaETH",
+    blockExplorerUrl: "https://sepolia.etherscan.io",
+  },
+};
 
 // Wagmi
 
 const WALLETCONNECT_PROJECT_ID = "fd4fc28c05ffde83e69d8d420d0cf25e";
 
 export const wagmiConfig = createConfig({
-  chains: [sepolia, mainnet],
+  chains: [optimism, sepolia, mainnet],
   connectors: [walletConnect({ projectId: WALLETCONNECT_PROJECT_ID })],
   pollingInterval: 2_000,
   transports: {
+    [optimism.id]: http(
+      "https://opt-mainnet.g.alchemy.com/v2/fA4yD502lz4utnhMnmZz5Kq4ztHOM1Yg",
+    ),
     [sepolia.id]: http(
       "https://eth-sepolia.g.alchemy.com/v2/fA4yD502lz4utnhMnmZz5Kq4ztHOM1Yg",
     ),
@@ -31,7 +54,7 @@ export const wagmiConfig = createConfig({
 });
 
 // C–ATTS attestations can only be created on allowed chains
-export const allowedChains: number[] = [sepolia.id];
+export const allowedChains: number[] = [optimism.id, sepolia.id];
 
 // Ethererum Attestation Service (EAS)
 

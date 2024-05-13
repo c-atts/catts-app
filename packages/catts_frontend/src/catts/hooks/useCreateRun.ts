@@ -7,9 +7,15 @@ export const useCreateRun = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (runId: Uint8Array | number[]) => {
-      if (!actor) return null;
-      const result = await actor.run_create(runId);
+    mutationFn: async ({
+      recipeId: recipeId,
+      chainId,
+    }: {
+      recipeId: Uint8Array | number[];
+      chainId: number | undefined;
+    }) => {
+      if (!actor || !chainId) return null;
+      const result = await actor.run_create(recipeId, BigInt(chainId));
       await queryClient.invalidateQueries({ queryKey: ["run_history"] });
       return result;
     },
