@@ -12,6 +12,10 @@ contract CattsRunPayments is ReentrancyGuard, Ownable {
     address payable public _forwardAddress;
 
     event RunPayment(address indexed payer, uint256 amount, bytes12 runId);
+    event ForwardAddressChanged(
+        address payable oldAddress,
+        address payable newAddress
+    );
 
     constructor(
         address payable forwardAddress,
@@ -35,6 +39,13 @@ contract CattsRunPayments is ReentrancyGuard, Ownable {
     receive() external payable {}
 
     fallback() external payable {}
+
+    // Allow the owner to change the forward address
+    function setForwardAddress(address payable newAddress) external onlyOwner {
+        require(newAddress != address(0), "Address cannot be zero");
+        emit ForwardAddressChanged(_forwardAddress, newAddress);
+        _forwardAddress = newAddress;
+    }
 
     // Allow the owner to recover Ether sent to the contract
     function withdrawEther(
