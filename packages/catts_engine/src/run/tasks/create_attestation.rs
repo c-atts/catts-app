@@ -10,9 +10,9 @@ use crate::{
 };
 use futures::Future;
 use std::pin::Pin;
-const GET_ATTESTATION_UID_FIRST_TIME_INTERVAL: u64 = 10_000_000_000; // 10 seconds
-const GET_ATTESTATION_UID_RETRY_INTERVAL: u64 = 30_000_000_000; // 30 seconds
-const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 6;
+const GET_ATTESTATION_UID_FIRST_TIME_INTERVAL: u64 = 5_000_000_000; // 5 seconds
+const GET_ATTESTATION_UID_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
+const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 10;
 
 pub struct CreateAttestationExecutor {}
 
