@@ -1,6 +1,6 @@
 use crate::{
     error::Error,
-    run::run_service::{Run, RunId},
+    run::run::{Run, RunId},
 };
 use ic_cdk::query;
 

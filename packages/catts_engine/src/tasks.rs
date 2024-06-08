@@ -1,5 +1,5 @@
 use crate::logger::debug;
-use crate::run::run_service::Timestamp;
+use crate::run::run::Timestamp;
 use crate::run::tasks::create_attestation::CreateAttestationExecutor;
 use crate::run::tasks::get_attestation_uid::GetAttestationUidExecutor;
 use crate::run::tasks::process_run_payment::ProcessRunPaymentExecutor;

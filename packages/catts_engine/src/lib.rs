@@ -29,7 +29,7 @@ use logger::LogItem;
 use profile::UserProfile;
 use recipe::Recipe;
 use recipe::{init_recipes, RecipeId};
-use run::run_service::{Run, RunId, Timestamp};
+use run::run::{Run, RunId, Timestamp};
 use std::cell::RefCell;
 use std::sync::Arc;
 use std::time::Duration;
@@ -69,7 +69,7 @@ thread_local! {
         )
     );
 
-    static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::run_service::Run, Memory>> = RefCell::new(
+    static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::run::Run, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(3))),
         )

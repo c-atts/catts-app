@@ -35,7 +35,8 @@ pub enum RecipeError {
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Recipe {
     pub id: RecipeId,
-    pub name: String,
+    pub slug: String,
+    pub display_name: String,
     pub creator: EthAddressBytes,
     pub created: u64,
     pub version: String,
@@ -96,7 +97,8 @@ pub fn init_recipes() {
 
             recipes.insert(id, Recipe {
                 id,
-                name: name.clone(),
+                slug: name.clone(),
+                display_name: "Gitcoin Passport Clone".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -123,7 +125,8 @@ pub fn init_recipes() {
 
             recipes.insert(id, Recipe {
                 id,
-                name: name.clone(),
+                slug: name.clone(),
+                display_name: "ENS Name Holder".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -149,7 +152,8 @@ pub fn init_recipes() {
 
             recipes.insert(id, Recipe {
                 id,
-                name: name.clone(),
+                slug: name.clone(),
+                display_name: "EU Gitcoin Passport Score 30".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -186,7 +190,8 @@ pub fn init_recipes() {
 
             recipes.insert(id, Recipe {
                 id,
-                name: name.clone(),
+                slug: name.clone(),
+                display_name: "ENS Delegate".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -212,7 +217,8 @@ pub fn init_recipes() {
 
             recipes.insert(id, Recipe {
                 id,
-                name: name.clone(),
+                slug: name.clone(),
+                display_name: "Armitage Contributor".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),

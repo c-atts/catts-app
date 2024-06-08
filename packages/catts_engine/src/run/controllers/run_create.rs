@@ -4,7 +4,7 @@ use crate::{
     evm_rpc::{max_fee_per_gas, update_base_fee},
     logger::info,
     recipe::{Recipe, RecipeId},
-    run::run_service::Run,
+    run::run::Run,
     siwe::get_authenticated_eth_address,
 };
 use ic_cdk::{api::canister_balance, update};

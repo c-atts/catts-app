@@ -1,7 +1,7 @@
 use crate::{
     error::Error,
     logger::info,
-    run::run_service::{Run, RunError, RunId},
+    run::run::{Run, RunError, RunId},
     siwe::get_authenticated_eth_address,
 };
 use ic_cdk::{api::canister_balance, update};

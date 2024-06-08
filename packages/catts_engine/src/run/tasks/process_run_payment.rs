@@ -6,7 +6,7 @@ use crate::{
     declarations::evm_rpc::{GetLogsResult, LogEntry, MultiGetLogsResult},
     eth::{remove_address_padding, EthAddress},
     logger::warn,
-    run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
+    run::run::{vec_to_run_id, PaymentVerifiedStatus, Run},
     ETH_PAYMENT_EVENT_SIGNATURE,
 };
 use ethers_core::abi::ParamType;

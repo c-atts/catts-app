@@ -1,4 +1,4 @@
 pub mod controllers;
-pub mod recipe_service;
+pub mod recipe;
 
-pub use recipe_service::*;
+pub use recipe::*;

@@ -1,6 +1,4 @@
-use crate::{
-    error::Error, logger::info, run::run_service::Run, siwe::get_authenticated_eth_address,
-};
+use crate::{error::Error, logger::info, run::run::Run, siwe::get_authenticated_eth_address};
 use ic_cdk::{api::canister_balance, update};
 
 #[update]

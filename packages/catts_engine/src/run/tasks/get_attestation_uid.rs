@@ -4,7 +4,7 @@ use crate::{
     chain_config::ChainConfig,
     evm_rpc::eth_get_transaction_receipt,
     logger::debug,
-    run::run_service::{vec_to_run_id, Run},
+    run::run::{vec_to_run_id, Run},
     tasks::{TaskError, TaskExecutor, TaskResult},
 };
 use futures::Future;

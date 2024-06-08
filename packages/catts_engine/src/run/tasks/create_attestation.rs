@@ -4,7 +4,7 @@ use crate::{
     eth::EthAddress,
     logger::debug,
     recipe::{Recipe, RecipeQuerySettings},
-    run::run_service::{vec_to_run_id, PaymentVerifiedStatus, Run},
+    run::run::{vec_to_run_id, PaymentVerifiedStatus, Run},
     tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType},
     thegraph::run_thegraph_query,
 };

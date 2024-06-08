@@ -4,7 +4,7 @@ use crate::{
     error::Error,
     logger::info,
     run::{
-        run_service::{Run, RunError, RunId},
+        run::{Run, RunError, RunId},
         tasks::process_run_payment::ProcessRunPaymentArgs,
     },
     siwe::get_authenticated_eth_address,
