@@ -1,6 +1,6 @@
 use crate::chain_config::ChainConfig;
 use crate::eth::EthAddress;
-use crate::evm_rpc::eth_transaction;
+use crate::evm_rpc::{eth_transaction, EthTransactionError};
 use crate::graphql::insert_dynamic_variables;
 use crate::recipe::{Recipe, RecipeQuerySettings};
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
@@ -10,6 +10,7 @@ use boa_engine::{js_string, property::Attribute, Context, Source};
 use ethers_core::abi::{encode, encode_packed, ethereum_types::H160, Address, Token};
 use ethers_core::types::U256;
 use ethers_core::utils::keccak256;
+use ic_cdk::api::call::RejectionCode;
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
 };
@@ -18,6 +19,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
+use thiserror::Error;
 pub type Uid = String;
 
 lazy_static! {
@@ -92,19 +94,28 @@ pub fn encode_abi_data(json_data: &str) -> Vec<u8> {
     encode(&tokens)
 }
 
+#[derive(Error, Debug)]
+pub enum GetSchemaUidError {
+    #[error("Address parse error: {0}")]
+    AddressParseError(String),
+
+    #[error("Failed to encode ABI data: {0}")]
+    EncodePackedError(#[from] ethers_core::abi::EncodePackedError),
+}
+
 pub fn get_schema_uid(
     schema: &str,
     resolver_address: &str,
     revokable: bool,
-) -> Result<[u8; 32], String> {
+) -> Result<[u8; 32], GetSchemaUidError> {
     let schema_token = Token::String(schema.to_string());
     let resolver_address: Address = resolver_address
         .parse::<Address>()
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| GetSchemaUidError::AddressParseError(e.to_string()))?;
     let resolver_address_token = Token::Address(resolver_address);
     let revocable_token = Token::Bool(revokable);
     let encoded = encode_packed(&[schema_token, resolver_address_token, revocable_token])
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| GetSchemaUidError::EncodePackedError(e))?;
     Ok(keccak256(encoded))
 }
 
@@ -121,12 +132,27 @@ pub fn get_eas_http_headers() -> Vec<HttpHeader> {
     ]
 }
 
+#[derive(Error, Debug)]
+pub enum RunEasQueryError {
+    #[error("Chain ID is required for EAS query")]
+    ChainIdRequired,
+
+    #[error("Chain ID {0} is not supported")]
+    ChainIdNotSupported(u32),
+
+    #[error("Request failed: {message:?}, code: {rejection_code:?}")]
+    HttpRequestError {
+        rejection_code: RejectionCode,
+        message: String,
+    },
+}
+
 pub async fn run_eas_query(
     address: &EthAddress,
     query: &str,
     query_variables: &str,
     query_settings: &RecipeQuerySettings,
-) -> Result<String, String> {
+) -> Result<String, RunEasQueryError> {
     let mut dynamic_values: HashMap<String, String> = HashMap::new();
     dynamic_values.insert("user_eth_address".to_string(), address.as_str().to_string());
     dynamic_values.insert(
@@ -139,11 +165,11 @@ pub async fn run_eas_query(
 
     let chain_id = query_settings
         .eas_chain_id
-        .ok_or_else(|| "Chain ID is required for EAS query".to_string())?;
+        .ok_or_else(|| RunEasQueryError::ChainIdRequired)?;
 
     let endpoint = EAS_CHAIN_GQL_ENDPOINT
         .get(&chain_id)
-        .ok_or_else(|| format!("Chain ID {} is not supported", chain_id))?;
+        .ok_or_else(|| RunEasQueryError::ChainIdNotSupported(chain_id))?;
 
     let http_headers = get_eas_http_headers();
 
@@ -171,9 +197,10 @@ pub async fn run_eas_query(
             Ok(String::from_utf8(response.body)
                 .expect("Transformed response is not UTF-8 encoded."))
         }
-        Err((r, m)) => Err(format!(
-            "Request to EAS failed. RejectionCode: {r:?}, Error: {m}"
-        )),
+        Err((r, m)) => Err(RunEasQueryError::HttpRequestError {
+            rejection_code: r,
+            message: m,
+        }),
     }
 }
 
@@ -209,17 +236,34 @@ pub fn process_query_result(processor: &str, query_result: &str) -> String {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum CreateAttestationError {
+    #[error("Recipe don't have an output schema")]
+    NoRecipeOutputSchema,
+
+    #[error("Unable to get schema uid: {0}")]
+    GetSchemaUidError(#[from] GetSchemaUidError),
+
+    #[error("Recipe don't have a gas amount specified")]
+    NoRecipeGasAmount,
+
+    #[error("Eth transaction error: {0}")]
+    EthTransactionError(#[from] EthTransactionError),
+}
+
 pub async fn create_attestation(
     recipe: &Recipe,
     attestation_data: &str,
     recipient: &EthAddress,
     chain_config: &ChainConfig,
-) -> Result<String, String> {
-    let schema_uid = get_schema_uid(
-        &recipe.output_schema,
-        "0x0000000000000000000000000000000000000000",
-        false,
-    )?;
+) -> Result<String, CreateAttestationError> {
+    // get schema option or return error
+    let schema = recipe
+        .output_schema
+        .as_ref()
+        .ok_or_else(|| CreateAttestationError::NoRecipeOutputSchema)?;
+
+    let schema_uid = get_schema_uid(&schema, "0x0000000000000000000000000000000000000000", false)?;
 
     let encoded_abi_data = encode_abi_data(attestation_data);
 
@@ -235,13 +279,19 @@ pub async fn create_attestation(
 
     let attest_request = Token::Tuple(vec![schema_token, attestation_request_data]);
 
+    let gas = recipe
+        .gas
+        .as_ref()
+        .ok_or_else(|| CreateAttestationError::NoRecipeGasAmount)?;
+
     eth_transaction(
         chain_config.eas_contract.clone(),
         &Arc::clone(&ETH_EAS_CONTRACT),
         "attest",
         &[attest_request],
-        recipe.gas.clone(),
+        gas.clone(),
         chain_config,
     )
     .await
+    .map_err(CreateAttestationError::EthTransactionError)
 }

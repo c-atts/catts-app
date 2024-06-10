@@ -25,7 +25,13 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, Error> {
 
     let evm_calls_usd = 0.1_f64;
     let evm_calls_wei = evm_calls_usd / chain_config.eth_usd_price * 1e18_f64;
-    let fee = recipe.gas * max_fee_per_gas(&chain_config) + evm_calls_wei as u64;
+
+    let gas = recipe
+        .gas
+        .as_ref()
+        .ok_or_else(|| Error::bad_request("Recipe don't have a gas amount specified"))?;
+
+    let fee = gas.clone() * max_fee_per_gas(&chain_config) + evm_calls_wei as u64;
 
     ChainConfig::set(chain_config);
 

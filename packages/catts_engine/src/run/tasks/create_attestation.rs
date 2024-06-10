@@ -51,23 +51,31 @@ impl TaskExecutor for CreateAttestationExecutor {
                 return Ok(TaskResult::retry());
             }
 
+            let (queries, query_settings, query_variables) =
+                recipe.get_queries_settings_and_variables();
+
+            if queries.len() == 0 {
+                return Err(TaskError::Failed(
+                    "CreateAttestationExecutor: Recipe contains no queries".to_string(),
+                ));
+            }
+
             let recipient = EthAddress::from(run.creator);
             let mut query_response = Vec::new();
-            for i in 0..recipe.queries.len() {
-                let query_settings =
-                    serde_json::from_str::<RecipeQuerySettings>(&recipe.query_settings[i])
-                        .map_err(|err| {
-                            TaskError::Failed(format!(
-                                "Error parsing query settings: {}",
-                                err.to_string()
-                            ))
-                        })?;
+
+            for i in 0..queries.len() {
+                let query_settings = serde_json::from_str::<RecipeQuerySettings>(
+                    &query_settings[i],
+                )
+                .map_err(|err| {
+                    TaskError::Failed(format!("Error parsing query settings: {}", err.to_string()))
+                })?;
 
                 let response = match query_settings.query_type.as_str() {
                     "eas" => run_eas_query(
                         &recipient,
-                        &recipe.queries[i],
-                        &recipe.query_variables[i],
+                        &queries[i],
+                        &query_variables[i],
                         &query_settings,
                     )
                     .await
@@ -78,8 +86,8 @@ impl TaskExecutor for CreateAttestationExecutor {
                     })?,
                     "thegraph" => run_thegraph_query(
                         &recipient,
-                        &recipe.queries[i],
-                        &recipe.query_variables[i],
+                        &queries[i],
+                        &query_variables[i],
                         &query_settings,
                     )
                     .await
@@ -99,7 +107,13 @@ impl TaskExecutor for CreateAttestationExecutor {
             }
             let aggregated_response = format!("[{}]", query_response.join(","));
 
-            let attestation_data = process_query_result(&recipe.processor, &aggregated_response);
+            let processor = recipe.processor.as_ref().ok_or_else(|| {
+                TaskError::Failed(
+                    "CreateAttestationExecutor: Recipe contains no processor".to_string(),
+                )
+            })?;
+
+            let attestation_data = process_query_result(processor, &aggregated_response);
 
             let attestation_transaction_hash =
                 create_attestation(&recipe, &attestation_data, &recipient, &chain_config)

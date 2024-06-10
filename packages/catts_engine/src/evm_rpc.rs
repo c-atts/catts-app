@@ -7,7 +7,7 @@ use ethers_core::abi::{Contract, FunctionExt, Token};
 use ethers_core::types::Bytes;
 use ethers_core::utils::keccak256;
 use ic_cdk::api::{
-    call::{call_with_payment, CallResult},
+    call::{call_with_payment, CallResult, RejectionCode},
     management_canister::ecdsa::{
         ecdsa_public_key, sign_with_ecdsa, EcdsaKeyId, EcdsaPublicKeyArgument,
         SignWithEcdsaArgument,
@@ -19,6 +19,7 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::str::FromStr;
+use thiserror::Error;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct JsonRpcRequest {
@@ -113,6 +114,24 @@ pub fn max_fee_per_gas(chain_config: &ChainConfig) -> Nat {
     chain_config.base_fee.clone() * 2_u8
 }
 
+#[derive(Error, Debug)]
+pub enum EthTransactionError {
+    #[error("Function not found: {0}")]
+    FunctionNotFound(String),
+
+    #[error("Unable to encode args")]
+    ArgsEncoding,
+
+    #[error("Call error")]
+    CallError((RejectionCode, String)),
+
+    #[error("No transaction Id returned")]
+    NoTransactionId,
+
+    #[error("MultiSendRawTransaction: {0:?}")]
+    MultiSendRawTransaction(MultiSendRawTransactionResult),
+}
+
 /// Submit an ETH TX.
 pub async fn eth_transaction(
     contract_address: String,
@@ -121,25 +140,28 @@ pub async fn eth_transaction(
     args: &[Token],
     gas: Nat,
     chain_config: &ChainConfig,
-) -> Result<String, String> {
+) -> Result<String, EthTransactionError> {
     let f = match abi.functions_by_name(function_name).map(|v| &v[..]) {
-        Ok([f]) => f,
-        Ok(fs) => panic!(
-            "Found {} function overloads. Please pass one of the following: {}",
-            fs.len(),
-            fs.iter()
-                .map(|f| format!("{:?}", f.abi_signature()))
-                .collect::<Vec<_>>()
-                .join(", ")
-        ),
+        Ok([f]) => Ok(f),
+        Ok(fs) => {
+            panic!(
+                "Found {} function overloads. Please pass one of the following: {}",
+                fs.len(),
+                fs.iter()
+                    .map(|f| format!("{:?}", f.abi_signature()))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )
+        }
         Err(_) => abi
             .functions()
             .find(|f| function_name == f.abi_signature())
-            .expect("Function not found"),
-    };
+            .ok_or_else(|| EthTransactionError::FunctionNotFound(function_name.to_string())),
+    }?;
+
     let data = f
         .encode_input(args)
-        .expect("Error while encoding input args");
+        .map_err(|_| EthTransactionError::ArgsEncoding)?;
 
     let signed_data = sign_transaction(SignRequest {
         chain_id: chain_config.chain_id.into(),
@@ -164,16 +186,16 @@ pub async fn eth_transaction(
         ETH_DEFAULT_CALL_CYCLES,
     )
     .await
-    .unwrap();
+    .map_err(|e| EthTransactionError::CallError(e))?;
 
     match res {
         MultiSendRawTransactionResult::Consistent(SendRawTransactionResult::Ok(
             SendRawTransactionStatus::Ok(txid),
         )) => match txid {
             Some(txid) => Ok(txid),
-            None => Err("Transaction failed".to_string()),
+            None => Err(EthTransactionError::NoTransactionId),
         },
-        other => Err(format!("{:?}", other)),
+        other => Err(EthTransactionError::MultiSendRawTransaction(other)),
     }
 }
 
