@@ -61,7 +61,7 @@ thread_local! {
     // CONFIG
     static CHAIN_CONFIGS: RefCell<StableBTreeMap<u64, ChainConfig, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(CHAIN_CONFIGS_MEMORY_ID))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(CHAIN_CONFIGS_MEMORY_ID)),
         )
     );
 
@@ -70,34 +70,34 @@ thread_local! {
     // USER_PROFILES
     static USER_PROFILES: RefCell<StableBTreeMap<String, UserProfile, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(USER_PROFILE_MEMORY_ID))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(USER_PROFILE_MEMORY_ID)),
         )
     );
 
     // RECIPES
     static RECIPES: RefCell<StableBTreeMap<RecipeId, recipe::Recipe, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(RECIPE_MEMORY_ID))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(RECIPE_MEMORY_ID)),
         )
     );
 
     static RECIPE_ID_BY_NAME: RefCell<StableBTreeMap<String, recipe::RecipeId, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(  RECIPE_ID_BY_NAME_MEMORY_ID))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(RECIPE_ID_BY_NAME_MEMORY_ID)),
         )
     );
 
     // RUNS
     static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::run::Run, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(RUNS_MEMORY_ID))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(RUNS_MEMORY_ID)),
         )
     );
 
     // TASKS
     static TASKS: RefCell<StableBTreeMap<Timestamp, tasks::Task, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(TASKS_MEMORY_ID))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(TASKS_MEMORY_ID)),
         )
     );
 
