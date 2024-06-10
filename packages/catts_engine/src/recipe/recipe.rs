@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use crate::{
     eas::Uid,
     eth::{EthAddress, EthAddressBytes},
-    RECIPES, RECIPE_ID_BY_NAME,
+    RECIPES, RECIPE_ID_BY_SLUG,
 };
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
@@ -28,7 +28,7 @@ pub type RecipeId = [u8; 12];
 
 #[derive(Error, Debug)]
 pub enum RecipeError {
-    // #[error("Name is too long, max length is 128 bytes")]
+    // #[error("slug is too long, max length is 128 bytes")]
     // NameTooLong,
 }
 
@@ -63,10 +63,10 @@ impl Storable for Recipe {
 }
 
 impl Recipe {
-    fn id(creator: &EthAddress, name: &str, version: &str) -> RecipeId {
+    fn id(creator: &EthAddress, slug: &str, version: &str) -> RecipeId {
         let mut hasher = Blake2bVar::new(12).unwrap();
         hasher.update(&creator.as_byte_array());
-        hasher.update(name.as_bytes());
+        hasher.update(slug.as_bytes());
         hasher.update(version.as_bytes());
         let mut buf = [0u8; 12];
         hasher.finalize_variable(&mut buf).unwrap();
@@ -77,8 +77,8 @@ impl Recipe {
         RECIPES.with_borrow(|r| r.get(recipe_id).clone())
     }
 
-    pub fn get_by_name(name: &String) -> Option<Self> {
-        RECIPE_ID_BY_NAME.with_borrow(|r| r.get(name).and_then(|id| Self::get_by_id(&id)))
+    pub fn get_by_slug(slug: &String) -> Option<Self> {
+        RECIPE_ID_BY_SLUG.with_borrow(|r| r.get(slug).and_then(|id| Self::get_by_id(&id)))
     }
 
     pub fn list() -> Vec<Self> {
@@ -86,18 +86,30 @@ impl Recipe {
     }
 }
 
+// fn create_receipes_dir_if_not_exists() {
+//     if !Path::new("recipes").exists() {
+//         fs::create_dir("recipes").unwrap();
+//     }
+// }
+
+// fn write_readme(slug: &str, contents: &str) {
+//     fs::write(format!("recipes/{}/README.md", slug), contents).unwrap();
+// }
+
 pub fn init_recipes() {
+    // create_receipes_dir_if_not_exists();
+
     RECIPES.with_borrow_mut(|recipes| {
-        RECIPE_ID_BY_NAME.with_borrow_mut(|recipe_id_by_name| {
+        RECIPE_ID_BY_SLUG.with_borrow_mut(|recipe_id_by_name| {
 
             let creator = EthAddress::new("0xa32aECda752cF4EF89956e83d60C04835d4FA867").unwrap();
-            let name = "gtc_passport_clone".to_string();
+            let slug = "gtc_passport_clone".to_string();
             let version = "0.0.1".to_string();
-            let id = Recipe::id(&creator, &name, &version);
+            let id = Recipe::id(&creator, &slug, &version);
 
             recipes.insert(id, Recipe {
                 id,
-                slug: name.clone(),
+                slug: slug.clone(),
                 display_name: "Gitcoin Passport Clone".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
@@ -117,16 +129,17 @@ pub fn init_recipes() {
                 output_schema: "uint256 score,uint32 scorer_id,uint8 score_decimals".to_string(),
                 gas: Nat::from(266_000_u32),
             });
-            recipe_id_by_name.insert(name, id);
+            recipe_id_by_name.insert(slug, id);
 
+            // write_readme(&slug, "Make a copy of your Gitcoin Passport score to another chain.");
 
-            let name = "ens_name_holder".to_string();
-            let id = Recipe::id(&creator, &name, &version);
+            let slug = "ens_name_holder".to_string();
+            let id = Recipe::id(&creator, &slug, &version);
 
             recipes.insert(id, Recipe {
                 id,
-                slug: name.clone(),
-                display_name: "ENS Name Holder".to_string(),
+                slug: slug.clone(),
+                display_name: "ENS slug Holder".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -134,25 +147,25 @@ pub fn init_recipes() {
                 keywords: Some(vec!["ENS".to_string()]),
                 queries: vec!["query getNamesForAddress($whereFilter: Domain_filter) { domains(where: $whereFilter) { labelName } }".to_string()],
                 query_variables: vec![r#"{ "whereFilter":{ "or":[ { "owner":"{user_eth_address_lowercase}" }, { "registrant":"{user_eth_address_lowercase}" }, { "wrappedOwner":"{user_eth_address_lowercase}" } ] } }"#.to_string()],
-                query_settings: vec![r#"{ "query_type" : "thegraph", "thegraph_query_url": "https://api.thegraph.com/subgraphs/name/ensdomains/ens" }"#.to_string()],
+                query_settings: vec![r#"{ "query_type" : "thegraph", "thegraph_query_url": "https://api.thegraph.com/subgraphs/slug/ensdomains/ens" }"#.to_string()],
                 processor: r#"
                     const domains = queryResult[0].domains;
                     if (!Array.isArray(domains) || domains.length === 0) {
                         throw new Error("You are not the owner of any ENS domains.");
                     }
-                    return JSON.stringify([{name: "isEnsNameOwner", type: "bool", value: true}]);
+                    return JSON.stringify([{slug: "isEnsNameOwner", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool isEnsNameOwner".to_string(),
                 gas: Nat::from(220_000_u32),
             });
-            recipe_id_by_name.insert(name, id);
+            recipe_id_by_name.insert(slug, id);
 
-            let name = "eu_gtc_passport_30".to_string();
-            let id = Recipe::id(&creator, &name, &version);
+            let slug = "eu_gtc_passport_30".to_string();
+            let id = Recipe::id(&creator, &slug, &version);
 
             recipes.insert(id, Recipe {
                 id,
-                slug: name.clone(),
+                slug: slug.clone(),
                 display_name: "EU Gitcoin Passport Score 30".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
@@ -178,19 +191,19 @@ pub fn init_recipes() {
                     const country = JSON.parse(queryResult[1].attestations[0].decodedDataJson)[0].value.value;
                     const eligible = euCountries.includes(country) && score >= requiredScore;
                     if (!eligible) throw new Error("Not eligible for eu_gtc_passport_30");
-                    return JSON.stringify([{name: "eu_gtc_passport_30", type: "bool", value: true}]);
+                    return JSON.stringify([{slug: "eu_gtc_passport_30", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool eu_gtc_passport_30".to_string(),
                 gas: Nat::from(220_000_u32),
             });
-            recipe_id_by_name.insert(name, id);
+            recipe_id_by_name.insert(slug, id);
 
-            let name = "ens_delegate".to_string();
-            let id = Recipe::id(&creator, &name, &version);
+            let slug = "ens_delegate".to_string();
+            let id = Recipe::id(&creator, &slug, &version);
 
             recipes.insert(id, Recipe {
                 id,
-                slug: name.clone(),
+                slug: slug.clone(),
                 display_name: "ENS Delegate".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
@@ -205,19 +218,19 @@ pub fn init_recipes() {
                     if (!delegate) {
                         throw new Error("You are not an ENS delegate.");
                     }
-                    return JSON.stringify([{name: "isEnsDelegate", type: "bool", value: true}]);
+                    return JSON.stringify([{slug: "isEnsDelegate", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool isEnsDelegate".to_string(),
                 gas: Nat::from(220_000_u32),
             });
-            recipe_id_by_name.insert(name, id);
+            recipe_id_by_name.insert(slug, id);
 
-            let name = "armitage_contributor".to_string();
-            let id = Recipe::id(&creator, &name, &version);
+            let slug = "armitage_contributor".to_string();
+            let id = Recipe::id(&creator, &slug, &version);
 
             recipes.insert(id, Recipe {
                 id,
-                slug: name.clone(),
+                slug: slug.clone(),
                 display_name: "Armitage Contributor".to_string(),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
@@ -232,16 +245,16 @@ pub fn init_recipes() {
                         throw new Error("Couldn't find any Armitage contributions for this address.");
                     }
                     const decodedDataJson = JSON.parse(queryResult[0].attestations[0].decodedDataJson);
-                    const userCredScore = +decodedDataJson.find((item) => item.name === "userCredScore")?.value?.value;
+                    const userCredScore = +decodedDataJson.find((item) => item.slug === "userCredScore")?.value?.value;
                     if (userCredScore < 100) {
                         throw new Error("A cred score of 100 is required for this attestation.");
                     }
-                    return JSON.stringify([{name: "armitage_contributor", type: "bool", value: true}]);
+                    return JSON.stringify([{slug: "armitage_contributor", type: "bool", value: true}]);
                 "#.to_string(),
                 output_schema: "bool armitage_contributor".to_string(),
                 gas: Nat::from(220_000_u32),
             });
-            recipe_id_by_name.insert(name, id);
+            recipe_id_by_name.insert(slug, id);
         });
     });
 }
