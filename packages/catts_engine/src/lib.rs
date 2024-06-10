@@ -47,47 +47,60 @@ const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
 const THEGRAPH_QUERY_PROXY_URL: &str =
     "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
 
+const USER_PROFILE_MEMORY_ID: MemoryId = MemoryId::new(0);
+const RECIPE_MEMORY_ID: MemoryId = MemoryId::new(1);
+const RECIPE_ID_BY_NAME_MEMORY_ID: MemoryId = MemoryId::new(2);
+const RUNS_MEMORY_ID: MemoryId = MemoryId::new(3);
+const TASKS_MEMORY_ID: MemoryId = MemoryId::new(4);
+const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(5);
+
 thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
-    static USER_PROFILES: RefCell<StableBTreeMap<String, UserProfile, Memory>> = RefCell::new(
+    // CONFIG
+    static CHAIN_CONFIGS: RefCell<StableBTreeMap<u64, ChainConfig, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(CHAIN_CONFIGS_MEMORY_ID))),
         )
     );
 
+    static ECDSA_KEY_ID: RefCell<String> = RefCell::new(String::default());
+
+    // USER_PROFILES
+    static USER_PROFILES: RefCell<StableBTreeMap<String, UserProfile, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(USER_PROFILE_MEMORY_ID))),
+        )
+    );
+
+    // RECIPES
     static RECIPES: RefCell<StableBTreeMap<RecipeId, recipe::Recipe, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(RECIPE_MEMORY_ID))),
         )
     );
 
     static RECIPE_ID_BY_NAME: RefCell<StableBTreeMap<String, recipe::RecipeId, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(  RECIPE_ID_BY_NAME_MEMORY_ID))),
         )
     );
 
+    // RUNS
     static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::run::Run, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(3))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(RUNS_MEMORY_ID))),
         )
     );
 
+    // TASKS
     static TASKS: RefCell<StableBTreeMap<Timestamp, tasks::Task, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(4))),
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(TASKS_MEMORY_ID))),
         )
     );
 
-    static CHAIN_CONFIGS: RefCell<StableBTreeMap<u64, ChainConfig, Memory>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5))),
-        )
-    );
-
-    static ECDSA_KEY_ID: RefCell<String> = RefCell::new(String::default());
 }
 
 lazy_static! {
