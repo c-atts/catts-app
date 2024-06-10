@@ -7,7 +7,7 @@ import { shortenEthAddress } from "../../../eth/utils/shortenEthAddress";
 import { Link } from "@tanstack/react-router";
 
 export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
-  const { name, description, version, created, creator } = recipe;
+  const { slug, description, version, created, creator } = recipe;
 
   const creatorAddress = fromBytes(creator as Uint8Array, "hex");
   const { data: creatorEnsName } = useEnsName({
@@ -29,12 +29,12 @@ export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
   return (
     <li
       className="border-zinc-700/50 border-[1px] bg-zinc-800 drop-shadow-xl rounded-xl flex flex-col p-10 w-full mb-5"
-      key={name}
+      key={slug}
     >
       <div className="flex flex-col gap-3">
-        <Link params={{ recipeName: name }} to={`/recipe/$recipeName`}>
+        <Link params={{ recipeName: slug }} to={`/recipe/$recipeName`}>
           <div className="text-2xl font-bold hover:underline  cursor-pointer">
-            {name}
+            {slug}
           </div>
         </Link>
 

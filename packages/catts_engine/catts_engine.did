@@ -13,9 +13,10 @@ type Recipe = record {
   gas : nat;
   created : nat64;
   creator : blob;
-  name : text;
+  slug : text;
   query_variables : vec text;
   description : opt text;
+  display_name : text;
   version : text;
   keywords : opt vec text;
   queries : vec text;

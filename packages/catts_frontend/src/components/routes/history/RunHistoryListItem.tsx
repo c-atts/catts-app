@@ -24,7 +24,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
     <li className="flex flex-col">
       <div className="border-zinc-700/50 border-[1px] bg-zinc-800 drop-shadow-xl rounded-2xl flex flex-col p-10 w-full mt-2">
         <div className=" pb-3 flex w-full justify-between">
-          <div className="text-2xl font-bold">{recipe ? recipe.name : ""}</div>
+          <div className="text-2xl font-bold">{recipe ? recipe.slug : ""}</div>
           <ChainIcon
             chainName={CHAIN_CONFIG[Number(run.chain_id)]?.name}
             className="w-6 h-6"

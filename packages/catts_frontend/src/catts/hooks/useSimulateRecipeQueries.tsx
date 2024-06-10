@@ -30,9 +30,9 @@ export function useSimulateRecipeQueries() {
   };
 
   return useQuery({
-    queryKey: ["RecipeRun", selectedRecipe?.name, address],
+    queryKey: ["RecipeRun", selectedRecipe?.slug, address],
     queryFn: async () => {
-      if (!selectedRecipe?.name || !address) {
+      if (!selectedRecipe?.slug || !address) {
         return null;
       }
 
