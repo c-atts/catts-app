@@ -1,3 +1,3 @@
-pub mod chain_config_service;
+pub mod chain_config;
 
-pub use chain_config_service::*;
+pub use chain_config::*;

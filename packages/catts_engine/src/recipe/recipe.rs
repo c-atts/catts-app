@@ -12,6 +12,8 @@ use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use super::{Slug, Version};
+
 type Query = String;
 type QueryVariable = String;
 type QuerySetting = String;
@@ -27,16 +29,29 @@ pub struct RecipeQuerySettings {
 pub type RecipeId = [u8; 12];
 
 #[derive(Error, Debug)]
-pub enum RecipeError {
-    // #[error("slug is too long, max length is 128 bytes")]
-    // NameTooLong,
+pub enum RecipeValidationError {
+    #[error("Only draft recipes can be updated")]
+    OnlyDraftRecipesCanBeUpdated,
+
+    #[error("slug cannot be changed once set")]
+    SlugImmutable,
+
+    #[error("creator cannot be changed once set")]
+    CreatorImmutable,
+}
+
+#[derive(Serialize, Deserialize, Debug, CandidType, Clone, PartialEq)]
+pub enum RecipePublishState {
+    Draft,
+    Published,
+    Unpublished,
 }
 
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Recipe {
     pub id: RecipeId,
     pub slug: String,
-    pub display_name: String,
+    pub display_name: Option<String>,
     pub creator: EthAddressBytes,
     pub created: u64,
     pub version: String,
@@ -48,6 +63,7 @@ pub struct Recipe {
     pub processor: Option<Processor>,
     pub output_schema: Option<Uid>,
     pub gas: Option<Nat>,
+    pub publish_state: RecipePublishState,
 }
 
 impl Storable for Recipe {
@@ -63,14 +79,66 @@ impl Storable for Recipe {
 }
 
 impl Recipe {
-    fn id(creator: &EthAddress, slug: &str, version: &str) -> RecipeId {
+    fn _new(slug: &Slug, creator: &EthAddress, version: &Version) -> Self {
+        let id = Self::generate_id(creator, slug, version);
+        Self {
+            id,
+            slug: slug.value().to_string(),
+            display_name: Some(slug.value().to_string()),
+            creator: creator.as_byte_array(),
+            created: ic_cdk::api::time(),
+            version: version.value().to_string(),
+            description: None,
+            keywords: None,
+            queries: None,
+            query_variables: None,
+            query_settings: None,
+            processor: None,
+            output_schema: None,
+            gas: None,
+            publish_state: RecipePublishState::Draft,
+        }
+    }
+
+    fn generate_id(creator: &EthAddress, slug: &Slug, version: &Version) -> RecipeId {
         let mut hasher = Blake2bVar::new(12).unwrap();
         hasher.update(&creator.as_byte_array());
-        hasher.update(slug.as_bytes());
-        hasher.update(version.as_bytes());
+        hasher.update(slug.value().as_bytes());
+        hasher.update(version.value().as_bytes());
         let mut buf = [0u8; 12];
         hasher.finalize_variable(&mut buf).unwrap();
         buf
+    }
+
+    pub fn _save(&self) -> Result<(), RecipeValidationError> {
+        RECIPES.with_borrow_mut(|recipes| {
+            // Get previous version of recipe if it exists
+            if let Some(saved_recipe) = recipes.get(&self.id) {
+                // Only draft recipes can be updated
+                if saved_recipe.publish_state != RecipePublishState::Draft {
+                    return Err(RecipeValidationError::OnlyDraftRecipesCanBeUpdated);
+                }
+
+                // Slug cannot be changed
+                if saved_recipe.slug != self.slug {
+                    return Err(RecipeValidationError::SlugImmutable);
+                }
+
+                // Creator cannot be changed
+                if saved_recipe.creator != self.creator {
+                    return Err(RecipeValidationError::CreatorImmutable);
+                }
+            }
+
+            // Save the recipe
+            recipes.insert(self.id, self.clone());
+
+            RECIPE_ID_BY_SLUG.with_borrow_mut(|recipe_id_by_slug| {
+                recipe_id_by_slug.insert(self.slug.clone(), self.id);
+            });
+
+            Ok(())
+        })
     }
 
     pub fn get_by_id(recipe_id: &RecipeId) -> Option<Self> {
@@ -114,12 +182,12 @@ pub fn init_recipes() {
             let creator = EthAddress::new("0xa32aECda752cF4EF89956e83d60C04835d4FA867").unwrap();
             let slug = "gtc_passport_clone".to_string();
             let version = "0.0.1".to_string();
-            let id = Recipe::id(&creator, &slug, &version);
+            let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
                 id,
                 slug: slug.clone(),
-                display_name: "Gitcoin Passport Clone".to_string(),
+                display_name: Some("Gitcoin Passport Clone".to_string()),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -137,18 +205,19 @@ pub fn init_recipes() {
                 "#.to_string()),
                 output_schema: Some("uint256 score,uint32 scorer_id,uint8 score_decimals".to_string()),
                 gas: Some(Nat::from(266_000_u32)),
+                publish_state: RecipePublishState::Published
             });
             recipe_id_by_name.insert(slug, id);
 
             // write_readme(&slug, "Make a copy of your Gitcoin Passport score to another chain.");
 
             let slug = "ens_name_holder".to_string();
-            let id = Recipe::id(&creator, &slug, &version);
+            let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
                 id,
                 slug: slug.clone(),
-                display_name: "ENS slug Holder".to_string(),
+                display_name: Some("ENS slug Holder".to_string()),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -166,16 +235,17 @@ pub fn init_recipes() {
                 "#.to_string()),
                 output_schema: Some("bool isEnsNameOwner".to_string()),
                 gas: Some(Nat::from(220_000_u32)),
+                publish_state: RecipePublishState::Published,
             });
             recipe_id_by_name.insert(slug, id);
 
             let slug = "eu_gtc_passport_30".to_string();
-            let id = Recipe::id(&creator, &slug, &version);
+            let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
                 id,
                 slug: slug.clone(),
-                display_name: "EU Gitcoin Passport Score 30".to_string(),
+                display_name: Some("EU Gitcoin Passport Score 30".to_string()),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -204,16 +274,17 @@ pub fn init_recipes() {
                 "#.to_string()),
                 output_schema: Some("bool eu_gtc_passport_30".to_string()),
                 gas: Some(Nat::from(220_000_u32)),
+                publish_state: RecipePublishState::Published,
             });
             recipe_id_by_name.insert(slug, id);
 
             let slug = "ens_delegate".to_string();
-            let id = Recipe::id(&creator, &slug, &version);
+            let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
                 id,
                 slug: slug.clone(),
-                display_name: "ENS Delegate".to_string(),
+                display_name: Some("ENS Delegate".to_string()),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -231,16 +302,17 @@ pub fn init_recipes() {
                 "#.to_string()),
                 output_schema: Some("bool isEnsDelegate".to_string()),
                 gas: Some(Nat::from(220_000_u32)),
+                publish_state: RecipePublishState::Published,
             });
             recipe_id_by_name.insert(slug, id);
 
             let slug = "armitage_contributor".to_string();
-            let id = Recipe::id(&creator, &slug, &version);
+            let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
                 id,
                 slug: slug.clone(),
-                display_name: "Armitage Contributor".to_string(),
+                display_name: Some("Armitage Contributor".to_string()),
                 creator: creator.as_byte_array(),
                 created: ic_cdk::api::time(),
                 version: version.clone(),
@@ -262,6 +334,7 @@ pub fn init_recipes() {
                 "#.to_string()),
                 output_schema: Some("bool armitage_contributor".to_string()),
                 gas: Some(Nat::from(220_000_u32)),
+                publish_state: RecipePublishState::Published,
             });
             recipe_id_by_name.insert(slug, id);
         });
