@@ -472,6 +472,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "catts_engine_tests"
+version = "0.0.1"
+dependencies = [
+ "candid",
+ "pocket-ic",
+ "serde",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"

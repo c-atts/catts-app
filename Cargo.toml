@@ -1,3 +1,3 @@
 [workspace]
-members = ["packages/catts_engine"]
+members = ["packages/catts_engine", "packages/catts_engine_tests"]
 resolver = "2"
