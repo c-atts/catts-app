@@ -180,7 +180,7 @@ pub fn init_recipes() {
         RECIPE_ID_BY_SLUG.with_borrow_mut(|recipe_id_by_name| {
 
             let creator = EthAddress::new("0xa32aECda752cF4EF89956e83d60C04835d4FA867").unwrap();
-            let slug = "gtc_passport_clone".to_string();
+            let slug = "gtc-passport-clone".to_string();
             let version = "0.0.1".to_string();
             let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
@@ -211,7 +211,7 @@ pub fn init_recipes() {
 
             // write_readme(&slug, "Make a copy of your Gitcoin Passport score to another chain.");
 
-            let slug = "ens_name_holder".to_string();
+            let slug = "ens-name-holder".to_string();
             let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
@@ -239,7 +239,7 @@ pub fn init_recipes() {
             });
             recipe_id_by_name.insert(slug, id);
 
-            let slug = "eu_gtc_passport_30".to_string();
+            let slug = "eu-gtc-passport-30".to_string();
             let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
@@ -278,7 +278,7 @@ pub fn init_recipes() {
             });
             recipe_id_by_name.insert(slug, id);
 
-            let slug = "ens_delegate".to_string();
+            let slug = "ens-delegate".to_string();
             let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
@@ -306,7 +306,7 @@ pub fn init_recipes() {
             });
             recipe_id_by_name.insert(slug, id);
 
-            let slug = "armitage_contributor".to_string();
+            let slug = "armitage-contributor".to_string();
             let id = Recipe::generate_id(&creator, &Slug::new(&slug).unwrap(), &Version::new(&version).unwrap());
 
             recipes.insert(id, Recipe {
