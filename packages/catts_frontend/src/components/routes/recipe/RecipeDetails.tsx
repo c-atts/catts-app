@@ -49,20 +49,30 @@ export default function RecipeDetails() {
   const { queries, query_variables, query_settings, processor, output_schema } =
     selectedRecipe;
 
+  if (
+    !queries[0] ||
+    !query_variables[0] ||
+    !query_settings[0] ||
+    !processor[0] ||
+    !output_schema[0]
+  ) {
+    return null;
+  }
+
   const faChevron = showDetails ? faChevronUp : faChevronDown;
 
-  const formattedQueries = queries.map(formatGraphQLQuery).join("\n");
+  const formattedQueries = queries[0].map(formatGraphQLQuery).join("\n");
 
   const formattedQueryVariables = JSON.stringify(
-    query_variables.map((v) => JSON.parse(v)),
+    query_variables[0].map((v) => JSON.parse(v)),
     null,
-    2
+    2,
   );
 
   const formattedQuerySettings = JSON.stringify(
-    query_settings.map((s) => JSON.parse(s)),
+    query_settings[0].map((s) => JSON.parse(s)),
     null,
-    2
+    2,
   );
 
   return (
@@ -83,7 +93,7 @@ export default function RecipeDetails() {
           </pre>
           <h2 className="prose-lg">Processor</h2>
           <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
-            {processor
+            {processor[0]
               .split("\n")
               .map((line) => line.trim())
               .join("\n")}
