@@ -1,7 +1,7 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 
 import { useEffect } from "react";
-import { useGetRecipeByName } from "../catts/hooks/useGetRecipeByName";
+import { useGetRecipeBySlug } from "../catts/hooks/useGetRecipeBySlug";
 import useRunContext from "../context/useRunContext";
 import Section from "../components/ui/Section";
 import RecipeBasics from "../components/routes/recipe/RecipeBasics";
@@ -17,7 +17,7 @@ export const Route = createLazyFileRoute("/recipe/$recipeName")({
 
 function Index() {
   const { recipeName } = Route.useParams();
-  const { data: recipe, isPending } = useGetRecipeByName(recipeName);
+  const { data: recipe, isPending } = useGetRecipeBySlug(recipeName);
   const { setSelectedRecipe } = useRunContext();
 
   useEffect(() => {

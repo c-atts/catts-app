@@ -32,31 +32,36 @@ export function useSimulateRecipeQueries() {
   return useQuery({
     queryKey: ["RecipeRun", selectedRecipe?.slug, address],
     queryFn: async () => {
-      if (!selectedRecipe?.slug || !address) {
+      if (!selectedRecipe?.slug || !address || !selectedRecipe.queries[0]) {
         return null;
       }
 
       const aggregatedResponse: any[] = [];
-      for (let i = 0; i < selectedRecipe.queries.length; i++) {
+      const queries = selectedRecipe.queries[0];
+      for (let i = 0; i < queries.length; i++) {
         const querySettings: RecipeSettings = JSON.parse(
-          selectedRecipe.query_settings[i] ?? "{}",
+          (selectedRecipe.query_settings[0] &&
+            selectedRecipe.query_settings[0][i]) ??
+            "{}",
         );
 
         const queryVariables = parseVariablesTemplate(
-          selectedRecipe.query_variables[i] ?? "",
+          (selectedRecipe.query_variables[0] &&
+            selectedRecipe.query_variables[0][i]) ??
+            "",
           dynamicVariables,
         );
 
         let queryResponse: unknown;
         if (querySettings.query_type == "thegraph") {
           queryResponse = await theGraphRequest(
-            selectedRecipe.queries[i],
+            queries[i],
             queryVariables,
             querySettings,
           );
         } else {
           queryResponse = await easRequest(
-            selectedRecipe.queries[i],
+            queries[i],
             queryVariables,
             querySettings,
           );
