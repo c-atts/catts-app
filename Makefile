@@ -47,7 +47,6 @@ upgrade-siwe:
 deploy-engine:
 	export CANISTER_CANDID_PATH_IC_SIWE_PROVIDER=../ic_siwe_provider/ic_siwe_provider.did && \
 	export CANISTER_CANDID_PATH_EVM_RPC=../evm_rpc/evm_rpc.did && \
-	cargo build --target wasm32-wasi && \
 	cargo build --release --target wasm32-wasi && \
 	cd ./target/wasm32-wasi/release && \
 	wasi2ic catts_engine.wasm catts_engine.wasm && \
