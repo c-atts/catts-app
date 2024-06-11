@@ -6,7 +6,6 @@ use crate::recipe::{Recipe, RecipeQuerySettings};
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
-use boa_engine::{js_string, property::Attribute, Context, Source};
 use ethers_core::abi::{encode, encode_packed, ethereum_types::H160, Address, Token};
 use ethers_core::types::U256;
 use ethers_core::utils::keccak256;
@@ -14,6 +13,7 @@ use ic_cdk::api::call::RejectionCode;
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
 };
+use javy::Runtime;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -207,29 +207,30 @@ pub async fn run_eas_query(
 pub fn process_query_result(processor: &str, query_result: &str) -> String {
     let js_process_function = format!(
         r#"
+            let queryResult = JSON.parse(queryResultRaw).map((res) => res.data);
             function process() {{
-                let queryResult = JSON.parse(queryResultRaw).map((res) => res.data);
                 {processor}
             }}
+            process();
         "#
     );
 
-    let mut context = Context::default();
+    let runtime = Runtime::default();
+    let context = runtime.context();
 
     context
-        .register_global_property(
-            js_string!("queryResultRaw"),
-            js_string!(query_result),
-            Attribute::all(),
+        .global_object()
+        .unwrap()
+        .set_property(
+            "queryResultRaw",
+            context.value_from_str(query_result).unwrap(),
         )
         .unwrap();
 
-    context
-        .eval(Source::from_bytes(&js_process_function))
-        .unwrap();
+    let res = context.eval_global("process.js", &js_process_function);
 
-    match context.eval(Source::from_bytes("process();")) {
-        Ok(res) => res.to_string(&mut context).unwrap().to_std_string_escaped(),
+    match res {
+        Ok(res) => res.as_str().unwrap().to_string(),
         Err(e) => {
             format!("Uncaught {e}")
         }
