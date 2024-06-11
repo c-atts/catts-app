@@ -1,0 +1,19 @@
+[package]
+name = "catts_engine_tests"
+version = "0.0.1"
+edition = "2021"
+authors = ["Kristofer Lund <kristofer@kristoferlund.se>"]
+description = ""
+license = "MIT"
+homepage = "https://github.com/c-atts"
+repository = "https://github.com/c-atts"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+candid = "0.10.0"
+serde = "1.0.193"
+
+[dev-dependencies]
+pocket-ic = "3.1.0"
