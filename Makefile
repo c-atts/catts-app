@@ -70,6 +70,9 @@ run-frontend:
 	npm install
 	npm run dev -w catts_frontend
 
+test-engine:
+	QUICKJS_WASM_SYS_WASI_SDK_PATH="/opt/wasi-sdk" CC_wasm32_wasi="/opt/wasi-sdk/bin/clang" cargo test -p catts_engine --target wasm32-wasi
+
 clean:
 	rm -rf .dfx
 	rm -rf node_modules

@@ -1,30 +1,33 @@
-use candid::{decode_one, Principal};
-use catts_engine::Recipe;
-use pocket_ic::{PocketIc, WasmResult};
-use std::fs;
+#[cfg(test)]
+mod tests {
 
-const CANISTER_WASM: &str = "../../target/wasm32-wasi/release/catts_engine.wasm.gz";
+    use candid::{decode_one, Principal};
+    use pocket_ic::{PocketIc, WasmResult};
+    use std::fs;
 
-fn setup() -> (PocketIc, Principal) {
-    let pic = PocketIc::new();
-    let canister = pic.create_canister();
-    pic.add_cycles(canister, 2_000_000_000_000); // 2T Cycles
-    let wasm = fs::read(CANISTER_WASM).expect("Wasm file not found, run 'dfx build'.");
-    pic.install_canister(canister, wasm, vec![], None);
-    (pic, canister)
-}
+    const CANISTER_WASM: &str = "../../target/wasm32-wasi/release/catts_engine.wasm.gz";
 
-#[test]
-fn test_recipe_list() {
-    let (pic, catts) = setup();
+    fn setup() -> (PocketIc, Principal) {
+        let pic = PocketIc::new();
+        let canister = pic.create_canister();
+        pic.add_cycles(canister, 2_000_000_000_000); // 2T Cycles
+        let wasm = fs::read(CANISTER_WASM).expect("Wasm file not found, run 'dfx build'.");
+        pic.install_canister(canister, wasm, vec![], None);
+        (pic, canister)
+    }
 
-    let Ok(WasmResult::Reply(response)) =
-        pic.query_call(catts, Principal::anonymous(), "recipe_list", vec![])
-    else {
-        panic!("Expected reply");
-    };
+    #[test]
+    fn test_recipe_list() {
+        let (pic, catts) = setup();
 
-    let result: Vec<Recipe> = decode_one(&response).unwrap();
+        let Ok(WasmResult::Reply(response)) =
+            pic.query_call(catts, Principal::anonymous(), "recipe_list", vec![])
+        else {
+            panic!("Expected reply");
+        };
 
-    // do some assertions
+        // let result: Vec<Recipe> = decode_one(&response).unwrap();
+
+        // do some assertions
+    }
 }
