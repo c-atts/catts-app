@@ -115,7 +115,7 @@ pub fn get_schema_uid(
     let resolver_address_token = Token::Address(resolver_address);
     let revocable_token = Token::Bool(revokable);
     let encoded = encode_packed(&[schema_token, resolver_address_token, revocable_token])
-        .map_err(|e| GetSchemaUidError::EncodePackedError(e))?;
+        .map_err(GetSchemaUidError::EncodePackedError)?;
     Ok(keccak256(encoded))
 }
 
@@ -165,11 +165,11 @@ pub async fn run_eas_query(
 
     let chain_id = query_settings
         .eas_chain_id
-        .ok_or_else(|| RunEasQueryError::ChainIdRequired)?;
+        .ok_or(RunEasQueryError::ChainIdRequired)?;
 
     let endpoint = EAS_CHAIN_GQL_ENDPOINT
         .get(&chain_id)
-        .ok_or_else(|| RunEasQueryError::ChainIdNotSupported(chain_id))?;
+        .ok_or(RunEasQueryError::ChainIdNotSupported(chain_id))?;
 
     let http_headers = get_eas_http_headers();
 
@@ -262,9 +262,9 @@ pub async fn create_attestation(
     let schema = recipe
         .output_schema
         .as_ref()
-        .ok_or_else(|| CreateAttestationError::NoRecipeOutputSchema)?;
+        .ok_or(CreateAttestationError::NoRecipeOutputSchema)?;
 
-    let schema_uid = get_schema_uid(&schema, "0x0000000000000000000000000000000000000000", false)?;
+    let schema_uid = get_schema_uid(schema, "0x0000000000000000000000000000000000000000", false)?;
 
     let encoded_abi_data = encode_abi_data(attestation_data);
 
@@ -283,7 +283,7 @@ pub async fn create_attestation(
     let gas = recipe
         .gas
         .as_ref()
-        .ok_or_else(|| CreateAttestationError::NoRecipeGasAmount)?;
+        .ok_or(CreateAttestationError::NoRecipeGasAmount)?;
 
     eth_transaction(
         chain_config.eas_contract.clone(),

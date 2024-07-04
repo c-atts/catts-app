@@ -25,11 +25,7 @@ pub struct LogItem {
 }
 
 pub fn log(level: LogLevel, message: &str) {
-    LOG_LEVEL.with_borrow(|l| {
-        if level > *l {
-            return;
-        }
-    });
+    LOG_LEVEL.with_borrow(|l| if level > *l {});
 
     ic_cdk::println!(
         "[{}] {}",

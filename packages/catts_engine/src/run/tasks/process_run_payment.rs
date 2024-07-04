@@ -94,7 +94,7 @@ pub async fn process_run_payment(
         MultiGetLogsResult::Consistent(log_result) => match log_result {
             GetLogsResult::Ok(entries) => {
                 for entry in entries {
-                    match process_log_entry(&entry, &args, &chain_config) {
+                    match process_log_entry(&entry, &args, chain_config) {
                         Ok(_) => {
                             info("Payment registered successfully");
                             return Ok(());
@@ -224,9 +224,9 @@ fn process_log_entry(
         }
         return Err(PaymentError::Warn("Failed to decode log data".to_string()));
     }
-    return Err(PaymentError::Warn(
+    Err(PaymentError::Warn(
         "Failed to decode log hex data".to_string(),
-    ));
+    ))
 }
 
 fn log_entry_process_warn(entry: &LogEntry, error_message: String) {

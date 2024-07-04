@@ -95,7 +95,7 @@ pub async fn update_base_fee(chain_config: &ChainConfig) -> Result<ChainConfig, 
 
     match res {
         Ok((MultiFeeHistoryResult::Consistent(FeeHistoryResult::Ok(fee_history)),)) => {
-            let fee_history = fee_history.ok_or_else(|| "Fee history is None")?;
+            let fee_history = fee_history.ok_or("Fee history is None")?;
             let mut sum: BigUint = 0u8.into();
             for fee in fee_history.baseFeePerGas.iter() {
                 sum += fee.0.clone();
@@ -167,10 +167,10 @@ pub async fn eth_transaction(
         chain_id: chain_config.chain_id.into(),
         to: contract_address,
         gas,
-        max_fee_per_gas: max_fee_per_gas(chain_config).into(),
+        max_fee_per_gas: max_fee_per_gas(chain_config),
         max_priority_fee_per_gas: chain_config.priority_fee.clone(),
         value: 0_u8.into(),
-        nonce: next_id(&chain_config).await,
+        nonce: next_id(chain_config).await,
         data: Some(data.into()),
     })
     .await;
@@ -186,7 +186,7 @@ pub async fn eth_transaction(
         ETH_DEFAULT_CALL_CYCLES,
     )
     .await
-    .map_err(|e| EthTransactionError::CallError(e))?;
+    .map_err(EthTransactionError::CallError)?;
 
     match res {
         MultiSendRawTransactionResult::Consistent(SendRawTransactionResult::Ok(

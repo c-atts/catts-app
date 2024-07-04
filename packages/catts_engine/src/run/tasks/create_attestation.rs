@@ -39,7 +39,7 @@ impl TaskExecutor for CreateAttestationExecutor {
             ))?;
 
             // Run is already attested, cancel
-            if let Some(_) = run.attestation_transaction_hash {
+            if run.attestation_transaction_hash.is_some() {
                 return Err(TaskError::Failed(
                     "CreateAttestationExecutor: Run already attested".to_string(),
                 ));
@@ -54,7 +54,7 @@ impl TaskExecutor for CreateAttestationExecutor {
             let (queries, query_settings, query_variables) =
                 recipe.get_queries_settings_and_variables();
 
-            if queries.len() == 0 {
+            if queries.is_empty() {
                 return Err(TaskError::Failed(
                     "CreateAttestationExecutor: Recipe contains no queries".to_string(),
                 ));
@@ -64,12 +64,10 @@ impl TaskExecutor for CreateAttestationExecutor {
             let mut query_response = Vec::new();
 
             for i in 0..queries.len() {
-                let query_settings = serde_json::from_str::<RecipeQuerySettings>(
-                    &query_settings[i],
-                )
-                .map_err(|err| {
-                    TaskError::Failed(format!("Error parsing query settings: {}", err.to_string()))
-                })?;
+                let query_settings =
+                    serde_json::from_str::<RecipeQuerySettings>(&query_settings[i]).map_err(
+                        |err| TaskError::Failed(format!("Error parsing query settings: {}", err)),
+                    )?;
 
                 let response = match query_settings.query_type.as_str() {
                     "eas" => run_eas_query(
