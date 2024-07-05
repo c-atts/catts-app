@@ -9,11 +9,12 @@ homepage = "https://github.com/c-atts"
 repository = "https://github.com/c-atts"
 
 [lib]
-crate-type = ["cdylib"]
+path = "src/lib.rs"
 
 [dependencies]
 candid = "0.10.0"
 serde = "1.0.193"
+pocket-ic = "3.1.0"
 
 [dev-dependencies]
 pocket-ic = "3.1.0"
