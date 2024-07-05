@@ -44,15 +44,17 @@ upgrade-siwe:
 	    } \
 	)"
 
-deploy-engine:
+build-engine:
 	export CANISTER_CANDID_PATH_IC_SIWE_PROVIDER=../ic_siwe_provider/ic_siwe_provider.did && \
 	export CANISTER_CANDID_PATH_EVM_RPC=../evm_rpc/evm_rpc.did && \
-	cargo build --release --target wasm32-wasi && \
+	cargo build -p catts_engine --release --target wasm32-wasi && \
 	cd ./target/wasm32-wasi/release && \
 	wasi2ic catts_engine.wasm catts_engine.wasm && \
 	candid-extractor catts_engine.wasm > ../../../packages/catts_engine/catts_engine.did && \
 	ic-wasm catts_engine.wasm -o catts_engine.wasm metadata candid:service -f ../../../packages/catts_engine/catts_engine.did -v public && \
-	gzip -c catts_engine.wasm > catts_engine.wasm.gz && \
+	gzip -c catts_engine.wasm > catts_engine.wasm.gz
+
+deploy-engine: build-engine
 	dfx deploy catts_engine --argument "(\"dfx_test_key\")"
 
 deploy-frontend:
@@ -69,9 +71,6 @@ build-frontend:
 run-frontend:
 	npm install
 	npm run dev -w catts_frontend
-
-test-engine:
-	QUICKJS_WASM_SYS_WASI_SDK_PATH="/opt/wasi-sdk" CC_wasm32_wasi="/opt/wasi-sdk/bin/clang" cargo test -p catts_engine --target wasm32-wasi
 
 clean:
 	rm -rf .dfx
