@@ -1,19 +1,74 @@
-use candid::{encode_one, Principal};
+use candid::{encode_one, CandidType, Principal};
 use pocket_ic::{PocketIc, WasmResult};
-use std::fs;
+use serde::{Deserialize, Serialize};
+use std::{fs, time::Duration};
 
 use crate::types::RpcResult;
 
-pub const CANISTER_WASM: &str = "../../target/wasm32-wasi/release/catts_engine.wasm.gz";
+pub const CATTS_ENGINE_WASM: &str = "../../target/wasm32-wasi/release/catts_engine.wasm.gz";
+pub const IC_SIWE_WASM: &str = "../ic_siwe_provider/ic_siwe_provider.wasm.gz";
+
+#[derive(CandidType, Debug, Clone, PartialEq, Deserialize)]
+pub enum RuntimeFeature {
+    IncludeUriInSeed,
+    DisableEthToPrincipalMapping,
+    DisablePrincipalToEthMapping,
+}
+
+#[derive(CandidType, Deserialize, Debug, Clone)]
+pub struct SettingsInput {
+    pub domain: String,
+    pub uri: String,
+    pub salt: String,
+    pub chain_id: Option<u32>,
+    pub scheme: Option<String>,
+    pub statement: Option<String>,
+    pub sign_in_expires_in: Option<u64>,
+    pub session_expires_in: Option<u64>,
+    pub targets: Option<Vec<String>>,
+    pub runtime_features: Option<Vec<RuntimeFeature>>,
+}
+
+#[derive(Serialize, Deserialize, CandidType)]
+struct CattsEngineSettings {
+    ecdsa_key_id: String,
+    siwe_provider_canister: String,
+}
 
 pub fn setup() -> (PocketIc, Principal) {
     let pic = PocketIc::new();
-    let canister = pic.create_canister();
-    pic.add_cycles(canister, 2_000_000_000_000); // 2T Cycles
-    let wasm = fs::read(CANISTER_WASM).expect("Wasm file not found, run 'dfx build'.");
-    let args = encode_one("test_key").unwrap();
-    pic.install_canister(canister, wasm, args, None);
-    (pic, canister)
+
+    // Install ic-siwe
+    let ic_siwe_canister = pic.create_canister();
+    pic.add_cycles(ic_siwe_canister, 2_000_000_000_000); // 2T Cycles
+    let ic_siwe_wasm = fs::read(IC_SIWE_WASM).expect("IC_SIWE_WASM not found");
+    let ic_siwe_settings = SettingsInput {
+        domain: "127.0.0.1".to_string(),
+        uri: "http://127.0.0.1".to_string(),
+        salt: "dummy-salt".to_string(),
+        chain_id: None,
+        scheme: Some("http".to_string()),
+        statement: Some("Login to the app".to_string()),
+        sign_in_expires_in: Some(Duration::from_secs(3).as_nanos() as u64), // 3 seconds
+        session_expires_in: Some(Duration::from_secs(60 * 60 * 24 * 7).as_nanos() as u64), // 1 week
+        targets: None,
+        runtime_features: Some(vec![RuntimeFeature::IncludeUriInSeed]),
+    };
+    let args = encode_one(ic_siwe_settings).unwrap();
+    pic.install_canister(ic_siwe_canister, ic_siwe_wasm, args, None);
+
+    // Install catts_engine
+    let catts_engine_canister = pic.create_canister();
+    pic.add_cycles(catts_engine_canister, 2_000_000_000_000); // 2T Cycles
+    let catts_engine_wasm = fs::read(CATTS_ENGINE_WASM).expect("CATTS_ENGINE_WASM not found");
+    let catts_engine_settings = CattsEngineSettings {
+        ecdsa_key_id: "test_key".to_string(),
+        siwe_provider_canister: ic_siwe_canister.to_string(),
+    };
+    let args = encode_one(catts_engine_settings).unwrap();
+    pic.install_canister(catts_engine_canister, catts_engine_wasm, args, None);
+
+    (pic, catts_engine_canister)
 }
 
 pub fn update_call(
