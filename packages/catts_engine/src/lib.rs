@@ -13,13 +13,14 @@ mod run;
 mod siwe;
 mod tasks;
 
+use candid::{CandidType, Principal};
 use chain_config::{init_chain_configs, ChainConfig};
 use error::Error;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
 use ic_cdk::{
     api::management_canister::http_request::{HttpResponse, TransformArgs},
-    export_candid, init, post_upgrade,
+    export_candid, init, post_upgrade, trap,
 };
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
@@ -30,6 +31,8 @@ use recipe::Recipe;
 use recipe::RecipeDetailsInput;
 use recipe::RecipeId;
 use run::run::{Run, RunId, Timestamp};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::cell::RefCell;
 use std::sync::Arc;
 use std::time::Duration;
@@ -65,7 +68,8 @@ thread_local! {
         )
     );
 
-    static ECDSA_KEY_ID: RefCell<String> = RefCell::new(String::default());
+    static ECDSA_KEY: RefCell<String> = RefCell::new(String::default());
+    static SIWE_PROVIDER_CANISTER_ID: RefCell<Option<Principal>> = RefCell::new(None);
 
     // USER_PROFILES
     static USER_PROFILES: RefCell<StableBTreeMap<String, UserProfile, Memory>> = RefCell::new(
@@ -109,11 +113,34 @@ lazy_static! {
     static ref ETH_EAS_CONTRACT: Arc<Contract> = Arc::new(include_abi!("../../eas/eas.abi.json"));
 }
 
-fn init_and_upgrade(key_id: String) {
+#[derive(Serialize, Deserialize, CandidType)]
+struct CanisterSettingsInput {
+    ecdsa_key_id: String,
+    siwe_provider_canister: String,
+}
+
+fn init_and_upgrade(settings: CanisterSettingsInput) {
     ic_wasi_polyfill::init(&[0u8; 32], &[]);
 
-    ECDSA_KEY_ID.with(|id| {
-        *id.borrow_mut() = key_id;
+    // Serialize the struct to a JSON object
+    let json_settings = serde_json::to_value(&settings).unwrap();
+
+    // Ensure all fields are non-empty
+    if let Value::Object(map) = json_settings {
+        for (key, value) in map {
+            if value.as_str().unwrap_or("").is_empty() {
+                trap(&format!("The field {} is required", key));
+            }
+        }
+    }
+
+    ECDSA_KEY.with(|id| {
+        *id.borrow_mut() = settings.ecdsa_key_id.clone();
+    });
+
+    SIWE_PROVIDER_CANISTER_ID.with(|id| {
+        *id.borrow_mut() =
+            Some(Principal::from_text(settings.siwe_provider_canister.clone()).unwrap());
     });
 
     ic_cdk_timers::set_timer_interval(Duration::from_secs(TASKS_RUN_INTERVAL), || {
@@ -125,13 +152,13 @@ fn init_and_upgrade(key_id: String) {
 }
 
 #[init]
-fn init(key_id: String) {
-    init_and_upgrade(key_id);
+fn init(settings: CanisterSettingsInput) {
+    init_and_upgrade(settings);
 }
 
 #[post_upgrade]
-fn post_upgrade(key_id: String) {
-    init_and_upgrade(key_id);
+fn post_upgrade(settings: CanisterSettingsInput) {
+    init_and_upgrade(settings);
 }
 
 export_candid!();

@@ -1,3 +1,7 @@
+type CanisterSettingsInput = record {
+  ecdsa_key_id : text;
+  siwe_provider_canister : text;
+};
 type Error = record { code : nat16; message : text; details : opt text };
 type HttpHeader = record { value : text; name : text };
 type HttpResponse = record {
@@ -65,7 +69,7 @@ type UserProfile = record {
   name : text;
   address : text;
 };
-service : (text) -> {
+service : (CanisterSettingsInput) -> {
   canister_eth_address : () -> (Result);
   logs : () -> (vec LogItem) query;
   profile_get_current : () -> (Result_1);
