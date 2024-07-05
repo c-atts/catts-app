@@ -1,4 +1,4 @@
-use candid::{encode_one, CandidType, Principal};
+use candid::{decode_one, encode_one, CandidType, Principal};
 use pocket_ic::{PocketIc, WasmResult};
 use serde::{Deserialize, Serialize};
 use std::{fs, time::Duration};
@@ -35,12 +35,12 @@ struct CattsEngineSettings {
     siwe_provider_canister: String,
 }
 
-pub fn setup() -> (PocketIc, Principal) {
-    let pic = PocketIc::new();
+pub fn setup() -> (PocketIc, Principal, Principal) {
+    let ic = PocketIc::new();
 
     // Install ic-siwe
-    let ic_siwe_canister = pic.create_canister();
-    pic.add_cycles(ic_siwe_canister, 2_000_000_000_000); // 2T Cycles
+    let ic_siwe_canister = ic.create_canister();
+    ic.add_cycles(ic_siwe_canister, 2_000_000_000_000); // 2T Cycles
     let ic_siwe_wasm = fs::read(IC_SIWE_WASM).expect("IC_SIWE_WASM not found");
     let ic_siwe_settings = SettingsInput {
         domain: "127.0.0.1".to_string(),
@@ -55,20 +55,25 @@ pub fn setup() -> (PocketIc, Principal) {
         runtime_features: Some(vec![RuntimeFeature::IncludeUriInSeed]),
     };
     let args = encode_one(ic_siwe_settings).unwrap();
-    pic.install_canister(ic_siwe_canister, ic_siwe_wasm, args, None);
+    ic.install_canister(ic_siwe_canister, ic_siwe_wasm, args, None);
 
     // Install catts_engine
-    let catts_engine_canister = pic.create_canister();
-    pic.add_cycles(catts_engine_canister, 2_000_000_000_000); // 2T Cycles
+    let catts_engine_canister = ic.create_canister();
+    ic.add_cycles(catts_engine_canister, 2_000_000_000_000); // 2T Cycles
     let catts_engine_wasm = fs::read(CATTS_ENGINE_WASM).expect("CATTS_ENGINE_WASM not found");
     let catts_engine_settings = CattsEngineSettings {
         ecdsa_key_id: "test_key".to_string(),
         siwe_provider_canister: ic_siwe_canister.to_string(),
     };
     let args = encode_one(catts_engine_settings).unwrap();
-    pic.install_canister(catts_engine_canister, catts_engine_wasm, args, None);
+    ic.install_canister(catts_engine_canister, catts_engine_wasm, args, None);
 
-    (pic, catts_engine_canister)
+    // Fast forward in time to allow the ic_siwe_provider_canister to be fully installed.
+    for _ in 0..5 {
+        ic.tick();
+    }
+
+    (ic, ic_siwe_canister, catts_engine_canister)
 }
 
 pub fn update_call(
@@ -95,6 +100,33 @@ pub fn query_call(
         panic!("Expected reply");
     };
     response
+}
+pub fn update<T: CandidType + for<'de> Deserialize<'de>>(
+    ic: &PocketIc,
+    sender: Principal,
+    canister: Principal,
+    method: &str,
+    args: Vec<u8>,
+) -> Result<T, String> {
+    match ic.update_call(canister, sender, method, args) {
+        Ok(WasmResult::Reply(data)) => decode_one(&data).unwrap(),
+        Ok(WasmResult::Reject(error_message)) => Err(error_message.to_string()),
+        Err(user_error) => Err(user_error.to_string()),
+    }
+}
+
+pub fn query<T: CandidType + for<'de> Deserialize<'de>>(
+    ic: &PocketIc,
+    sender: Principal,
+    canister: Principal,
+    method: &str,
+    args: Vec<u8>,
+) -> Result<T, String> {
+    match ic.query_call(canister, sender, method, args) {
+        Ok(WasmResult::Reply(data)) => decode_one(&data).unwrap(),
+        Ok(WasmResult::Reject(error_message)) => Err(error_message.to_string()),
+        Err(user_error) => Err(user_error.to_string()),
+    }
 }
 
 pub fn should_be_401<T>(result: RpcResult<T>) {

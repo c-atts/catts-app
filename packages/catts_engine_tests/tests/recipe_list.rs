@@ -6,8 +6,8 @@ use catts_engine_tests::{
 
 #[test]
 fn test_recipe_list() {
-    let (pic, catts) = setup();
-    let response = query_call(&pic, catts, Principal::anonymous(), "recipe_list", vec![]);
+    let (ic, _, catts) = setup();
+    let response = query_call(&ic, catts, Principal::anonymous(), "recipe_list", vec![]);
     let result: RpcResult<Vec<Recipe>> = decode_one(&response).unwrap();
     assert!(matches!(result, RpcResult::Ok(_)));
 

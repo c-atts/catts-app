@@ -1,8 +1,10 @@
 use candid::{decode_one, encode_args, Principal};
 use catts_engine_tests::{
-    common::{setup, should_be_401, update_call},
+    common::{setup, should_be_401, update, update_call},
+    siwe::full_login,
     types::{Recipe, RecipeDetailsInput, RecipeQuery, RpcResult},
 };
+use ic_agent::Identity;
 
 fn recipe_eu_gtc_passport_clone() -> (RecipeDetailsInput, String) {
     let details = RecipeDetailsInput {
@@ -73,9 +75,25 @@ fn recipe_eu_gtc_passport_clone() -> (RecipeDetailsInput, String) {
 
 #[test]
 fn test_recipe_create_unauthorized() {
-    let (pic, catts) = setup();
+    let (ic, _, catts) = setup();
     let args = encode_args(recipe_eu_gtc_passport_clone()).unwrap();
-    let response = update_call(&pic, catts, Principal::anonymous(), "recipe_create", args);
+    let response = update_call(&ic, catts, Principal::anonymous(), "recipe_create", args);
     let result: RpcResult<Recipe> = decode_one(&response).unwrap();
     should_be_401(result);
+}
+
+#[test]
+fn test_recipe_create() {
+    let (ic, siwe, catts) = setup();
+    let (_, identity) = full_login(&ic, siwe, None);
+    let args = encode_args(recipe_eu_gtc_passport_clone()).unwrap();
+    let response: Result<RpcResult<Recipe>, String> = update(
+        &ic,
+        identity.sender().unwrap(),
+        catts,
+        "recipe_create",
+        args,
+    );
+
+    assert!(response.is_ok());
 }

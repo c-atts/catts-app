@@ -12,9 +12,18 @@ repository = "https://github.com/c-atts"
 path = "src/lib.rs"
 
 [dependencies]
+ic-cdk = "0.15.0"
 candid = "0.10.0"
 serde = "1.0.193"
 pocket-ic = "3.1.0"
+ethers = "2.0.10"
+hex = "0.4.3"
+ic-agent = "0.36.0"
+ic_siwe = "0.0.7"
+siwe = "0.6"
+rand = "0.8.4"
+ring = "0.17.7"
+
 
 [dev-dependencies]
 pocket-ic = "3.1.0"
