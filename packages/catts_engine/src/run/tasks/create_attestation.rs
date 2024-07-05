@@ -1,12 +1,11 @@
 use crate::{
     chain_config::ChainConfig,
-    eas::{create_attestation, process_query_result, run_eas_query},
+    eas::{create_attestation, process_query_result, run_query},
     eth::EthAddress,
     logger::debug,
-    recipe::{Recipe, RecipeQuerySettings},
+    recipe::Recipe,
     run::run::{vec_to_run_id, PaymentVerifiedStatus, Run},
     tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType},
-    thegraph::run_thegraph_query,
 };
 use futures::Future;
 use std::pin::Pin;
@@ -51,10 +50,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 return Ok(TaskResult::retry());
             }
 
-            let (queries, query_settings, query_variables) =
-                recipe.get_queries_settings_and_variables();
-
-            if queries.is_empty() {
+            if recipe.queries.is_empty() {
                 return Err(TaskError::Failed(
                     "CreateAttestationExecutor: Recipe contains no queries".to_string(),
                 ));
@@ -63,55 +59,19 @@ impl TaskExecutor for CreateAttestationExecutor {
             let recipient = EthAddress::from(run.creator);
             let mut query_response = Vec::new();
 
-            for i in 0..queries.len() {
-                let query_settings =
-                    serde_json::from_str::<RecipeQuerySettings>(&query_settings[i]).map_err(
-                        |err| TaskError::Failed(format!("Error parsing query settings: {}", err)),
-                    )?;
-
-                let response = match query_settings.query_type.as_str() {
-                    "eas" => run_eas_query(
-                        &recipient,
-                        &queries[i],
-                        &query_variables[i],
-                        &query_settings,
-                    )
+            for i in 0..recipe.queries.len() {
+                let response = run_query(&recipient, &recipe.queries[i])
                     .await
                     .map_err(|err| {
                         run.attestation_create_error = Some(err.to_string());
                         Run::update(&run);
                         TaskError::Failed(format!("Error running EAS query: {}", err))
-                    })?,
-                    "thegraph" => run_thegraph_query(
-                        &recipient,
-                        &queries[i],
-                        &query_variables[i],
-                        &query_settings,
-                    )
-                    .await
-                    .map_err(|err| {
-                        run.attestation_create_error = Some(err.to_string());
-                        Run::update(&run);
-                        TaskError::Failed(format!("Error running TheGraph query: {}", err))
-                    })?,
-                    _ => {
-                        return Err(TaskError::Failed(format!(
-                            "CreateAttestationExecutor: Unsupported query type: {}",
-                            query_settings.query_type
-                        )));
-                    }
-                };
+                    })?;
                 query_response.push(response);
             }
             let aggregated_response = format!("[{}]", query_response.join(","));
 
-            let processor = recipe.processor.as_ref().ok_or_else(|| {
-                TaskError::Failed(
-                    "CreateAttestationExecutor: Recipe contains no processor".to_string(),
-                )
-            })?;
-
-            let attestation_data = process_query_result(processor, &aggregated_response);
+            let attestation_data = process_query_result(&recipe.processor, &aggregated_response);
 
             let attestation_transaction_hash =
                 create_attestation(&recipe, &attestation_data, &recipient, &chain_config)

@@ -2,7 +2,7 @@ use crate::chain_config::ChainConfig;
 use crate::eth::EthAddress;
 use crate::evm_rpc::{eth_transaction, EthTransactionError};
 use crate::graphql::insert_dynamic_variables;
-use crate::recipe::{Recipe, RecipeQuerySettings};
+use crate::recipe::{Recipe, RecipeQuery};
 use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT};
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
@@ -147,11 +147,9 @@ pub enum RunEasQueryError {
     },
 }
 
-pub async fn run_eas_query(
+pub async fn run_query(
     address: &EthAddress,
-    query: &str,
-    query_variables: &str,
-    query_settings: &RecipeQuerySettings,
+    recipe_query: &RecipeQuery,
 ) -> Result<String, RunEasQueryError> {
     let mut dynamic_values: HashMap<String, String> = HashMap::new();
     dynamic_values.insert("user_eth_address".to_string(), address.as_str().to_string());
@@ -159,17 +157,12 @@ pub async fn run_eas_query(
         "user_eth_address_lowercase".to_string(),
         address.as_str().to_lowercase(),
     );
-    let variables = insert_dynamic_variables(query_variables, &dynamic_values);
-    let payload = format!(r#"{{"query":"{}","variables":{}}}"#, query, variables);
+    let variables = insert_dynamic_variables(&recipe_query.variables, &dynamic_values);
+    let payload = format!(
+        r#"{{"query":"{}","variables":{}}}"#,
+        recipe_query.query, variables
+    );
     let payload = payload.into_bytes();
-
-    let chain_id = query_settings
-        .eas_chain_id
-        .ok_or(RunEasQueryError::ChainIdRequired)?;
-
-    let endpoint = EAS_CHAIN_GQL_ENDPOINT
-        .get(&chain_id)
-        .ok_or(RunEasQueryError::ChainIdNotSupported(chain_id))?;
 
     let http_headers = get_eas_http_headers();
 
@@ -179,7 +172,7 @@ pub async fn run_eas_query(
     hasher.finalize_variable(&mut cache_key).unwrap();
     let cache_key = hex::encode(cache_key);
 
-    let url = format!("{}/{}", endpoint, cache_key);
+    let url = format!("{}/{}", recipe_query.endpoint, cache_key);
     let request = CanisterHttpRequestArgument {
         url,
         method: HttpMethod::GET,
@@ -258,13 +251,11 @@ pub async fn create_attestation(
     recipient: &EthAddress,
     chain_config: &ChainConfig,
 ) -> Result<String, CreateAttestationError> {
-    // get schema option or return error
-    let schema = recipe
-        .output_schema
-        .as_ref()
-        .ok_or(CreateAttestationError::NoRecipeOutputSchema)?;
-
-    let schema_uid = get_schema_uid(schema, "0x0000000000000000000000000000000000000000", false)?;
+    let schema_uid = get_schema_uid(
+        &recipe.schema,
+        "0x0000000000000000000000000000000000000000",
+        false,
+    )?;
 
     let encoded_abi_data = encode_abi_data(attestation_data);
 

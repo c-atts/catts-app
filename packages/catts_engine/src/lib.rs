@@ -12,7 +12,6 @@ mod recipe;
 mod run;
 mod siwe;
 mod tasks;
-mod thegraph;
 
 use chain_config::{init_chain_configs, ChainConfig};
 use error::Error;
@@ -28,7 +27,8 @@ use lazy_static::lazy_static;
 use logger::LogItem;
 use profile::UserProfile;
 use recipe::Recipe;
-use recipe::{init_recipes, RecipeId};
+use recipe::RecipeDetailsInput;
+use recipe::RecipeId;
 use run::run::{Run, RunId, Timestamp};
 use std::cell::RefCell;
 use std::sync::Arc;
@@ -121,7 +121,6 @@ fn init_and_upgrade(key_id: String) {
     });
 
     // Mock data
-    init_recipes();
     init_chain_configs();
 }
 
