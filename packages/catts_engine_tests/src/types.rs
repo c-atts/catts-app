@@ -14,6 +14,23 @@ pub enum RpcResult<T> {
     Err(RpcError),
 }
 
+impl<T> RpcResult<T> {
+    pub fn is_ok(&self) -> bool {
+        matches!(self, RpcResult::Ok(_))
+    }
+
+    pub fn ok(value: T) -> Self {
+        RpcResult::Ok(value)
+    }
+
+    pub fn err(code: u16, message: String, details: Option<String>) -> Self {
+        RpcResult::Err(RpcError {
+            code,
+            message,
+            details,
+        })
+    }
+}
 pub type EthAddressBytes = [u8; 20];
 pub type Uid = String;
 pub type RecipeId = [u8; 12];
