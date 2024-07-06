@@ -1,4 +1,4 @@
-use candid::{decode_one, encode_args, Principal};
+use candid::{decode_one, encode_args, encode_one, Principal};
 use catts_engine_tests::{
     common::{query_call, setup, update_call},
     recipes::recipe_eu_gtc_passport_clone,
@@ -31,8 +31,12 @@ fn test_recipe_list() {
     let result: RpcResult<Recipe> = decode_one(&response).unwrap();
     assert!(result.is_ok());
 
-    let response = query_call(&ic, catts, sender, "recipe_list", vec![]);
+    let response = query_call(&ic, catts, sender, "recipe_list", encode_one(()).unwrap());
     let result: RpcResult<Vec<Recipe>> = decode_one(&response).unwrap();
     assert!(result.is_ok());
-    assert_eq!(result.unwrap_ok().len(), 1);
+    assert_eq!(
+        result.unwrap_ok().len(),
+        1,
+        "List should contain one recipe"
+    );
 }
