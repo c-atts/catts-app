@@ -1,39 +1,8 @@
 use crate::{RECIPES, RECIPE_ID_BY_SLUG};
 
-use super::{Recipe, RecipeId, RecipePublishState, RecipeValidationError};
+use super::{Recipe, RecipeId};
 
 impl Recipe {
-    pub fn _save(&self) -> Result<(), RecipeValidationError> {
-        RECIPES.with_borrow_mut(|recipes| {
-            // Get previous version of recipe if it exists
-            if let Some(saved_recipe) = recipes.get(&self.id) {
-                // Only draft recipes can be updated
-                if saved_recipe.publish_state != RecipePublishState::Draft {
-                    return Err(RecipeValidationError::OnlyDraftRecipesCanBeUpdated);
-                }
-
-                // Slug cannot be changed
-                if saved_recipe.name != self.name {
-                    return Err(RecipeValidationError::SlugImmutable);
-                }
-
-                // Creator cannot be changed
-                if saved_recipe.creator != self.creator {
-                    return Err(RecipeValidationError::CreatorImmutable);
-                }
-            }
-
-            // Save the recipe
-            recipes.insert(self.id, self.clone());
-
-            RECIPE_ID_BY_SLUG.with_borrow_mut(|recipe_id_by_slug| {
-                recipe_id_by_slug.insert(self.name.clone(), self.id);
-            });
-
-            Ok(())
-        })
-    }
-
     pub fn get_by_id(recipe_id: &RecipeId) -> Option<Self> {
         RECIPES.with_borrow(|r| r.get(recipe_id).clone())
     }

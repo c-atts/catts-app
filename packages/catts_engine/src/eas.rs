@@ -134,12 +134,6 @@ pub fn get_eas_http_headers() -> Vec<HttpHeader> {
 
 #[derive(Error, Debug)]
 pub enum RunEasQueryError {
-    #[error("Chain ID is required for EAS query")]
-    ChainIdRequired,
-
-    #[error("Chain ID {0} is not supported")]
-    ChainIdNotSupported(u32),
-
     #[error("Request failed: {message:?}, code: {rejection_code:?}")]
     HttpRequestError {
         rejection_code: RejectionCode,
@@ -232,9 +226,6 @@ pub fn process_query_result(processor: &str, query_result: &str) -> String {
 
 #[derive(Error, Debug)]
 pub enum CreateAttestationError {
-    #[error("Recipe don't have an output schema")]
-    NoRecipeOutputSchema,
-
     #[error("Unable to get schema uid: {0}")]
     GetSchemaUidError(#[from] GetSchemaUidError),
 

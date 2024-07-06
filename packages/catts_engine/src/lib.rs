@@ -47,8 +47,8 @@ const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
 const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
 
-const THEGRAPH_QUERY_PROXY_URL: &str =
-    "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
+// const THEGRAPH_QUERY_PROXY_URL: &str =
+//     "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
 
 const USER_PROFILE_MEMORY_ID: MemoryId = MemoryId::new(0);
 const RECIPE_MEMORY_ID: MemoryId = MemoryId::new(1);
@@ -69,7 +69,7 @@ thread_local! {
     );
 
     static ECDSA_KEY: RefCell<String> = RefCell::new(String::default());
-    static SIWE_PROVIDER_CANISTER_ID: RefCell<Option<Principal>> = RefCell::new(None);
+    static SIWE_PROVIDER_CANISTER_ID: RefCell<Option<Principal>> = const { RefCell::new(None) };
 
     // USER_PROFILES
     static USER_PROFILES: RefCell<StableBTreeMap<String, UserProfile, Memory>> = RefCell::new(

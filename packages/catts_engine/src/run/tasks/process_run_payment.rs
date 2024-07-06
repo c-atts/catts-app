@@ -212,7 +212,8 @@ fn process_log_entry(
             }
 
             if event_amount >= run.fee {
-                run.payment_transaction_hash = entry.transactionHash.clone();
+                run.payment_transaction_hash
+                    .clone_from(&entry.transactionHash);
                 run.payment_verified_status = Some(PaymentVerifiedStatus::Verified);
                 Run::update(&run);
                 return Ok(());
