@@ -1,6 +1,6 @@
 use crate::{
     eth::{EthAddress, EthAddressBytes},
-    recipe::{Recipe, RecipeId},
+    recipe::{self, RecipeId},
     RUNS,
 };
 use blake2::digest::{Update, VariableOutput};
@@ -75,7 +75,7 @@ impl Run {
         fee: Nat,
         creator: &EthAddress,
     ) -> Result<Self, RunError> {
-        Recipe::get_by_id(recipe_id).ok_or(RunError::NotFound)?;
+        recipe::get_by_id(recipe_id).ok_or(RunError::NotFound)?;
 
         let created = time();
         let id = Self::id(creator, created);

@@ -3,7 +3,7 @@ use crate::{
     eas::{create_attestation, process_query_result, run_query},
     eth::EthAddress,
     logger::debug,
-    recipe::Recipe,
+    recipe::{self},
     run::run::{vec_to_run_id, PaymentVerifiedStatus, Run},
     tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType},
 };
@@ -29,7 +29,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 "CreateAttestationExecutor: Run not found".to_string(),
             ))?;
 
-            let recipe = Recipe::get_by_id(&run.recipe_id).ok_or(TaskError::Failed(
+            let recipe = recipe::get_by_id(&run.recipe_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Recipe not found".to_string(),
             ))?;
 

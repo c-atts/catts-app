@@ -3,7 +3,7 @@ use crate::{
     error::Error,
     evm_rpc::{max_fee_per_gas, update_base_fee},
     logger::info,
-    recipe::{Recipe, RecipeId},
+    recipe::{self, RecipeId},
     run::run::Run,
     siwe::get_authenticated_eth_address,
 };
@@ -14,7 +14,7 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, Error> {
     let cycles_before = canister_balance();
     let address = get_authenticated_eth_address().await?;
 
-    let recipe = Recipe::get_by_id(&recipe_id).ok_or(Error::not_found("Recipe not found"))?;
+    let recipe = recipe::get_by_id(&recipe_id).ok_or(Error::not_found("Recipe not found"))?;
 
     let chain_config = ChainConfig::get(chain_id).ok_or(Error::internal_server_error(
         "Chain config could not be loaded",
