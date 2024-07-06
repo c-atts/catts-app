@@ -3,7 +3,7 @@ use pocket_ic::{PocketIc, WasmResult};
 use serde::{Deserialize, Serialize};
 use std::{fs, time::Duration};
 
-use crate::types::RpcResult;
+use crate::types::{RpcError, RpcResult};
 
 pub const CATTS_ENGINE_WASM: &str = "../../target/wasm32-wasi/release/catts_engine.wasm.gz";
 pub const IC_SIWE_WASM: &str = "../ic_siwe_provider/ic_siwe_provider.wasm.gz";
@@ -76,35 +76,10 @@ pub fn setup() -> (PocketIc, Principal, Principal) {
     (ic, ic_siwe_canister, catts_engine_canister)
 }
 
-pub fn update_call(
-    pic: &PocketIc,
-    canister: Principal,
-    sender: Principal,
-    method: &str,
-    payload: Vec<u8>,
-) -> Vec<u8> {
-    let Ok(WasmResult::Reply(response)) = pic.update_call(canister, sender, method, payload) else {
-        panic!("Expected reply");
-    };
-    response
-}
-
-pub fn query_call(
-    pic: &PocketIc,
-    canister: Principal,
-    sender: Principal,
-    method: &str,
-    payload: Vec<u8>,
-) -> Vec<u8> {
-    let Ok(WasmResult::Reply(response)) = pic.query_call(canister, sender, method, payload) else {
-        panic!("Expected reply");
-    };
-    response
-}
 pub fn update<T: CandidType + for<'de> Deserialize<'de>>(
     ic: &PocketIc,
-    sender: Principal,
     canister: Principal,
+    sender: Principal,
     method: &str,
     args: Vec<u8>,
 ) -> Result<T, String> {
@@ -115,10 +90,32 @@ pub fn update<T: CandidType + for<'de> Deserialize<'de>>(
     }
 }
 
+pub fn catts_update<T: CandidType + for<'de> Deserialize<'de>>(
+    ic: &PocketIc,
+    canister: Principal,
+    sender: Principal,
+    method: &str,
+    args: Vec<u8>,
+) -> RpcResult<T> {
+    match ic.update_call(canister, sender, method, args) {
+        Ok(WasmResult::Reply(data)) => decode_one(&data).unwrap(),
+        Ok(WasmResult::Reject(error_message)) => RpcResult::Err(RpcError {
+            code: 500,
+            message: error_message.to_string(),
+            details: None,
+        }),
+        Err(err) => RpcResult::Err(RpcError {
+            code: 500,
+            message: err.to_string(),
+            details: None,
+        }),
+    }
+}
+
 pub fn query<T: CandidType + for<'de> Deserialize<'de>>(
     ic: &PocketIc,
-    sender: Principal,
     canister: Principal,
+    sender: Principal,
     method: &str,
     args: Vec<u8>,
 ) -> Result<T, String> {
@@ -129,14 +126,24 @@ pub fn query<T: CandidType + for<'de> Deserialize<'de>>(
     }
 }
 
-pub fn should_be_401<T>(result: RpcResult<T>) {
-    assert!(matches!(result, RpcResult::Err(_)));
-    match result {
-        RpcResult::Err(ref error) => {
-            assert_eq!(error.code, 401);
-        }
-        _ => {
-            unreachable!();
-        }
+pub fn catts_query<T: CandidType + for<'de> Deserialize<'de>>(
+    ic: &PocketIc,
+    canister: Principal,
+    sender: Principal,
+    method: &str,
+    args: Vec<u8>,
+) -> RpcResult<T> {
+    match ic.query_call(canister, sender, method, args) {
+        Ok(WasmResult::Reply(data)) => decode_one(&data).unwrap(),
+        Ok(WasmResult::Reject(error_message)) => RpcResult::Err(RpcError {
+            code: 500,
+            message: error_message.to_string(),
+            details: None,
+        }),
+        Err(err) => RpcResult::Err(RpcError {
+            code: 500,
+            message: err.to_string(),
+            details: None,
+        }),
     }
 }

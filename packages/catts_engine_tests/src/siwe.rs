@@ -33,8 +33,8 @@ pub fn prepare_login_and_sign_message(
     let args = encode_one(address).unwrap();
     let siwe_message: String = update(
         ic,
-        Principal::anonymous(),
         ic_siwe_provider_canister,
+        Principal::anonymous(),
         "siwe_prepare_login",
         args,
     )
@@ -85,14 +85,15 @@ pub fn full_login(
 
     // Create a session identity
     let session_identity = create_session_identity();
+
     let session_pubkey = session_identity.public_key().unwrap();
 
     // Login
     let login_args = encode_args((signature, address.clone(), session_pubkey.clone())).unwrap();
     let login_response: LoginDetails = update(
         ic,
-        Principal::anonymous(),
         ic_siwe_provider_canister,
+        Principal::anonymous(),
         "siwe_login",
         login_args,
     )
@@ -105,10 +106,11 @@ pub fn full_login(
         login_response.expiration,
     ))
     .unwrap();
+
     let get_delegation_response: SignedDelegation = query(
         ic,
-        Principal::anonymous(),
         ic_siwe_provider_canister,
+        Principal::anonymous(),
         "siwe_get_delegation",
         get_delegation_args,
     )

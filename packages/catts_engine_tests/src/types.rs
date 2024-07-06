@@ -29,6 +29,13 @@ impl<T> RpcResult<T> {
             RpcResult::Err(_) => panic!("called `RpcResult::unwrap_ok()` on an `Err` value"),
         }
     }
+
+    pub fn unwrap_err(&self) -> &RpcError {
+        match self {
+            RpcResult::Ok(_) => panic!("called `RpcResult::unwrap_err()` on an `Ok` value"),
+            RpcResult::Err(value) => value,
+        }
+    }
 }
 
 pub type EthAddressBytes = [u8; 20];

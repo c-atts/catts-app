@@ -1,6 +1,6 @@
-use candid::{decode_one, encode_args, encode_one, Principal};
+use candid::{encode_args, encode_one, Principal};
 use catts_engine_tests::{
-    common::{query_call, setup, update_call},
+    common::{catts_query, catts_update, setup},
     recipes::recipe_eu_gtc_passport_clone,
     siwe::full_login,
     types::{Recipe, RpcResult},
@@ -10,10 +10,15 @@ use ic_agent::Identity;
 #[test]
 fn test_recipe_empty_list() {
     let (ic, _, catts) = setup();
-    let response = query_call(&ic, catts, Principal::anonymous(), "recipe_list", vec![]);
-    let result: RpcResult<Vec<Recipe>> = decode_one(&response).unwrap();
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap_ok().len(), 0);
+    let response: RpcResult<Vec<Recipe>> = catts_query(
+        &ic,
+        catts,
+        Principal::anonymous(),
+        "recipe_list",
+        encode_one(()).unwrap(),
+    );
+    assert!(response.is_ok());
+    assert_eq!(response.unwrap_ok().len(), 0);
 }
 
 #[test]
@@ -21,21 +26,20 @@ fn test_recipe_list() {
     let (ic, siwe, catts) = setup();
     let (_, identity) = full_login(&ic, siwe, None);
     let sender = identity.sender().unwrap();
-    let response = update_call(
+    let response: RpcResult<Recipe> = catts_update(
         &ic,
         catts,
         sender,
         "recipe_create",
         encode_args(recipe_eu_gtc_passport_clone()).unwrap(),
     );
-    let result: RpcResult<Recipe> = decode_one(&response).unwrap();
-    assert!(result.is_ok());
+    assert!(response.is_ok());
 
-    let response = query_call(&ic, catts, sender, "recipe_list", encode_one(()).unwrap());
-    let result: RpcResult<Vec<Recipe>> = decode_one(&response).unwrap();
-    assert!(result.is_ok());
+    let response: RpcResult<Vec<Recipe>> =
+        catts_query(&ic, catts, sender, "recipe_list", encode_one(()).unwrap());
+    assert!(response.is_ok());
     assert_eq!(
-        result.unwrap_ok().len(),
+        response.unwrap_ok().len(),
         1,
         "List should contain one recipe"
     );
