@@ -19,18 +19,18 @@ impl<T> RpcResult<T> {
         matches!(self, RpcResult::Ok(_))
     }
 
-    pub fn ok(value: T) -> Self {
-        RpcResult::Ok(value)
+    pub fn is_err(&self) -> bool {
+        !self.is_ok()
     }
 
-    pub fn err(code: u16, message: String, details: Option<String>) -> Self {
-        RpcResult::Err(RpcError {
-            code,
-            message,
-            details,
-        })
+    pub fn unwrap_ok(&self) -> &T {
+        match self {
+            RpcResult::Ok(value) => value,
+            RpcResult::Err(_) => panic!("called `RpcResult::unwrap_ok()` on an `Err` value"),
+        }
     }
 }
+
 pub type EthAddressBytes = [u8; 20];
 pub type Uid = String;
 pub type RecipeId = [u8; 12];
