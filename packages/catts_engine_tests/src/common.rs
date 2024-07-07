@@ -147,3 +147,17 @@ pub fn catts_query<T: CandidType + for<'de> Deserialize<'de>>(
         }),
     }
 }
+
+#[macro_export]
+macro_rules! assert_starts_with {
+    ($left:expr, $right:expr $(,)?) => {{
+        let left_val = $left;
+        let right_val = $right;
+        if !left_val.starts_with(&right_val) {
+            panic!(
+                "assertion failed: `(left starts with right)`\n  left: `{}`,\n right: `{}`",
+                left_val, right_val
+            );
+        }
+    }};
+}

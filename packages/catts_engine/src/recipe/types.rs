@@ -2,13 +2,15 @@ use candid::{CandidType, Decode, Encode, Nat};
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
+use validator::{Validate, ValidationError};
+use validator_derive::Validate;
 
 use crate::{
     eas::Uid,
     eth::{EthAddress, EthAddressBytes},
 };
 
-use super::{generate_recipe_id, RecipeName, RecipeValidationError};
+use super::generate_recipe_id;
 
 pub type RecipeId = [u8; 12];
 
@@ -19,29 +21,66 @@ pub enum RecipePublishState {
     Unpublished,
 }
 
-#[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
+#[derive(Serialize, Deserialize, Debug, CandidType, Clone, Validate)]
 pub struct RecipeQuery {
+    #[validate(length(min = 1))]
     pub endpoint: String,
+
+    #[validate(length(min = 1))]
     pub query: String,
+
+    #[validate(length(min = 1))]
     pub variables: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
+#[derive(Serialize, Deserialize, Debug, CandidType, Clone, Validate)]
 pub struct Recipe {
     pub id: RecipeId,
+
+    // validate_recipe_name: only lowercase alphanumeric letters and hyphens
+    #[validate(length(min = 3, max = 50), custom(function = "validate_recipe_name"))]
     pub name: String,
+
+    #[validate(length(min = 3, max = 50))]
     pub display_name: Option<String>,
+
+    // Assuming EthAddressBytes and Uid have validations
     pub creator: EthAddressBytes,
     pub created: u64,
+
+    #[validate(length(min = 3, max = 160))]
     pub description: Option<String>,
+
     pub keywords: Option<Vec<String>>,
+
+    #[validate(nested)]
     pub queries: Vec<RecipeQuery>,
+
+    #[validate(length(min = 1))]
     pub processor: String,
+
+    #[validate(length(min = 1))]
     pub schema: Uid,
+
+    #[validate(length(equal = 42))]
     pub resolver: String,
+
     pub revokable: bool,
     pub gas: Option<Nat>,
     pub publish_state: RecipePublishState,
+}
+
+fn validate_recipe_name(name: &str) -> Result<(), ValidationError> {
+    if !name
+        .chars()
+        .all(|c| c.is_ascii_lowercase() && c.is_ascii_alphanumeric() || c == '-')
+    {
+        return Err(ValidationError::new(
+            "Name must be lowercase and can only contain alphanumeric characters and hyphens",
+        ));
+    }
+
+    Ok(())
 }
 
 #[derive(Serialize, Deserialize, Debug, CandidType)]
@@ -73,12 +112,10 @@ impl Recipe {
     pub fn new(
         details: &RecipeDetailsInput,
         creator: &EthAddress,
-    ) -> Result<Self, RecipeValidationError> {
-        let name = RecipeName::new(&details.name)?;
-
-        Ok(Self {
-            id: generate_recipe_id(creator, &name),
-            name: name.value().to_string(),
+    ) -> Result<Self, validator::ValidationErrors> {
+        let recipe = Self {
+            id: generate_recipe_id(creator, details.name.as_str()),
+            name: details.name.clone(),
             display_name: details.display_name.clone(),
             creator: creator.as_byte_array(),
             created: ic_cdk::api::time(),
@@ -91,6 +128,10 @@ impl Recipe {
             revokable: details.revokable,
             gas: None,
             publish_state: RecipePublishState::Draft,
-        })
+        };
+
+        recipe.validate()?;
+
+        Ok(recipe)
     }
 }
