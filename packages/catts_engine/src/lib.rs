@@ -52,7 +52,7 @@ const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
 
 const USER_PROFILE_MEMORY_ID: MemoryId = MemoryId::new(0);
 const RECIPE_MEMORY_ID: MemoryId = MemoryId::new(1);
-const RECIPE_ID_BY_SLUG_MEMORY_ID: MemoryId = MemoryId::new(2);
+const RECIPE_NAME_INDEX_MEMORY_ID: MemoryId = MemoryId::new(2);
 const RUNS_MEMORY_ID: MemoryId = MemoryId::new(3);
 const TASKS_MEMORY_ID: MemoryId = MemoryId::new(4);
 const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(5);
@@ -85,9 +85,9 @@ thread_local! {
         )
     );
 
-    static RECIPE_ID_BY_SLUG: RefCell<StableBTreeMap<String, recipe::RecipeId, Memory>> = RefCell::new(
+    static RECIPE_NAME_INDEX: RefCell<StableBTreeMap<String, recipe::RecipeId, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(RECIPE_ID_BY_SLUG_MEMORY_ID)),
+            MEMORY_MANAGER.with(|m| m.borrow().get(RECIPE_NAME_INDEX_MEMORY_ID)),
         )
     );
 

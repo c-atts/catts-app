@@ -1,4 +1,4 @@
-use crate::{RECIPES, RECIPE_ID_BY_SLUG};
+use crate::{RECIPES, RECIPE_NAME_INDEX};
 
 use super::{Recipe, RecipeId};
 
@@ -7,7 +7,7 @@ pub fn get_by_id(recipe_id: &RecipeId) -> Option<Recipe> {
 }
 
 pub fn get_by_name(slug: &String) -> Option<Recipe> {
-    RECIPE_ID_BY_SLUG.with_borrow(|r| r.get(slug).and_then(|id| get_by_id(&id)))
+    RECIPE_NAME_INDEX.with_borrow(|r| r.get(slug).and_then(|id| get_by_id(&id)))
 }
 
 pub fn list() -> Vec<Recipe> {
