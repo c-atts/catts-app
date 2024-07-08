@@ -10,6 +10,7 @@ pub enum HttpStatusCode {
     Forbidden = 403,
     NotFound = 404,
     MethodNotAllowed = 405,
+    Conflict = 409,
     InternalServerError = 500,
     NotImplemented = 501,
     BadGateway = 502,
@@ -68,6 +69,14 @@ impl Error {
         Self::new(
             HttpStatusCode::MethodNotAllowed as u16,
             "Method not allowed".to_string(),
+            Some(message.to_string()),
+        )
+    }
+
+    pub fn conflict<M: Display>(message: M) -> Self {
+        Self::new(
+            HttpStatusCode::Conflict as u16,
+            "Conflict".to_string(),
             Some(message.to_string()),
         )
     }
