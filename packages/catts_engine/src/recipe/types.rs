@@ -23,13 +23,13 @@ pub enum RecipePublishState {
 
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone, Validate)]
 pub struct RecipeQuery {
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, max = 255))]
     pub endpoint: String,
 
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, max = 1024))]
     pub query: String,
 
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, max = 1024))]
     pub variables: String,
 }
 
@@ -51,15 +51,17 @@ pub struct Recipe {
     #[validate(length(min = 3, max = 160))]
     pub description: Option<String>,
 
+    // validate_keywords: length between 3 and 50, not empty, alphanumeric letters and hyphens, lowercase
+    #[validate(custom(function = "validate_keywords"))]
     pub keywords: Option<Vec<String>>,
 
     #[validate(nested)]
     pub queries: Vec<RecipeQuery>,
 
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, max = 1024))]
     pub processor: String,
 
-    #[validate(length(min = 1))]
+    #[validate(length(min = 1, max = 512))]
     pub schema: Uid,
 
     #[validate(length(equal = 42))]
@@ -80,6 +82,28 @@ fn validate_recipe_name(name: &str) -> Result<(), ValidationError> {
         ));
     }
 
+    Ok(())
+}
+
+fn validate_keywords(keywords: &[String]) -> Result<(), ValidationError> {
+    if keywords.is_empty() {
+        return Err(ValidationError::new("Keywords must not be empty"));
+    }
+
+    for keyword in keywords {
+        if keyword.len() < 3 || keyword.len() > 50 {
+            return Err(ValidationError::new("length"));
+        }
+
+        if !keyword
+            .chars()
+            .all(|c| c.is_ascii_lowercase() && c.is_ascii_alphanumeric() || c == '-')
+        {
+            return Err(ValidationError::new(
+                "Keywords must be lowercase and can only contain alphanumeric characters and hyphens",
+            ));
+        }
+    }
     Ok(())
 }
 
