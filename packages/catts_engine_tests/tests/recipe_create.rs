@@ -377,7 +377,6 @@ fn recipe_create_name_already_exists() {
     assert_eq!(details, "Name already in use");
 }
 
-//trying to save a recipe that has already been published
 #[test]
 fn recipe_create_already_published() {
     let (ic, siwe, catts) = setup();
