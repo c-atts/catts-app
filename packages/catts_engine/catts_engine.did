@@ -79,6 +79,7 @@ service : (CanisterSettingsInput) -> {
   recipe_get_by_id : (blob) -> (Result_3) query;
   recipe_get_by_name : (text) -> (Result_3) query;
   recipe_list : () -> (Result_4) query;
+  recipe_publish : (blob) -> (Result_3);
   run_cancel : (blob) -> (Result_5);
   run_create : (blob, nat64) -> (Result_5);
   run_get : (blob) -> (Result_5) query;
