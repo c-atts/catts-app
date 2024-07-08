@@ -216,6 +216,96 @@ fn recipe_create_description_too_long() {
 }
 
 #[test]
+fn recipe_create_keywords_empty() {
+    let (ic, siwe, catts) = setup();
+    let (_, identity) = full_login(&ic, siwe, None);
+    let mut args = recipe_eu_gtc_passport_clone();
+    args.0.keywords = Some(vec![]);
+    let args = encode_args(args).unwrap();
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_create",
+        args,
+    );
+    assert!(response.is_err());
+    let error = response.unwrap_err();
+    assert_eq!(error.code, 400);
+    let details = error.details.as_deref().expect("No error details found");
+    assert_starts_with!(
+        details,
+        "keywords: Validation error: Keywords must not be empty".to_string()
+    );
+}
+
+#[test]
+fn recipe_create_keywords_keyword_too_short() {
+    let (ic, siwe, catts) = setup();
+    let (_, identity) = full_login(&ic, siwe, None);
+    let mut args = recipe_eu_gtc_passport_clone();
+    args.0.keywords = Some(vec!["a".to_string()]);
+    let args = encode_args(args).unwrap();
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_create",
+        args,
+    );
+    assert!(response.is_err());
+    let error = response.unwrap_err();
+    assert_eq!(error.code, 400);
+    let details = error.details.as_deref().expect("No error details found");
+    assert_starts_with!(details, "keywords: Validation error: length".to_string());
+}
+
+#[test]
+fn recipe_create_keywords_keyword_too_long() {
+    let (ic, siwe, catts) = setup();
+    let (_, identity) = full_login(&ic, siwe, None);
+    let mut args = recipe_eu_gtc_passport_clone();
+    args.0.keywords = Some(vec!["a".repeat(51).to_string()]);
+    let args = encode_args(args).unwrap();
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_create",
+        args,
+    );
+    assert!(response.is_err());
+    let error = response.unwrap_err();
+    assert_eq!(error.code, 400);
+    let details = error.details.as_deref().expect("No error details found");
+    assert_starts_with!(details, "keywords: Validation error: length".to_string());
+}
+
+#[test]
+fn recipe_creata_keywords_invalid_characters() {
+    let (ic, siwe, catts) = setup();
+    let (_, identity) = full_login(&ic, siwe, None);
+    let mut args = recipe_eu_gtc_passport_clone();
+    args.0.keywords = Some(vec!["a b".to_string()]);
+    let args = encode_args(args).unwrap();
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_create",
+        args,
+    );
+    assert!(response.is_err());
+    let error = response.unwrap_err();
+    assert_eq!(error.code, 400);
+    let details = error.details.as_deref().expect("No error details found");
+    assert_starts_with!(
+        details,
+        "keywords: Validation error: Keywords must be lowercase and can only contain alphanumeric characters and hyphens".to_string()
+    );
+}
+
+#[test]
 fn recipe_create_resolver_too_short() {
     let (ic, siwe, catts) = setup();
     let (_, identity) = full_login(&ic, siwe, None);
