@@ -1,4 +1,4 @@
-use candid::{encode_args, Principal};
+use candid::{encode_args, encode_one, Principal};
 use catts_engine_tests::{
     assert_starts_with,
     common::{catts_update, setup},
@@ -345,4 +345,78 @@ fn recipe_create_resolver_too_long() {
     assert_eq!(error.code, 400);
     let details = error.details.as_deref().expect("No error details found");
     assert_starts_with!(details, "resolver: Validation error: length".to_string());
+}
+
+#[test]
+fn recipe_create_name_already_exists() {
+    let (ic, siwe, catts) = setup();
+    let (_, identity) = full_login(&ic, siwe, None);
+    let recipe = recipe_eu_gtc_passport_clone();
+    let args = encode_args(recipe).unwrap();
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_create",
+        args.clone(),
+    );
+    assert!(response.is_ok());
+
+    let (_, identity2) = full_login(&ic, siwe, None);
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity2.sender().unwrap(),
+        "recipe_create",
+        args,
+    );
+    assert!(response.is_err());
+    let error = response.unwrap_err();
+    assert_eq!(error.code, 409);
+    let details = error.details.as_deref().expect("No error details found");
+    assert_eq!(details, "Name already in use");
+}
+
+//trying to save a recipe that has already been published
+#[test]
+fn recipe_create_already_published() {
+    let (ic, siwe, catts) = setup();
+    let (_, identity) = full_login(&ic, siwe, None);
+    let recipe = recipe_eu_gtc_passport_clone();
+    let args = encode_args(recipe).unwrap();
+
+    // Create recipe
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_create",
+        args.clone(),
+    );
+    assert!(response.is_ok());
+
+    // Publish it
+    let created_recipe = response.unwrap_ok();
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_publish",
+        encode_one(created_recipe.id).unwrap(),
+    );
+    assert!(response.is_ok());
+
+    // Attempt to save it again
+    let response: RpcResult<Recipe> = catts_update(
+        &ic,
+        catts,
+        identity.sender().unwrap(),
+        "recipe_create",
+        args,
+    );
+    assert!(response.is_err());
+    let error = response.unwrap_err();
+    assert_eq!(error.code, 409);
+    let details = error.details.as_deref().expect("No error details found");
+    assert_eq!(details, "Only drafts can be updated");
 }

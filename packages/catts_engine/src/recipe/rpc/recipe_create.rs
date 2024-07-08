@@ -10,6 +10,6 @@ use crate::{
 pub async fn recipe_create(details: RecipeDetailsInput, _readme: String) -> Result<Recipe, Error> {
     let address = get_authenticated_eth_address().await?;
     let recipe = Recipe::new(&details, &address).map_err(Error::bad_request)?;
-    recipe::create(&recipe).map_err(Error::bad_request)?;
+    let recipe = recipe::create(&recipe).map_err(Error::conflict)?;
     Ok(recipe)
 }

@@ -23,23 +23,23 @@ pub fn list() -> Vec<Recipe> {
 }
 
 #[derive(Error, Debug)]
-pub enum SaveRecipeError {
+pub enum RecipeCreateError {
     #[error("Only drafts can be updated")]
     NotDraft,
     #[error("Name already in use")]
     NameInUse,
 }
 
-pub fn create(recipe: &Recipe) -> Result<(), SaveRecipeError> {
+pub fn create(recipe: &Recipe) -> Result<Recipe, RecipeCreateError> {
     RECIPES.with_borrow_mut(|recipes| {
         let maybe_saved_recipe = recipes.get(&recipe.id).clone();
 
         if let Some(saved_recipe) = maybe_saved_recipe {
             if saved_recipe.publish_state != RecipePublishState::Draft {
-                return Err(SaveRecipeError::NotDraft);
+                return Err(RecipeCreateError::NotDraft);
             }
         } else if RECIPE_NAME_INDEX.with_borrow(|index| index.contains_key(&recipe.name)) {
-            return Err(SaveRecipeError::NameInUse);
+            return Err(RecipeCreateError::NameInUse);
         }
 
         recipes.insert(recipe.id, recipe.clone());
@@ -48,7 +48,7 @@ pub fn create(recipe: &Recipe) -> Result<(), SaveRecipeError> {
             index.insert(recipe.name.clone(), recipe.id);
         });
 
-        Ok(())
+        Ok(recipe.clone())
     })
 }
 
@@ -56,6 +56,7 @@ pub fn publish(recipe_id: &RecipeId) -> Result<Recipe, RecipeError> {
     RECIPES.with_borrow_mut(|recipes| {
         if let Some(mut recipe) = recipes.get(recipe_id) {
             recipe.publish_state = RecipePublishState::Published;
+            recipes.insert(*recipe_id, recipe.clone());
             Ok(recipe)
         } else {
             Err(RecipeError::NotFound)
