@@ -42,12 +42,11 @@ type RecipeDetailsInput = record {
 type RecipePublishState = variant { Draft; Unpublished; Published };
 type RecipeQuery = record { endpoint : text; "query" : text; variables : text };
 type Result = variant { Ok : text; Err : text };
-type Result_1 = variant { Ok : UserProfile; Err : Error };
-type Result_2 = variant { Ok : vec record { text; UserProfile }; Err : text };
-type Result_3 = variant { Ok : Recipe; Err : Error };
-type Result_4 = variant { Ok : vec Recipe; Err : text };
-type Result_5 = variant { Ok : Run; Err : Error };
-type Result_6 = variant { Ok : vec Run; Err : Error };
+type Result_1 = variant { Ok : Recipe; Err : Error };
+type Result_2 = variant { Ok : vec Recipe; Err : text };
+type Result_3 = variant { Ok : Run; Err : Error };
+type Result_4 = variant { Ok : vec Run; Err : Error };
+type Result_5 = variant { Ok : User; Err : Error };
 type Run = record {
   id : blob;
   fee : nat;
@@ -63,27 +62,20 @@ type Run = record {
   payment_transaction_hash : opt text;
 };
 type TransformArgs = record { context : blob; response : HttpResponse };
-type UserProfile = record {
-  credits : nat32;
-  avatar_url : text;
-  name : text;
-  address : text;
-};
+type User = record { eth_address : text };
 service : (CanisterSettingsInput) -> {
   canister_eth_address : () -> (Result);
   logs : () -> (vec LogItem) query;
-  profile_get_current : () -> (Result_1);
-  profile_list : () -> (Result_2) query;
-  profile_save_current : (text, text) -> (Result_1);
-  recipe_create : (RecipeDetailsInput, text) -> (Result_3);
-  recipe_get_by_id : (blob) -> (Result_3) query;
-  recipe_get_by_name : (text) -> (Result_3) query;
-  recipe_list : () -> (Result_4) query;
-  recipe_publish : (blob) -> (Result_3);
-  run_cancel : (blob) -> (Result_5);
-  run_create : (blob, nat64) -> (Result_5);
-  run_get : (blob) -> (Result_5) query;
-  run_list_for_user : () -> (Result_6);
-  run_register_payment : (blob, text, nat) -> (Result_5);
+  recipe_create : (RecipeDetailsInput, text) -> (Result_1);
+  recipe_get_by_id : (blob) -> (Result_1) query;
+  recipe_get_by_name : (text) -> (Result_1) query;
+  recipe_list : () -> (Result_2) query;
+  recipe_publish : (blob) -> (Result_1);
+  run_cancel : (blob) -> (Result_3);
+  run_create : (blob, nat64) -> (Result_3);
+  run_get : (blob) -> (Result_3) query;
+  run_list_for_user : () -> (Result_4);
+  run_register_payment : (blob, text, nat) -> (Result_3);
   transform : (TransformArgs) -> (HttpResponse) query;
+  user_create : () -> (Result_5);
 }

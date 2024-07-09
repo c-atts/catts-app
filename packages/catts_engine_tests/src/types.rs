@@ -38,6 +38,11 @@ impl<T> RpcResult<T> {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, CandidType)]
+pub struct User {
+    pub eth_address: String,
+}
+
 pub type EthAddressBytes = [u8; 20];
 pub type Uid = String;
 pub type RecipeId = [u8; 12];

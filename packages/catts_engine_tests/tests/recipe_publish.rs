@@ -10,7 +10,7 @@ use ic_agent::Identity;
 #[test]
 fn recipe_publish() {
     let (ic, siwe, catts) = setup();
-    let (_, identity) = full_login(&ic, siwe, None);
+    let (_, identity) = full_login(&ic, siwe, catts, None);
     let create_response: RpcResult<Recipe> = catts_update(
         &ic,
         catts,
@@ -33,7 +33,7 @@ fn recipe_publish() {
 #[test]
 fn recipe_publish_unauthorized() {
     let (ic, siwe, catts) = setup();
-    let (_, identity) = full_login(&ic, siwe, None);
+    let (_, identity) = full_login(&ic, siwe, catts, None);
     let create_response: RpcResult<Recipe> = catts_update(
         &ic,
         catts,
@@ -42,7 +42,7 @@ fn recipe_publish_unauthorized() {
         encode_args(recipe_eu_gtc_passport_clone()).unwrap(),
     );
     let recipe = create_response.unwrap_ok();
-    let (_, identity2) = full_login(&ic, siwe, None);
+    let (_, identity2) = full_login(&ic, siwe, catts, None);
     let publish_response: RpcResult<Recipe> = catts_update(
         &ic,
         catts,
@@ -57,7 +57,7 @@ fn recipe_publish_unauthorized() {
 #[test]
 fn recipe_publish_not_found() {
     let (ic, siwe, catts) = setup();
-    let (_, identity) = full_login(&ic, siwe, None);
+    let (_, identity) = full_login(&ic, siwe, catts, None);
     let id_not_found = [0u8; 12];
     let publish_response: RpcResult<Recipe> = catts_update(
         &ic,

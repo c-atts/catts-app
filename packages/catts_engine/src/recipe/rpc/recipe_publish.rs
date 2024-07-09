@@ -3,13 +3,12 @@ use ic_cdk::update;
 use crate::{
     error::Error,
     recipe::{self, Recipe, RecipeId},
-    siwe::get_authenticated_eth_address,
+    user::auth_guard,
 };
 
 #[update]
-pub async fn recipe_publish(recipe_id: RecipeId) -> Result<Recipe, Error> {
-    let address = get_authenticated_eth_address().await?;
-
+fn recipe_publish(recipe_id: RecipeId) -> Result<Recipe, Error> {
+    let address = auth_guard()?;
     let recipe = recipe::get_by_id(&recipe_id);
     if let Some(recipe) = recipe {
         if address.as_byte_array() != recipe.creator {

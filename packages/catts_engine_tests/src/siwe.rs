@@ -15,7 +15,10 @@ use ic_siwe::{delegation::SignedDelegation, login::LoginDetails};
 use pocket_ic::PocketIc;
 use rand::Rng;
 
-use crate::common::{query, update};
+use crate::{
+    common::{query, update},
+    types::User,
+};
 
 pub fn create_wallet() -> (ethers::signers::LocalWallet, String) {
     let wallet = LocalWallet::new(&mut rand::thread_rng());
@@ -77,6 +80,7 @@ pub fn create_delegated_identity(
 pub fn full_login(
     ic: &PocketIc,
     ic_siwe_provider_canister: Principal,
+    catts_canister: Principal,
     targets: Option<Vec<Principal>>,
 ) -> (String, DelegatedIdentity) {
     let (wallet, address) = create_wallet();
@@ -123,6 +127,16 @@ pub fn full_login(
         get_delegation_response.signature.as_ref().to_vec(),
         targets,
     );
+
+    // Create a user in the catts canister
+    let _: User = update(
+        ic,
+        catts_canister,
+        delegated_identity.sender().unwrap(),
+        "user_create",
+        encode_one(()).unwrap(),
+    )
+    .unwrap();
 
     (address, delegated_identity)
 }

@@ -3,13 +3,12 @@ use ic_cdk::update;
 use crate::{
     error::Error,
     recipe::{self, Recipe, RecipeDetailsInput},
-    siwe::get_authenticated_eth_address,
+    user::auth_guard,
 };
 
 #[update]
-pub async fn recipe_create(details: RecipeDetailsInput, _readme: String) -> Result<Recipe, Error> {
-    let address = get_authenticated_eth_address().await?;
+pub fn recipe_create(details: RecipeDetailsInput, _readme: String) -> Result<Recipe, Error> {
+    let address = auth_guard()?;
     let recipe = Recipe::new(&details, &address).map_err(Error::bad_request)?;
-    let recipe = recipe::create(&recipe).map_err(Error::conflict)?;
-    Ok(recipe)
+    recipe::create(&recipe).map_err(Error::conflict)
 }

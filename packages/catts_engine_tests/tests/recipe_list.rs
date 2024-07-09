@@ -24,7 +24,7 @@ fn test_recipe_empty_list() {
 #[test]
 fn test_recipe_list() {
     let (ic, siwe, catts) = setup();
-    let (_, identity) = full_login(&ic, siwe, None);
+    let (_, identity) = full_login(&ic, siwe, catts, None);
     let sender = identity.sender().unwrap();
     let response: RpcResult<Recipe> = catts_update(
         &ic,

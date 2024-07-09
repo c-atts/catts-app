@@ -7,11 +7,11 @@ mod eth;
 mod evm_rpc;
 mod graphql;
 mod logger;
-mod profile;
 mod recipe;
 mod run;
 mod siwe;
 mod tasks;
+mod user;
 
 use candid::{CandidType, Principal};
 use chain_config::{init_chain_configs, ChainConfig};
@@ -22,11 +22,13 @@ use ic_cdk::{
     api::management_canister::http_request::{HttpResponse, TransformArgs},
     export_candid, init, post_upgrade, trap,
 };
-use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
+use ic_stable_structures::{
+    memory_manager::{MemoryId, MemoryManager, VirtualMemory},
+    storable::Blob,
+};
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 use lazy_static::lazy_static;
 use logger::LogItem;
-use profile::UserProfile;
 use recipe::Recipe;
 use recipe::RecipeDetailsInput;
 use recipe::RecipeId;
@@ -37,6 +39,7 @@ use std::cell::RefCell;
 use std::sync::Arc;
 use std::time::Duration;
 use tasks::execute_tasks;
+use user::User;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -71,8 +74,8 @@ thread_local! {
     static ECDSA_KEY: RefCell<String> = RefCell::new(String::default());
     static SIWE_PROVIDER_CANISTER_ID: RefCell<Option<Principal>> = const { RefCell::new(None) };
 
-    // USER_PROFILES
-    static USER_PROFILES: RefCell<StableBTreeMap<String, UserProfile, Memory>> = RefCell::new(
+    // USER
+    static USERS: RefCell<StableBTreeMap<Blob<29>, User, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(USER_PROFILE_MEMORY_ID)),
         )
