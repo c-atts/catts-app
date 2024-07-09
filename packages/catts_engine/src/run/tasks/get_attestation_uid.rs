@@ -1,7 +1,7 @@
 use std::pin::Pin;
 
 use crate::{
-    chain_config::ChainConfig,
+    chain_config::{self},
     evm_rpc::eth_get_transaction_receipt,
     logger::debug,
     run::run::{vec_to_run_id, Run},
@@ -31,7 +31,7 @@ impl TaskExecutor for GetAttestationUidExecutor {
                 ));
             }
 
-            let chain_config = ChainConfig::get(run.chain_id).ok_or(TaskError::Failed(
+            let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Chain config not found".to_string(),
             ))?;
 

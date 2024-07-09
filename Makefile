@@ -4,7 +4,7 @@ create-canisters:
 deploy-evm-rpc:
 	dfx deploy evm_rpc --with-cycles 1t --argument "( \
 		record { \
-			nodesInSubnet = 25; \
+			nodesInSubnet = 28; \
 		} \
 	)"
 
@@ -59,6 +59,7 @@ deploy-engine: build-engine
 	    record { \
 	        ecdsa_key_id = \"test_key\"; \
 	        siwe_provider_canister = \"$$(dfx canister id ic_siwe_provider)\"; \
+			evm_rpc_canister = \"$$(dfx canister id evm_rpc)\"; \
 	    } \
 	)"
 

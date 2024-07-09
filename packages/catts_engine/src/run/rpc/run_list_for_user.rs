@@ -1,10 +1,10 @@
-use crate::{error::Error, logger::info, run::run::Run, siwe::get_authenticated_eth_address};
+use crate::{error::Error, logger::info, run::run::Run, user::auth_guard};
 use ic_cdk::{api::canister_balance, update};
 
 #[update]
 async fn run_list_for_user() -> Result<Vec<Run>, Error> {
     let cycles_before = canister_balance();
-    let address = get_authenticated_eth_address().await?;
+    let address = auth_guard()?;
 
     let runs = Run::get_by_address(&address.as_byte_array());
 

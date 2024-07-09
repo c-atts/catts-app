@@ -1,6 +1,7 @@
 type CanisterSettingsInput = record {
   ecdsa_key_id : text;
   siwe_provider_canister : text;
+  evm_rpc_canister : text;
 };
 type Error = record { code : nat16; message : text; details : opt text };
 type HttpHeader = record { value : text; name : text };

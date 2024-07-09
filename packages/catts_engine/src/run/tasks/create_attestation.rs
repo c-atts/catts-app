@@ -1,5 +1,5 @@
 use crate::{
-    chain_config::ChainConfig,
+    chain_config::{self},
     eas::{create_attestation, process_query_result, run_query},
     eth::EthAddress,
     logger::debug,
@@ -33,7 +33,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 "CreateAttestationExecutor: Recipe not found".to_string(),
             ))?;
 
-            let chain_config = ChainConfig::get(run.chain_id).ok_or(TaskError::Failed(
+            let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Chain config not found".to_string(),
             ))?;
 

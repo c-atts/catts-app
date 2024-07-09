@@ -13,7 +13,7 @@ mod siwe;
 mod tasks;
 mod user;
 
-use candid::{CandidType, Principal};
+use candid::CandidType;
 use chain_config::{init_chain_configs, ChainConfig};
 use error::Error;
 use eth::EthAddressBytes;
@@ -60,6 +60,26 @@ const RUNS_MEMORY_ID: MemoryId = MemoryId::new(3);
 const TASKS_MEMORY_ID: MemoryId = MemoryId::new(4);
 const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(5);
 
+#[derive(Serialize, Deserialize, CandidType)]
+struct CanisterSettingsInput {
+    ecdsa_key_id: String,
+    siwe_provider_canister: String,
+    evm_rpc_canister: String,
+}
+
+#[derive(Debug, Default)]
+pub struct CanisterSettings {
+    pub ecdsa_key_id: String,
+    pub siwe_provider_canister: String,
+    pub evm_rpc_canister: String,
+}
+
+lazy_static! {
+    static ref ETH_PAYMENT_CONTRACT: Arc<Contract> =
+        Arc::new(include_abi!("../../catts_payments/catts_payments.abi.json"));
+    static ref ETH_EAS_CONTRACT: Arc<Contract> = Arc::new(include_abi!("../../eas/eas.abi.json"));
+}
+
 thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
@@ -71,8 +91,7 @@ thread_local! {
         )
     );
 
-    static ECDSA_KEY: RefCell<String> = RefCell::new(String::default());
-    static SIWE_PROVIDER_CANISTER_ID: RefCell<Option<Principal>> = const { RefCell::new(None) };
+    static CANISTER_SETTINGS: RefCell<CanisterSettings> = RefCell::new(CanisterSettings::default());
 
     // USER
     static USERS: RefCell<StableBTreeMap<Blob<29>, User, Memory>> = RefCell::new(
@@ -110,18 +129,6 @@ thread_local! {
 
 }
 
-lazy_static! {
-    static ref ETH_PAYMENT_CONTRACT: Arc<Contract> =
-        Arc::new(include_abi!("../../catts_payments/catts_payments.abi.json"));
-    static ref ETH_EAS_CONTRACT: Arc<Contract> = Arc::new(include_abi!("../../eas/eas.abi.json"));
-}
-
-#[derive(Serialize, Deserialize, CandidType)]
-struct CanisterSettingsInput {
-    ecdsa_key_id: String,
-    siwe_provider_canister: String,
-}
-
 fn init_and_upgrade(settings: CanisterSettingsInput) {
     ic_wasi_polyfill::init(&[0u8; 32], &[]);
 
@@ -137,20 +144,19 @@ fn init_and_upgrade(settings: CanisterSettingsInput) {
         }
     }
 
-    ECDSA_KEY.with(|id| {
-        *id.borrow_mut() = settings.ecdsa_key_id.clone();
-    });
-
-    SIWE_PROVIDER_CANISTER_ID.with(|id| {
-        *id.borrow_mut() =
-            Some(Principal::from_text(settings.siwe_provider_canister.clone()).unwrap());
+    CANISTER_SETTINGS.with(|gs| {
+        *gs.borrow_mut() = CanisterSettings {
+            ecdsa_key_id: settings.ecdsa_key_id.clone(),
+            siwe_provider_canister: settings.siwe_provider_canister.clone(),
+            evm_rpc_canister: settings.evm_rpc_canister.clone(),
+        };
     });
 
     ic_cdk_timers::set_timer_interval(Duration::from_secs(TASKS_RUN_INTERVAL), || {
         execute_tasks();
     });
 
-    // Mock data
+    // Configure supported chains
     init_chain_configs();
 }
 

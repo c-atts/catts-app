@@ -7,8 +7,8 @@ use crate::{
         run::{Run, RunError, RunId},
         tasks::process_run_payment::ProcessRunPaymentArgs,
     },
-    siwe::get_authenticated_eth_address,
     tasks::{add_task, Task, TaskType},
+    user::auth_guard,
 };
 
 const PROCESS_RUN_PAYMENT_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
@@ -21,7 +21,7 @@ async fn run_register_payment(
     block_to_process: u128,
 ) -> Result<Run, Error> {
     let cycles_before = canister_balance();
-    let address = get_authenticated_eth_address().await?;
+    let address = auth_guard()?;
     let run = match Run::get(&address.as_byte_array(), &run_id) {
         Some(run) => run,
         None => return Err(Error::not_found(RunError::NotFound)),

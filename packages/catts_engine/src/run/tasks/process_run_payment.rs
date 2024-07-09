@@ -1,4 +1,4 @@
-use crate::chain_config::ChainConfig;
+use crate::chain_config::{self, ChainConfig};
 use crate::evm_rpc::get_payment_logs_for_block;
 use crate::logger::{error, info};
 use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType};
@@ -48,7 +48,7 @@ impl TaskExecutor for ProcessRunPaymentExecutor {
                 "CreateAttestationExecutor: Run not found".to_string(),
             ))?;
 
-            let chain_config = ChainConfig::get(run.chain_id).ok_or(TaskError::Failed(
+            let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Chain config not found".to_string(),
             ))?;
 

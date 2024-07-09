@@ -33,6 +33,7 @@ pub struct SettingsInput {
 struct CattsEngineSettings {
     ecdsa_key_id: String,
     siwe_provider_canister: String,
+    evm_rpc_canister: String,
 }
 
 pub fn setup() -> (PocketIc, Principal, Principal) {
@@ -64,6 +65,7 @@ pub fn setup() -> (PocketIc, Principal, Principal) {
     let catts_engine_settings = CattsEngineSettings {
         ecdsa_key_id: "test_key".to_string(),
         siwe_provider_canister: ic_siwe_canister.to_string(),
+        evm_rpc_canister: "not used yet".to_string(),
     };
     let args = encode_one(catts_engine_settings).unwrap();
     ic.install_canister(catts_engine_canister, catts_engine_wasm, args, None);
