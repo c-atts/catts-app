@@ -13,17 +13,19 @@
       "candid": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.did",
       "declarations": {
         "output": "packages/evm_rpc/declarations"
-      },  
+      },
+      "init_arg": "(record { nodesInSubnet = 28 })",
       "remote": {
         "candid": "packages/evm_rpc/evm_rpc.did",
         "id": {
           "ic": "7hfb6-caaaa-aaaar-qadga-cai"
         }
       },
+      "specified_id": "7hfb6-caaaa-aaaar-qadga-cai",
       "type": "custom",
-      "wasm": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc_dev.wasm.gz"
+      "wasm": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.wasm.gz"
     },
-    
+
     "catts_engine": {
       "candid": "packages/catts_engine/catts_engine.did",
       "declarations": {
@@ -34,7 +36,7 @@
       "type": "custom",
       "wasm": "target/wasm32-wasi/release/catts_engine.wasm.gz"
     },
-    
+
     "catts_frontend": {
       "build": ["npm run build -w catts_frontend"],
       "declarations": {

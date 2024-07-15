@@ -2,11 +2,7 @@ create-canisters:
 	dfx canister create --all
 
 deploy-evm-rpc:
-	dfx deploy evm_rpc --with-cycles 1t --argument "( \
-		record { \
-			nodesInSubnet = 28; \
-		} \
-	)"
+	dfx deploy evm_rpc --with-cycles 1t
 
 deploy-siwe:
 	dfx deploy ic_siwe_provider --argument "( \
