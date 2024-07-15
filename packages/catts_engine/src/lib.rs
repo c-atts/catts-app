@@ -53,12 +53,13 @@ const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
 // const THEGRAPH_QUERY_PROXY_URL: &str =
 //     "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
 
-const USER_PROFILE_MEMORY_ID: MemoryId = MemoryId::new(0);
-const RECIPE_MEMORY_ID: MemoryId = MemoryId::new(1);
-const RECIPE_NAME_INDEX_MEMORY_ID: MemoryId = MemoryId::new(2);
-const RUNS_MEMORY_ID: MemoryId = MemoryId::new(3);
-const TASKS_MEMORY_ID: MemoryId = MemoryId::new(4);
-const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(5);
+const WASI_MEMORY_ID: MemoryId = MemoryId::new(0);
+const USER_PROFILE_MEMORY_ID: MemoryId = MemoryId::new(1);
+const RECIPE_MEMORY_ID: MemoryId = MemoryId::new(2);
+const RECIPE_NAME_INDEX_MEMORY_ID: MemoryId = MemoryId::new(3);
+const RUNS_MEMORY_ID: MemoryId = MemoryId::new(4);
+const TASKS_MEMORY_ID: MemoryId = MemoryId::new(5);
+const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(6);
 
 #[derive(Serialize, Deserialize, CandidType)]
 struct CanisterSettingsInput {
@@ -130,7 +131,8 @@ thread_local! {
 }
 
 fn init_and_upgrade(settings: CanisterSettingsInput) {
-    ic_wasi_polyfill::init(&[0u8; 32], &[]);
+    let wasi_memory = MEMORY_MANAGER.with(|m| m.borrow().get(WASI_MEMORY_ID));
+    ic_wasi_polyfill::init_with_memory(&[0u8; 32], &[], wasi_memory);
 
     // Serialize the struct to a JSON object
     let json_settings = serde_json::to_value(&settings).unwrap();
