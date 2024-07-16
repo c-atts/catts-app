@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use crate::logger::{error, info};
-use crate::{
-    chain_config, logger::log, ETH_DEFAULT_CALL_CYCLES_128, ETH_FEE_HISTORY_BLOCK_COUNT, EVM_RPC,
-};
+use crate::{chain_config, ETH_DEFAULT_CALL_CYCLES_128, ETH_FEE_HISTORY_BLOCK_COUNT, EVM_RPC};
 use evm_rpc_canister_types::{
     BlockTag, EthMainnetService, EthSepoliaService, FeeHistoryArgs, FeeHistoryResult,
     L2MainnetService, MultiFeeHistoryResult, RpcServices,
@@ -87,10 +85,10 @@ pub fn update_base_fee_per_gas(chain_id: u64) {
                         return;
                     }
                 };
-                log(
-                    crate::logger::LogLevel::Info,
-                    &format!("Updating base fee for chain {} to: {:?}", chain_id, avg),
-                );
+                info(&format!(
+                    "Updating base fee for chain {} to: {:?}",
+                    chain_id, avg
+                ));
                 chain_config.base_fee_per_gas = avg.into();
                 chain_config::set(chain_config);
             }

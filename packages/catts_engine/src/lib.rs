@@ -35,7 +35,6 @@ use recipe::RecipeDetailsInput;
 use recipe::RecipeId;
 use run::run::{Run, RunId, Timestamp};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::cell::RefCell;
 use std::sync::Arc;
 use std::time::Duration;
@@ -54,8 +53,9 @@ const ETH_FEE_HISTORY_BLOCK_COUNT: u64 = 4;
 
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
-const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
-const TIMER_INTERVAL_FEE_UPDATE: u64 = 60; // 60 seconds
+
+const TIMER_INTERVAL_EXECUTE_TASKS: u64 = 15; // 15 seconds
+const TIMER_INTERVAL_UPDATE_BASE_FEE_PER_GAS: u64 = 60 * 60; // 1 hour
 
 // const THEGRAPH_QUERY_PROXY_URL: &str =
 //     "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
@@ -163,16 +163,22 @@ fn save_canister_settings(settings: CanisterSettingsInput) {
 }
 
 fn start_task_timer() {
-    ic_cdk_timers::set_timer_interval(Duration::from_secs(TASKS_RUN_INTERVAL), || {
+    ic_cdk_timers::set_timer_interval(Duration::from_secs(TIMER_INTERVAL_EXECUTE_TASKS), || {
         execute_tasks();
     });
 }
 
 fn start_base_fee_update_timer() {
     CHAIN_CONFIGS.with_borrow(|chain_configs| {
-        for (chain_id, _) in chain_configs.iter() {
+        for (index, (chain_id, _)) in chain_configs.iter().enumerate() {
+            // Initial update
+            ic_cdk_timers::set_timer(Duration::from_secs(index as u64 * 10), move || {
+                update_base_fee_per_gas(chain_id);
+            });
+
+            // And then set the timer
             ic_cdk_timers::set_timer_interval(
-                Duration::from_secs(TIMER_INTERVAL_FEE_UPDATE),
+                Duration::from_secs(TIMER_INTERVAL_UPDATE_BASE_FEE_PER_GAS),
                 move || {
                     update_base_fee_per_gas(chain_id);
                 },
