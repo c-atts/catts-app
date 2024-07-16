@@ -1,6 +1,6 @@
 use crate::chain_config::ChainConfig;
 use crate::declarations::evm_rpc::*;
-use crate::{CANISTER_SETTINGS, ETH_AVG_FEE_HISTORY_BLOCK_COUNT, ETH_DEFAULT_CALL_CYCLES};
+use crate::{CANISTER_SETTINGS, ETH_DEFAULT_CALL_CYCLES, ETH_FEE_HISTORY_BLOCK_COUNT};
 use candid::Nat;
 use ethers_core::abi::ethereum_types::{Address, U256, U64};
 use ethers_core::abi::{Contract, FunctionExt, Token};
@@ -84,7 +84,7 @@ pub async fn update_base_fee(chain_config: &ChainConfig) -> Result<ChainConfig, 
             chain_config.eth_service(),
             None::<RpcConfig>,
             FeeHistoryArgs {
-                blockCount: ETH_AVG_FEE_HISTORY_BLOCK_COUNT.into(),
+                blockCount: ETH_FEE_HISTORY_BLOCK_COUNT.into(),
                 newestBlock: BlockTag::Latest,
                 rewardPercentiles: None,
             },
@@ -102,7 +102,7 @@ pub async fn update_base_fee(chain_config: &ChainConfig) -> Result<ChainConfig, 
             }
             let avg = sum / fee_history.baseFeePerGas.len();
             let mut chain_config = chain_config.clone();
-            chain_config.base_fee = avg.into();
+            chain_config.base_fee_per_gas = avg.into();
             Ok(chain_config)
         }
         Ok((inconsistent,)) => ic_cdk::trap(&format!("Inconsistent: {inconsistent:?}")),
@@ -111,7 +111,7 @@ pub async fn update_base_fee(chain_config: &ChainConfig) -> Result<ChainConfig, 
 }
 
 pub fn max_fee_per_gas(chain_config: &ChainConfig) -> Nat {
-    chain_config.base_fee.clone() * 2_u8
+    chain_config.base_fee_per_gas.clone() * 2_u8
 }
 
 #[derive(Error, Debug)]

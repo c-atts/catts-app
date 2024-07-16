@@ -13,11 +13,12 @@ mod siwe;
 mod tasks;
 mod user;
 
-use candid::CandidType;
-use chain_config::{init_chain_configs, ChainConfig};
+use candid::{CandidType, Principal};
+use chain_config::{init_chain_configs, update_base_fee_per_gas, ChainConfig};
 use error::Error;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
+use evm_rpc_canister_types::EvmRpcCanister;
 use ic_cdk::{
     api::management_canister::http_request::{HttpResponse, TransformArgs},
     export_candid, init, post_upgrade, trap,
@@ -43,12 +44,18 @@ use user::User;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
+pub const EVM_RPC_CANISTER_ID: Principal =
+    Principal::from_slice(b"\x00\x00\x00\x00\x02\x30\x00\xCC\x01\x01"); // 7hfb6-caaaa-aaaar-qadga-cai
+pub const EVM_RPC: EvmRpcCanister = EvmRpcCanister(EVM_RPC_CANISTER_ID);
+
 const ETH_DEFAULT_CALL_CYCLES: u64 = 30_000_000_000;
-const ETH_AVG_FEE_HISTORY_BLOCK_COUNT: u64 = 4;
+const ETH_DEFAULT_CALL_CYCLES_128: u128 = 30_000_000_000;
+const ETH_FEE_HISTORY_BLOCK_COUNT: u64 = 4;
 
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
 const TASKS_RUN_INTERVAL: u64 = 15; // 15 seconds
+const TIMER_INTERVAL_FEE_UPDATE: u64 = 60; // 60 seconds
 
 // const THEGRAPH_QUERY_PROXY_URL: &str =
 //     "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
@@ -160,6 +167,17 @@ fn init_and_upgrade(settings: CanisterSettingsInput) {
 
     // Configure supported chains
     init_chain_configs();
+
+    CHAIN_CONFIGS.with_borrow(|chain_configs| {
+        for (chain_id, _) in chain_configs.iter() {
+            ic_cdk_timers::set_timer_interval(
+                Duration::from_secs(TIMER_INTERVAL_FEE_UPDATE),
+                move || {
+                    update_base_fee_per_gas(chain_id);
+                },
+            );
+        }
+    });
 }
 
 #[init]
