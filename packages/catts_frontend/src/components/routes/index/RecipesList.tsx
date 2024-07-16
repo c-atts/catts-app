@@ -16,7 +16,7 @@ export default function RecipesList() {
     return (
       <ul className="w-[750px]">
         {data.Ok.map((recipe) => (
-          <RecipeListItem key={recipe.slug} recipe={recipe} />
+          <RecipeListItem key={recipe.name} recipe={recipe} />
         ))}
       </ul>
     );

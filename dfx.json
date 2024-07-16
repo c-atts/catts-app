@@ -3,7 +3,7 @@
     "ic_siwe_provider": {
       "candid": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.did",
       "declarations": {
-        "output": "packages/ic_siwe_provider"
+        "output": "packages/ic_siwe_provider/declarations"
       },
       "type": "custom",
       "wasm": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.wasm.gz"
@@ -12,11 +12,11 @@
     "evm_rpc": {
       "candid": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.did",
       "declarations": {
-        "output": "packages/evm_rpc"
+        "output": "packages/evm_rpc/declarations"
       },
       "init_arg": "(record { nodesInSubnet = 28 })",
       "remote": {
-        "candid": "packages/evm_rpc/evm_rpc.did",
+        "candid": "packages/evm_rpc/declarations/evm_rpc.did",
         "id": {
           "ic": "7hfb6-caaaa-aaaar-qadga-cai"
         }

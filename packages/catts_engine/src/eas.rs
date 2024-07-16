@@ -14,7 +14,7 @@ use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
 };
 use javy::Runtime;
-use lazy_static::lazy_static;
+// use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -22,24 +22,24 @@ use std::sync::Arc;
 use thiserror::Error;
 pub type Uid = String;
 
-lazy_static! {
-    static ref EAS_CHAIN_GQL_ENDPOINT: HashMap<u32, &'static str> = {
-        let mut m = HashMap::new();
-        m.insert(
-            10,
-            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/optimism",
-        );
-        m.insert(
-            11155111,
-            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/sepolia",
-        );
-        m.insert(
-            8453,
-            "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/base",
-        );
-        m
-    };
-}
+// lazy_static! {
+//     static ref EAS_CHAIN_GQL_ENDPOINT: HashMap<u32, &'static str> = {
+//         let mut m = HashMap::new();
+//         m.insert(
+//             10,
+//             "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/optimism",
+//         );
+//         m.insert(
+//             11155111,
+//             "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/sepolia",
+//         );
+//         m.insert(
+//             8453,
+//             "https://eas-graphql-proxy.kristofer-977.workers.dev/graphql/base",
+//         );
+//         m
+//     };
+// }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct AbiValue {

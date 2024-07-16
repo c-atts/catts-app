@@ -9,8 +9,9 @@ fn main() {
     let manifest_dir =
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Cannot find manifest dir"));
 
-    let ic_siwe_provider_did_path = manifest_dir.join("../ic_siwe_provider/ic_siwe_provider.did");
-    let evm_rpc_did_path = manifest_dir.join("../evm_rpc/evm_rpc.did");
+    let ic_siwe_provider_did_path =
+        manifest_dir.join("../ic_siwe_provider/declarations/ic_siwe_provider.did");
+    let evm_rpc_did_path = manifest_dir.join("../evm_rpc/declarations/evm_rpc.did");
 
     let ic_siwe_provider_did_str = ic_siwe_provider_did_path.to_str().expect("Path invalid");
     let evm_rpc_did_str = evm_rpc_did_path.to_str().expect("Path invalid");

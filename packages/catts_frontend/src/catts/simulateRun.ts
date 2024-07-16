@@ -9,7 +9,7 @@ export function simulateRun({
   recipe: Recipe;
   queryData: any[];
 }) {
-  if (!recipe.output_schema[0]) {
+  if (!recipe.schema[0]) {
     throw new Error("Recipe schema is empty");
   }
 
@@ -39,7 +39,7 @@ export function simulateRun({
   runOutput = transformHexItems(runOutput);
 
   // Encode the processed data using the output schema
-  const schemaEncoder = new SchemaEncoder(recipe.output_schema[0]);
+  const schemaEncoder = new SchemaEncoder(recipe.schema);
   const encodedOutput = schemaEncoder.encodeData(runOutput);
 
   return {

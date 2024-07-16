@@ -49,7 +49,7 @@ export default function Header() {
           </Button>
         </Link>
         <Link to="/history">
-          <Button icon={faHistory} variant="dark" disabled={!identity}>
+          <Button disabled={!identity} icon={faHistory} variant="dark">
             Run history
           </Button>
         </Link>

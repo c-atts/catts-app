@@ -1,7 +1,7 @@
 import { Config, UseWriteContractReturnType } from "wagmi";
 import {
   Recipe,
-  Result_5,
+  Result_3,
   Run,
 } from "catts_engine/declarations/catts_engine.did";
 
@@ -16,7 +16,7 @@ export type RunContextType = {
   progressMessage?: string;
   errorMessage?: string;
   useCreateRun: UseMutationResult<
-    Result_5 | null,
+    Result_3 | null,
     Error,
     {
       recipeId: Uint8Array | number[];
@@ -25,7 +25,7 @@ export type RunContextType = {
     unknown
   >;
   useRegisterRunPayment: UseMutationResult<
-    Result_5 | null,
+    Result_3 | null,
     Error,
     {
       run: Run;
@@ -35,7 +35,7 @@ export type RunContextType = {
   >;
   usePayForRun: UseWriteContractReturnType<Config, unknown>;
   useCancelRun: UseMutationResult<
-    Result_5 | null,
+    Result_3 | null,
     Error,
     Uint8Array | number[],
     unknown
