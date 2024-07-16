@@ -1,9 +1,9 @@
 use crate::chain_config::{self, ChainConfig};
+use crate::declarations::evm_rpc::{GetLogsResult, LogEntry, MultiGetLogsResult};
 use crate::evm_rpc::get_payment_logs_for_block;
 use crate::logger::{error, info};
 use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType};
 use crate::{
-    declarations::evm_rpc::{GetLogsResult, LogEntry, MultiGetLogsResult},
     eth::{remove_address_padding, EthAddress},
     logger::warn,
     run::run::{vec_to_run_id, PaymentVerifiedStatus, Run},

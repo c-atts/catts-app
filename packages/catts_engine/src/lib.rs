@@ -1,5 +1,10 @@
 mod chain_config;
 mod controllers;
+#[allow(
+    clippy::too_many_arguments,
+    clippy::large_enum_variant,
+    clippy::enum_variant_names
+)]
 mod declarations;
 mod eas;
 mod error;
@@ -13,12 +18,11 @@ mod siwe;
 mod tasks;
 mod user;
 
-use candid::{CandidType, Principal};
+use candid::CandidType;
 use chain_config::{init_chain_configs, update_base_fee_per_gas, ChainConfig};
 use error::Error;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
-use evm_rpc_canister_types::EvmRpcCanister;
 use ic_cdk::{
     api::management_canister::http_request::{HttpResponse, TransformArgs},
     export_candid, init, post_upgrade, trap,
@@ -43,12 +47,7 @@ use user::User;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
-pub const EVM_RPC_CANISTER_ID: Principal =
-    Principal::from_slice(b"\x00\x00\x00\x00\x02\x30\x00\xCC\x01\x01"); // 7hfb6-caaaa-aaaar-qadga-cai
-pub const EVM_RPC: EvmRpcCanister = EvmRpcCanister(EVM_RPC_CANISTER_ID);
-
-const ETH_DEFAULT_CALL_CYCLES: u64 = 30_000_000_000;
-const ETH_DEFAULT_CALL_CYCLES_128: u128 = 30_000_000_000;
+const ETH_DEFAULT_CALL_CYCLES: u128 = 30_000_000_000;
 const ETH_FEE_HISTORY_BLOCK_COUNT: u64 = 4;
 
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =

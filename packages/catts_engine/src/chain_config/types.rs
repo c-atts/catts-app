@@ -1,9 +1,10 @@
 use std::borrow::Cow;
 
 use candid::{CandidType, Decode, Encode, Nat};
-use evm_rpc_canister_types::{RpcApi, RpcServices};
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::{Deserialize, Serialize};
+
+use crate::declarations::evm_rpc::{RpcApi, RpcServices};
 
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct ChainConfig {

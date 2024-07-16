@@ -34,7 +34,7 @@ fn main() {
     let mut evm_rpc = Config::new("evm_rpc");
     evm_rpc
         .binding
-        .set_type_attributes("#[derive(Debug, CandidType, Deserialize)]".into());
+        .set_type_attributes("#[derive(Debug, CandidType, Deserialize, Clone)]".into());
     builder.add(evm_rpc);
 
     builder.build(Some(manifest_dir.join("src/declarations")));

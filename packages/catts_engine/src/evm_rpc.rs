@@ -1,24 +1,32 @@
-use crate::chain_config::ChainConfig;
-use crate::declarations::evm_rpc::*;
-use crate::{CANISTER_SETTINGS, ETH_DEFAULT_CALL_CYCLES, ETH_FEE_HISTORY_BLOCK_COUNT};
+use crate::{
+    chain_config::ChainConfig,
+    declarations::evm_rpc::{
+        evm_rpc, BlockTag, GetLogsArgs, GetTransactionCountArgs, GetTransactionCountResult,
+        GetTransactionReceiptResult, MultiGetLogsResult, MultiGetTransactionCountResult,
+        MultiGetTransactionReceiptResult, MultiSendRawTransactionResult, RpcConfig,
+        SendRawTransactionResult, SendRawTransactionStatus, TransactionReceipt,
+    },
+    CANISTER_SETTINGS, ETH_DEFAULT_CALL_CYCLES,
+};
 use candid::Nat;
-use ethers_core::abi::ethereum_types::{Address, U256, U64};
-use ethers_core::abi::{Contract, FunctionExt, Token};
-use ethers_core::types::Bytes;
-use ethers_core::utils::keccak256;
+use ethers_core::{
+    abi::{
+        ethereum_types::{Address, U256, U64},
+        Contract, FunctionExt, Token,
+    },
+    types::Bytes,
+    utils::keccak256,
+};
 use ic_cdk::api::{
-    call::{call_with_payment, CallResult, RejectionCode},
+    call::{call_with_payment128, CallResult, RejectionCode},
     management_canister::ecdsa::{
         ecdsa_public_key, sign_with_ecdsa, EcdsaKeyId, EcdsaPublicKeyArgument,
         SignWithEcdsaArgument,
     },
 };
-use k256::elliptic_curve::sec1::ToEncodedPoint;
-use k256::PublicKey;
-use num_bigint::BigUint;
+use k256::{elliptic_curve::sec1::ToEncodedPoint, PublicKey};
 use serde::{Deserialize, Serialize};
-use std::cell::RefCell;
-use std::str::FromStr;
+use std::{cell::RefCell, str::FromStr};
 use thiserror::Error;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -55,7 +63,7 @@ fn ecdsa_key_id() -> EcdsaKeyId {
 }
 
 async fn next_id(chain_config: &ChainConfig) -> Nat {
-    let res: CallResult<(MultiGetTransactionCountResult,)> = call_with_payment(
+    let res: CallResult<(MultiGetTransactionCountResult,)> = call_with_payment128(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_getTransactionCount",
         (
@@ -71,40 +79,6 @@ async fn next_id(chain_config: &ChainConfig) -> Nat {
     .await;
     match res {
         Ok((MultiGetTransactionCountResult::Consistent(GetTransactionCountResult::Ok(id)),)) => id,
-        Ok((inconsistent,)) => ic_cdk::trap(&format!("Inconsistent: {inconsistent:?}")),
-        Err(err) => ic_cdk::trap(&format!("{:?}", err)),
-    }
-}
-
-pub async fn update_base_fee(chain_config: &ChainConfig) -> Result<ChainConfig, String> {
-    let res: CallResult<(MultiFeeHistoryResult,)> = call_with_payment(
-        crate::declarations::evm_rpc::evm_rpc.0,
-        "eth_feeHistory",
-        (
-            chain_config.eth_service(),
-            None::<RpcConfig>,
-            FeeHistoryArgs {
-                blockCount: ETH_FEE_HISTORY_BLOCK_COUNT.into(),
-                newestBlock: BlockTag::Latest,
-                rewardPercentiles: None,
-            },
-        ),
-        ETH_DEFAULT_CALL_CYCLES,
-    )
-    .await;
-
-    match res {
-        Ok((MultiFeeHistoryResult::Consistent(FeeHistoryResult::Ok(fee_history)),)) => {
-            let fee_history = fee_history.ok_or("Fee history is None")?;
-            let mut sum: BigUint = 0u8.into();
-            for fee in fee_history.baseFeePerGas.iter() {
-                sum += fee.0.clone();
-            }
-            let avg = sum / fee_history.baseFeePerGas.len();
-            let mut chain_config = chain_config.clone();
-            chain_config.base_fee_per_gas = avg.into();
-            Ok(chain_config)
-        }
         Ok((inconsistent,)) => ic_cdk::trap(&format!("Inconsistent: {inconsistent:?}")),
         Err(err) => ic_cdk::trap(&format!("{:?}", err)),
     }
@@ -175,7 +149,7 @@ pub async fn eth_transaction(
     })
     .await;
 
-    let (res,): (MultiSendRawTransactionResult,) = call_with_payment(
+    let (res,): (MultiSendRawTransactionResult,) = call_with_payment128(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_sendRawTransaction",
         (
@@ -205,7 +179,7 @@ pub async fn eth_get_transaction_receipt(
 ) -> Result<TransactionReceipt, String> {
     ic_cdk::println!("eth_get_transaction_receipt: {}", hash);
 
-    let (res,): (MultiGetTransactionReceiptResult,) = call_with_payment(
+    let (res,): (MultiGetTransactionReceiptResult,) = call_with_payment128(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_getTransactionReceipt",
         (chain_config.eth_service(), None::<RpcConfig>, hash),
@@ -229,7 +203,7 @@ pub async fn get_payment_logs_for_block(
     block_number: u128,
     chain_config: &ChainConfig,
 ) -> Result<(MultiGetLogsResult,), String> {
-    let res: CallResult<(MultiGetLogsResult,)> = call_with_payment(
+    let res: CallResult<(MultiGetLogsResult,)> = call_with_payment128(
         evm_rpc.0,
         "eth_getLogs",
         (

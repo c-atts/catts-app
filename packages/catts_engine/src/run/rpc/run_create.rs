@@ -1,7 +1,7 @@
 use crate::{
     chain_config::{self},
     error::Error,
-    evm_rpc::{max_fee_per_gas, update_base_fee},
+    evm_rpc::max_fee_per_gas,
     logger::info,
     recipe::{self, RecipeId},
     run::run::Run,
@@ -19,9 +19,6 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, Error> {
     let chain_config = chain_config::get(chain_id).ok_or(Error::internal_server_error(
         "Chain config could not be loaded",
     ))?;
-    let chain_config = update_base_fee(&chain_config)
-        .await
-        .map_err(Error::internal_server_error)?;
 
     let evm_calls_usd = 0.1_f64;
     let evm_calls_wei = evm_calls_usd / chain_config.eth_usd_price * 1e18_f64;

@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
-use crate::logger::{error, info};
-use crate::{chain_config, ETH_DEFAULT_CALL_CYCLES_128, ETH_FEE_HISTORY_BLOCK_COUNT, EVM_RPC};
-use evm_rpc_canister_types::{
-    BlockTag, EthMainnetService, EthSepoliaService, FeeHistoryArgs, FeeHistoryResult,
-    L2MainnetService, MultiFeeHistoryResult, RpcServices,
+use crate::declarations::evm_rpc::{
+    evm_rpc, BlockTag, EthMainnetService, EthSepoliaService, FeeHistoryArgs, FeeHistoryResult,
+    L2MainnetService, MultiFeeHistoryResult, RpcConfig, RpcServices,
 };
+use crate::logger::{error, info};
+use crate::{chain_config, ETH_DEFAULT_CALL_CYCLES, ETH_FEE_HISTORY_BLOCK_COUNT};
+use ic_cdk::api::call::{call_with_payment128, CallResult};
 use lazy_static::lazy_static;
 use num_bigint::BigUint;
 
@@ -22,7 +23,7 @@ lazy_static! {
         );
         m.insert(
             &10u64,
-            RpcServices::Optimism(Some(vec![L2MainnetService::Ankr])),
+            RpcServices::OptimismMainnet(Some(vec![L2MainnetService::Ankr])),
         );
         m.insert(
             &8453u64,
@@ -50,18 +51,33 @@ pub fn update_base_fee_per_gas(chain_id: u64) {
             }
         };
 
-        let result = EVM_RPC
-            .eth_fee_history(
+        let result: CallResult<(MultiFeeHistoryResult,)> = call_with_payment128(
+            evm_rpc.0,
+            "eth_feeHistory",
+            (
                 rpc_services,
-                None,
+                None::<RpcConfig>,
                 FeeHistoryArgs {
                     blockCount: ETH_FEE_HISTORY_BLOCK_COUNT.into(),
                     newestBlock: BlockTag::Latest,
                     rewardPercentiles: None,
                 },
-                ETH_DEFAULT_CALL_CYCLES_128,
-            )
-            .await;
+            ),
+            ETH_DEFAULT_CALL_CYCLES,
+        )
+        .await;
+
+        // let result = evm_rpc
+        //     .eth_fee_history(
+        //         rpc_services,
+        //         None,
+        //         FeeHistoryArgs {
+        //             blockCount: ETH_FEE_HISTORY_BLOCK_COUNT.into(),
+        //             newestBlock: BlockTag::Latest,
+        //             rewardPercentiles: None,
+        //         },
+        //     )
+        //     .await;
 
         match result {
             Ok((MultiFeeHistoryResult::Consistent(FeeHistoryResult::Ok(fee_history)),)) => {

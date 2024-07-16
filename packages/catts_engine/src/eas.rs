@@ -179,7 +179,7 @@ pub async fn run_query(
         )),
     };
 
-    match http_request(request, ETH_DEFAULT_CALL_CYCLES as u128).await {
+    match http_request(request, ETH_DEFAULT_CALL_CYCLES).await {
         Ok((response,)) => {
             Ok(String::from_utf8(response.body)
                 .expect("Transformed response is not UTF-8 encoded."))

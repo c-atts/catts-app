@@ -13,9 +13,6 @@
 .dfx/
 canister_ids.json
 
-# Generated files for declarations
-declarations/
-
 # Rust build folder
 target/
 
