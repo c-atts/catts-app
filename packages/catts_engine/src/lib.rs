@@ -137,37 +137,38 @@ thread_local! {
 
 }
 
-fn init_and_upgrade(settings: CanisterSettingsInput) {
+fn init_wasi() {
     let wasi_memory = MEMORY_MANAGER.with(|m| m.borrow().get(WASI_MEMORY_ID));
     ic_wasi_polyfill::init_with_memory(&[0u8; 32], &[], wasi_memory);
+}
 
-    // Serialize the struct to a JSON object
-    let json_settings = serde_json::to_value(&settings).unwrap();
-
-    // Ensure all fields are non-empty
-    if let Value::Object(map) = json_settings {
-        for (key, value) in map {
-            if value.as_str().unwrap_or("").is_empty() {
-                trap(&format!("The field {} is required", key));
-            }
-        }
+fn save_canister_settings(settings: CanisterSettingsInput) {
+    if settings.ecdsa_key_id.is_empty() {
+        trap("The field ecdsa_key_id is required");
+    }
+    if settings.siwe_provider_canister.is_empty() {
+        trap("The field siwe_provider_canister is required");
+    }
+    if settings.evm_rpc_canister.is_empty() {
+        trap("The field evm_rpc_canister is required");
     }
 
-    CANISTER_SETTINGS.with(|gs| {
-        *gs.borrow_mut() = CanisterSettings {
+    CANISTER_SETTINGS.with_borrow_mut(|canister_settings| {
+        *canister_settings = CanisterSettings {
             ecdsa_key_id: settings.ecdsa_key_id.clone(),
             siwe_provider_canister: settings.siwe_provider_canister.clone(),
             evm_rpc_canister: settings.evm_rpc_canister.clone(),
         };
     });
+}
 
+fn start_task_timer() {
     ic_cdk_timers::set_timer_interval(Duration::from_secs(TASKS_RUN_INTERVAL), || {
         execute_tasks();
     });
+}
 
-    // Configure supported chains
-    init_chain_configs();
-
+fn start_base_fee_update_timer() {
     CHAIN_CONFIGS.with_borrow(|chain_configs| {
         for (chain_id, _) in chain_configs.iter() {
             ic_cdk_timers::set_timer_interval(
@@ -178,6 +179,14 @@ fn init_and_upgrade(settings: CanisterSettingsInput) {
             );
         }
     });
+}
+
+fn init_and_upgrade(settings: CanisterSettingsInput) {
+    init_wasi();
+    save_canister_settings(settings);
+    start_task_timer();
+    init_chain_configs();
+    start_base_fee_update_timer();
 }
 
 #[init]
