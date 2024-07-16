@@ -51,7 +51,7 @@ build-engine:
 	gzip -c catts_engine.wasm > catts_engine.wasm.gz
 
 deploy-engine: build-engine
-	dfx deploy catts_engine  --argument "( \
+	dfx deploy catts_engine --with-cycles 10t --argument "( \
 	    record { \
 	        ecdsa_key_id = \"test_key\"; \
 	        siwe_provider_canister = \"$$(dfx canister id ic_siwe_provider)\"; \
