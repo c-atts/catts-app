@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
+import path from "path";
 
 dotenv.config({ path: "../../.env" });
 
@@ -15,6 +16,11 @@ const processEnvCanisterIds = Object.fromEntries(
 export default defineConfig({
   plugins: [react(), TanStackRouterVite()],
   root: ".",
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   build: {
     target: "es2020",
     outDir: "dist",
