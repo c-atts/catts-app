@@ -5,7 +5,7 @@ import LoginButton from "./LoginButton";
 import ConnectButton from "./ConnectButton";
 import Button from "../ui/Button";
 import { Link } from "@tanstack/react-router";
-import { faHistory, faScroll } from "@fortawesome/free-solid-svg-icons";
+import { faHistory, faPlus, faScroll } from "@fortawesome/free-solid-svg-icons";
 import { Chain } from "./Chain";
 
 export default function Header() {
@@ -51,6 +51,11 @@ export default function Header() {
         <Link to="/history">
           <Button disabled={!identity} icon={faHistory} variant="dark">
             Run history
+          </Button>
+        </Link>
+        <Link to="/create">
+          <Button disabled={!identity} icon={faPlus} variant="dark">
+            Create recipe
           </Button>
         </Link>
       </div>

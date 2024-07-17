@@ -60,7 +60,7 @@ export default function ActorProvider({ children }: { children: ReactNode }) {
       idlFactory={idlFactory}
       onRequest={handleRequest}
       onRequestError={(error) => errorToast(error)}
-      onResponseError={handleResponseError}
+      // onResponseError={handleResponseError}
     >
       {children}
     </_ActorProvider>
