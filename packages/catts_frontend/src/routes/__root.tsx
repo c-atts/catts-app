@@ -5,7 +5,7 @@ import GitHubIcon from "../components/GitHubIcon";
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="flex flex-col items-center w-full pb-10">
+    <div className="flex flex-col items-center w-[1250px] pb-10 m-auto">
       <Header />
       <Outlet />
       <GitHubIcon />

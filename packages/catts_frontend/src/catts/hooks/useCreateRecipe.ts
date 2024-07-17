@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useActor } from "../../ic/ActorProvider";
 import toast from "react-hot-toast";
 import { useNavigate } from "@tanstack/react-router";
-
+import errorToast from "@/utils/errorToast";
 function processUrl(url: string) {
   if (url.startsWith("https://github.com")) {
     const u = url.replace(
@@ -42,8 +42,8 @@ export const useCreateRecipe = () => {
       return actor.recipe_create(payload, "README");
     },
     onError: (error) => {
-      console.error(error.message.trim());
-      toast.error(error.message.trim());
+      console.error(error);
+      errorToast({ error, message: "Could not create recipe" });
     },
     onSuccess: (data) => {
       toast.success("Recipe created");

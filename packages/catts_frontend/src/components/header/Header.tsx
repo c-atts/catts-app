@@ -12,7 +12,7 @@ export default function Header() {
   const { identity } = useSiweIdentity();
 
   return (
-    <div className="flex flex-col gap-10 w-[1250px]">
+    <div className="flex flex-col gap-10 w-full">
       <div className="flex flex-col justify-between gap-10 pt-10 md:flex-row md:items-center">
         <div className="flex gap-5 items-baseline">
           <Link to="/">
