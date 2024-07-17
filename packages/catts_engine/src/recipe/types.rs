@@ -1,5 +1,6 @@
 use candid::{CandidType, Decode, Encode, Nat};
 use ic_stable_structures::{storable::Bound, Storable};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use validator::{Validate, ValidationError};
@@ -72,13 +73,21 @@ pub struct Recipe {
     pub publish_state: RecipePublishState,
 }
 
+/// Only lowercase letters (a-z), digits (0-9), and hyphens (-) are allowed.
+/// The name must not start or end with a hyphen.
+/// The name must not start with a digit.
 fn validate_recipe_name(name: &str) -> Result<(), ValidationError> {
-    if !name
-        .chars()
-        .all(|c| c.is_ascii_lowercase() && c.is_ascii_alphanumeric() || c == '-')
-    {
+    if name.starts_with('-') || name.ends_with('-') || name.chars().next().unwrap().is_numeric() {
         return Err(ValidationError::new(
-            "Name must be lowercase and can only contain alphanumeric characters and hyphens",
+            "Name must not start or end with a hyphen and must not start with a number",
+        ));
+    }
+
+    let re = Regex::new(r"^[a-z0-9-]+$").unwrap();
+
+    if !re.is_match(name) {
+        return Err(ValidationError::new(
+            "Name must be lowercase, alphanumeric, and may contain hyphens",
         ));
     }
 
