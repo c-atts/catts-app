@@ -6,6 +6,7 @@ import { canisterId, idlFactory } from "catts_engine/declarations";
 import { _SERVICE } from "catts_engine/declarations/catts_engine.did";
 import { useAccount } from "wagmi";
 import { useGetUserByEthAddress } from "./useGetUserByEthAddress";
+import toast from "react-hot-toast";
 
 export const useLogin = () => {
   const { login, isLoggingIn, isPreparingLogin } = useSiweIdentity();
@@ -21,7 +22,10 @@ export const useLogin = () => {
       return login();
     },
     onSuccess: async (identity) => {
-      if (userExists || !identity) return;
+      if (userExists || !identity) {
+        toast.success("Logged in");
+        return;
+      }
 
       const agent = new HttpAgent({ identity });
       if (process.env.DFX_NETWORK !== "ic") {
@@ -46,6 +50,7 @@ export const useLogin = () => {
       await queryClient.invalidateQueries({
         queryKey: ["user_get_by_eth_address", address],
       });
+      toast.success("Logged in");
     },
   });
 };
