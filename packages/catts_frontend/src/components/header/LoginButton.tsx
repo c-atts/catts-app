@@ -6,12 +6,14 @@ import { useSiweIdentity } from "ic-use-siwe-identity";
 import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { ETH_DEFAULT_CHAIN_ID } from "../../config";
 import { useState } from "react";
+import { useLogin } from "../../catts/hooks/useLogin";
 
 export default function LoginButton() {
   const { isConnected, chainId } = useAccount();
-  const { login, isLoggingIn, isPreparingLogin } = useSiweIdentity();
+  const { isPreparingLogin } = useSiweIdentity();
   const { switchChainAsync } = useSwitchChain();
   const [isSwitchingChain, setIsSwitchingChain] = useState(false);
+  const { mutate: login, isPending: isLoggingIn } = useLogin();
 
   const handleClick = async () => {
     if (!isChainIdSupported(chainId)) {
