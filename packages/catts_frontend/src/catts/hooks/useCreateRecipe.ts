@@ -46,7 +46,7 @@ export const useCreateRecipe = () => {
       toast.error(error.message.trim());
     },
     onSuccess: (data) => {
-      toast.success("Recipe created successfully");
+      toast.success("Recipe created");
       if (data && "Ok" in data) {
         navigate({
           to: "/recipe/$recipeName",

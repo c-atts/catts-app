@@ -3,13 +3,13 @@ import { createLazyFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useGetRecipeByName } from "../catts/hooks/useGetRecipeBySlug";
 import useRunContext from "../context/useRunContext";
-import Section from "../components/ui/Section";
 import RecipeBasics from "../components/routes/recipe/RecipeBasics";
 import CreateAttestation from "../components/routes/recipe/CreateAttestation";
 import InitRun from "../components/routes/recipe/CreateRun";
 import PayForRun from "../components/routes/recipe/PayForRun";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
 import SimulateRun from "../components/routes/recipe/SimulateRun";
+import Section from "@/components/ui/Section";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,

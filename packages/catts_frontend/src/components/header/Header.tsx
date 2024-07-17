@@ -3,22 +3,26 @@ import EthButton from "./EthButton";
 import WrongNetworkButton from "./WrongNetworkButton";
 import LoginButton from "./LoginButton";
 import ConnectButton from "./ConnectButton";
-import Button from "../ui/Button";
+import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
-import { faHistory, faPlus, faScroll } from "@fortawesome/free-solid-svg-icons";
+// import { faHistory, faPlus, faScroll } from "@fortawesome/free-solid-svg-icons";
 import { Chain } from "./Chain";
 
 export default function Header() {
   const { identity } = useSiweIdentity();
 
   return (
-    <>
-      <div className="flex flex-col justify-between w-full gap-10 p-5 md:flex-row">
-        <Link to="/">
-          <div className="hidden text-xl font-bold text-center md:block text-theme-400 cursor-pointer">
-            C–ATTS
-          </div>
-        </Link>
+    <div className="flex flex-col gap-10 w-[1250px]">
+      <div className="flex flex-col justify-between gap-10 pt-10 md:flex-row md:items-center">
+        <div className="flex gap-5 items-baseline">
+          <Link to="/">
+            <div className="hidden text-xl font-bold text-center md:block text-theme-400 cursor-pointer">
+              C–ATTS
+            </div>
+          </Link>
+          <Link to="/">Recipes</Link>
+          <div>My Dashboard</div>
+        </div>
         <div className="flex flex-col items-center justify-center gap-5 text-sm md:text-base md:flex-row">
           <ConnectButton />
           {!identity && <LoginButton />}
@@ -30,35 +34,11 @@ export default function Header() {
           C–ATTS
         </div>
       </div>
-      <div className="pb-10 w-[750px]">
-        <h1 className="text-5xl text-white font-bold leading-[60px] text-center">
-          Create, combine, move and transform attestations!
-        </h1>
-        <div className="flex flex-col items-center gap-5">
-          <div>Supports:</div>
-          <div className="flex justify-center gap-10 w-full">
-            <img className="w-14 h-14" src="/thegraph.svg" />
-            <img className="w-14 h-14" src="/eas.png" />
-          </div>
-        </div>
-      </div>
-      <div className="w-[750px] flex justify-start gap-5 pb-5">
-        <Link to="/">
-          <Button icon={faScroll} variant="dark">
-            Recipes
-          </Button>
-        </Link>
-        <Link to="/history">
-          <Button disabled={!identity} icon={faHistory} variant="dark">
-            Run history
-          </Button>
-        </Link>
+      <div className="flex w-full justify-end pb-10">
         <Link to="/create">
-          <Button disabled={!identity} icon={faPlus} variant="dark">
-            Create recipe
-          </Button>
+          <Button>Create Recipe</Button>
         </Link>
       </div>
-    </>
+    </div>
   );
 }

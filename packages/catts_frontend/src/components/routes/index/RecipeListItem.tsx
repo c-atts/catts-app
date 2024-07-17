@@ -28,7 +28,7 @@ export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
 
   return (
     <li
-      className="border-zinc-700/50 border-[1px] bg-zinc-800 drop-shadow-xl rounded-xl flex flex-col p-10 w-full mb-5"
+      className="border-[1px] bg-card shadow-sm rounded-lg flex flex-col p-10 w-full mb-5"
       key={name}
     >
       <div className="flex flex-col gap-3">

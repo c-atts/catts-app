@@ -17,6 +17,7 @@ import { Route as rootRoute } from './routes/__root'
 // Create Virtual Routes
 
 const HistoryLazyImport = createFileRoute('/history')()
+const DashboardLazyImport = createFileRoute('/dashboard')()
 const CreateLazyImport = createFileRoute('/create')()
 const IndexLazyImport = createFileRoute('/')()
 const RecipeRecipeNameLazyImport = createFileRoute('/recipe/$recipeName')()
@@ -27,6 +28,11 @@ const HistoryLazyRoute = HistoryLazyImport.update({
   path: '/history',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/history.lazy').then((d) => d.Route))
+
+const DashboardLazyRoute = DashboardLazyImport.update({
+  path: '/dashboard',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/dashboard.lazy').then((d) => d.Route))
 
 const CreateLazyRoute = CreateLazyImport.update({
   path: '/create',
@@ -57,6 +63,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateLazyImport
       parentRoute: typeof rootRoute
     }
+    '/dashboard': {
+      preLoaderRoute: typeof DashboardLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/history': {
       preLoaderRoute: typeof HistoryLazyImport
       parentRoute: typeof rootRoute
@@ -73,6 +83,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   IndexLazyRoute,
   CreateLazyRoute,
+  DashboardLazyRoute,
   HistoryLazyRoute,
   RecipeRecipeNameLazyRoute,
 ])

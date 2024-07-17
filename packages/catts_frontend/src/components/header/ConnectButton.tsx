@@ -1,6 +1,6 @@
-import Button from "../ui/Button";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { faEthereum } from "@fortawesome/free-brands-svg-icons";
+import { Button } from "@/components/ui/button";
+// import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+// import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { useAccount } from "wagmi";
 import { useState } from "react";
 import ConnectDialog from "./ConnectDialog";
@@ -16,7 +16,7 @@ export default function ConnectButton() {
     setConnectDialogOpen(true);
   };
 
-  const buttonIcon = isConnecting ? faCircleNotch : faEthereum;
+  // const buttonIcon = isConnecting ? faCircleNotch : faEthereum;
 
   const buttonText = isConnecting ? "Connecting" : "Connect wallet";
 
@@ -25,9 +25,8 @@ export default function ConnectButton() {
       <Button
         className="w-44"
         disabled={isConnecting}
-        icon={buttonIcon}
         onClick={handleClick}
-        spin={isConnecting}
+        // spin={isConnecting}
       >
         {buttonText}
       </Button>

@@ -1,68 +1,56 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { twMerge } from "tailwind-merge";
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-type Variant = "primary" | "secondary" | "outline" | "dark";
+import { cn } from "@/utils"
 
-type ButtonProps = {
-  variant?: Variant;
-  onClick?: () => void;
-  className?: string;
-  icon?: IconDefinition;
-  iconClassName?: string;
-  children?: React.ReactNode;
-  spin?: boolean;
-  disabled?: boolean;
-  type?: "button" | "submit" | "reset";
-};
+const buttonVariants = cva(
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
 
-export default function Button({
-  variant,
-  onClick,
-  className,
-  icon,
-  iconClassName,
-  children,
-  spin,
-  disabled,
-  type,
-}: ButtonProps) {
-  className = twMerge(
-    `flex text-zinc-200 rounded-xl px-4 py-2 items-center gap-2 drop-shadow-lg hover:scale-105 disabled:cursor-not-allowed disabled:scale-100 justify-center`,
-    className,
-  );
-  iconClassName = twMerge("w-4 h-4", iconClassName);
-
-  className = {
-    primary: twMerge(
-      "bg-theme-800 hover:bg-theme-700 disabled:bg-theme-700 disabled:text-theme-600",
-      className,
-    ),
-    secondary: twMerge(
-      "bg-amber-800 hover:bg-amber-700 disabled:bg-amber-800",
-      className,
-    ),
-    outline: twMerge(
-      "bg-transparent border border-zinc-500 hover:bg-zinc-500/10 disabled:bg-transparent disabled:border-zinc-500",
-      className,
-    ),
-    dark: twMerge(
-      "bg-black hover:bg-gray-950 disabled:text-gray-700",
-      className,
-    ),
-  }[variant || "primary"];
-
-  return (
-    <button
-      className={className}
-      disabled={disabled}
-      onClick={onClick}
-      type={type}
-    >
-      {icon && (
-        <FontAwesomeIcon className={iconClassName} icon={icon} spin={spin} />
-      )}
-      {children}
-    </button>
-  );
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
 }
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }

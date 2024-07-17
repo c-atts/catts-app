@@ -1,7 +1,7 @@
-import Button from "../../ui/Button";
+import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
-import { useCreateRecipe } from "../../../catts/hooks/useCreateRecipe";
-import Section from "../../ui/Section";
+import { useCreateRecipe } from "@/catts/hooks/useCreateRecipe";
+import Section from "@/components/ui/Section";
 
 export default function CreateForm() {
   const {
@@ -70,9 +70,7 @@ export default function CreateForm() {
                 </>
               )}
             </form.Field>
-            <Button type="submit" variant="dark">
-              {isPending ? "Saving..." : "Save"}
-            </Button>
+            <Button type="submit">{isPending ? "Saving..." : "Save"}</Button>
           </div>
         </form>
         {createResult && "Err" in createResult && (

@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
-import Button from "../ui/Button";
+import { Button } from "@/components/ui/button";
 
 export default function SearchInput() {
   const search = () => {

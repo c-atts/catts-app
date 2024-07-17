@@ -1,5 +1,5 @@
-import Button from "../../../components/ui/Button";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import { Button } from "@/components/ui/button";
+// import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { isChainIdSupported } from "../../../wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
 import useRunContext from "../../../context/useRunContext";
@@ -43,9 +43,9 @@ export default function InitRun() {
           <Button
             className="mb-4"
             disabled={disabled}
-            icon={useInitRun.isPending ? faCircleNotch : undefined}
+            // icon={useInitRun.isPending ? faCircleNotch : undefined}
             onClick={handleClick}
-            spin={useInitRun.isPending}
+            // spin={useInitRun.isPending}
           >
             Run
           </Button>

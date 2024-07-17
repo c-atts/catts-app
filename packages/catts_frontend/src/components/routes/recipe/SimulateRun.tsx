@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import Button from "../../../components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { RunOutput } from "../../../catts/types/run-output.type";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";

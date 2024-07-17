@@ -1,8 +1,8 @@
 import { useAccount, useSwitchChain } from "wagmi";
 
-import Button from "../ui/Button";
+import { Button } from "@/components/ui/button";
 import { ETH_DEFAULT_CHAIN_ID } from "../../config";
-import { faWaveSquare } from "@fortawesome/free-solid-svg-icons";
+// import { faWaveSquare } from "@fortawesome/free-solid-svg-icons";
 import { isChainIdSupported } from "../../wagmi/is-chain-id-supported";
 
 export default function WrongNetworkButton() {
@@ -21,9 +21,8 @@ export default function WrongNetworkButton() {
     <>
       <Button
         className="bg-red-800 hover:bg-red-700"
-        icon={faWaveSquare}
+        // icon={faWaveSquare}
         onClick={handleClick}
-        variant="dark"
       >
         Wrong Network
       </Button>

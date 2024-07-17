@@ -1,6 +1,6 @@
-import Button from "../../../components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Run } from "catts_engine/declarations/catts_engine.did";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+// import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import useRunContext from "../../../context/useRunContext";
 
@@ -18,11 +18,11 @@ export default function CancelRunButton({ run }: { run: Run }) {
   return (
     <Button
       disabled={isCancelPending || isPaymentPending}
-      icon={isCancelPending ? faCircleNotch : undefined}
+      // icon={isCancelPending ? faCircleNotch : undefined}
       onClick={() => {
         cancelRun(run.id);
       }}
-      spin={isCancelPending}
+      // spin={isCancelPending}
       variant="outline"
     >
       {isCancelPending ? "Cancelling run" : "Cancel run"}

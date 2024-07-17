@@ -1,6 +1,6 @@
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+// import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
-import Button from "../../../components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import useRunContext from "../../../context/useRunContext";
 
@@ -58,7 +58,7 @@ export default function RecipeDetails() {
   //   return null;
   // }
 
-  const faChevron = showDetails ? faChevronUp : faChevronDown;
+  // const faChevron = showDetails ? faChevronUp : faChevronDown;
 
   const formattedQueries = queries
     .map((q) => formatGraphQLQuery(q.query))
@@ -98,7 +98,7 @@ export default function RecipeDetails() {
       )}
       <div>
         <Button
-          icon={faChevron}
+          // icon={faChevron}
           onClick={() => setShowDetails(!showDetails)}
           variant="outline"
         >

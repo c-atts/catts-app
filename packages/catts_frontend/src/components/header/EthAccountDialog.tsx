@@ -1,8 +1,8 @@
 import { useAccount, useDisconnect, useEnsName } from "wagmi";
 
-import Button from "../ui/Button";
-import Dialog from "../ui/Dialog";
+import { Button } from "@/components/ui/button";
 import { Dialog as HeadlessDialog } from "@headlessui/react";
+import Dialog from "../ui/Dialog";
 
 export function EthAccountDialog({
   isOpen,

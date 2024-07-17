@@ -1,9 +1,9 @@
 import { Connector, useAccount, useConnect } from "wagmi";
 
 import { Dialog as HeadlessDialog } from "@headlessui/react";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+// import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect } from "react";
-import Button from "../ui/Button";
+import { Button } from "@/components/ui/button";
 import Dialog from "../ui/Dialog";
 
 export default function ConnectDialog({
@@ -13,25 +13,24 @@ export default function ConnectDialog({
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }) {
-  const { connect, connectors, error, isPending, variables, reset } =
-    useConnect();
+  const { connect, connectors, error, isPending, reset } = useConnect();
   const { isConnected } = useAccount();
 
   useEffect(() => {
     if (isOpen) reset();
   }, [isOpen, reset]);
 
-  const icon = (connector: Connector) => {
-    if (
-      isPending &&
-      variables &&
-      "id" in variables.connector &&
-      connector.id === variables.connector.id
-    ) {
-      return faCircleNotch;
-    }
-    return undefined;
-  };
+  // const icon = (connector: Connector) => {
+  //   if (
+  //     isPending &&
+  //     variables &&
+  //     "id" in variables.connector &&
+  //     connector.id === variables.connector.id
+  //   ) {
+  //     return faCircleNotch;
+  //   }
+  //   return undefined;
+  // };
 
   const iconSource = (connector: Connector) => {
     // WalletConnect does not provide an icon, so we provide a custom one.
@@ -53,10 +52,10 @@ export default function ConnectDialog({
         <Button
           className="justify-between w-52"
           disabled={isConnected || isPending}
-          icon={icon(connector)}
+          // icon={icon(connector)}
           key={connector.id}
           onClick={() => connect({ connector })}
-          spin
+          // spin
           variant="outline"
         >
           {connector.name}

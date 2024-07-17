@@ -1,4 +1,4 @@
-import Button from "../ui/Button";
+import { Button } from "@/components/ui/button";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { isChainIdSupported } from "../../wagmi/is-chain-id-supported";
 import { useAccount, useSwitchChain } from "wagmi";
@@ -41,23 +41,23 @@ export default function LoginButton() {
     return "Sign in with Ethereum";
   };
 
-  const icon =
-    isSwitchingChain || isLoggingIn || isPreparingLogin
-      ? faCircleNotch
-      : faEthereum;
+  // const icon =
+  //   isSwitchingChain || isLoggingIn || isPreparingLogin
+  //     ? faCircleNotch
+  //     : faEthereum;
 
   const disabled =
     isSwitchingChain || isLoggingIn || !isConnected || isPreparingLogin;
 
-  const spin = isSwitchingChain || isLoggingIn || isPreparingLogin;
+  // const spin = isSwitchingChain || isLoggingIn || isPreparingLogin;
 
   return (
     <Button
       className="w-56"
       disabled={disabled}
-      icon={icon}
+      // icon={icon}
       onClick={handleClick}
-      spin={spin}
+      // spin={spin}
     >
       {text()}
     </Button>
