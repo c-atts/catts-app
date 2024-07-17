@@ -41,10 +41,7 @@ export default function ActorProvider({ children }: { children: ReactNode }) {
       }, 1000);
       return;
     }
-
-    if (typeof data === "object" && data !== null && "message" in data) {
-      errorToast(data);
-    }
+    throw data.error;
   };
 
   const handleRequest = (data: InterceptorRequestData) => {
@@ -60,7 +57,7 @@ export default function ActorProvider({ children }: { children: ReactNode }) {
       idlFactory={idlFactory}
       onRequest={handleRequest}
       onRequestError={(error) => errorToast(error)}
-      // onResponseError={handleResponseError}
+      onResponseError={handleResponseError}
     >
       {children}
     </_ActorProvider>
