@@ -1,5 +1,5 @@
 use super::User;
-use crate::{eth::EthAddress, USERS};
+use crate::{eth::EthAddress, USERS, USER_ETH_ADDRESS_INDEX};
 use candid::Principal;
 use ic_stable_structures::storable::Blob;
 use thiserror::Error;
@@ -23,6 +23,11 @@ pub fn create(principal: Principal, eth_address: &EthAddress) -> Result<User, Us
         }
         let user = User::new(eth_address.as_str());
         users.insert(principal_bytes, user.clone());
+
+        USER_ETH_ADDRESS_INDEX.with_borrow_mut(|index| {
+            index.insert(eth_address.as_byte_array(), principal_bytes);
+        });
+
         Ok(user)
     })
 }
@@ -30,4 +35,13 @@ pub fn create(principal: Principal, eth_address: &EthAddress) -> Result<User, Us
 pub fn get_by_principal(principal: Principal) -> Option<User> {
     let principal_bytes: Blob<29> = principal.as_slice()[..29].try_into().ok()?;
     USERS.with_borrow(|users| users.get(&principal_bytes).clone())
+}
+
+pub fn get_by_eth_address(eth_address: &EthAddress) -> Option<User> {
+    let eth_address_bytes = eth_address.as_byte_array();
+    USER_ETH_ADDRESS_INDEX.with_borrow(|index| {
+        index.get(&eth_address_bytes).and_then(|principal_bytes| {
+            USERS.with_borrow(|users| users.get(&principal_bytes).clone())
+        })
+    })
 }

@@ -112,6 +112,13 @@ export const idlFactory = ({ IDL }) => {
       ),
     'transform' : IDL.Func([TransformArgs], [HttpResponse], ['query']),
     'user_create' : IDL.Func([], [Result_5], []),
+    'user_get' : IDL.Func([], [Result_5], ['query']),
+    'user_get_by_eth_address' : IDL.Func([IDL.Text], [Result_5], ['query']),
+    'user_get_by_principal' : IDL.Func(
+        [IDL.Vec(IDL.Nat8)],
+        [Result_5],
+        ['query'],
+      ),
   });
 };
 export const init = ({ IDL }) => {

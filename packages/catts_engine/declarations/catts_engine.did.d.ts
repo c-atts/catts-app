@@ -114,6 +114,9 @@ export interface _SERVICE {
   >,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
   'user_create' : ActorMethod<[], Result_5>,
+  'user_get' : ActorMethod<[], Result_5>,
+  'user_get_by_eth_address' : ActorMethod<[string], Result_5>,
+  'user_get_by_principal' : ActorMethod<[Uint8Array | number[]], Result_5>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

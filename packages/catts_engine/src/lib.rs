@@ -30,18 +30,15 @@ use ic_cdk::{
 use ic_stable_structures::{
     memory_manager::{MemoryId, MemoryManager, VirtualMemory},
     storable::Blob,
+    DefaultMemoryImpl, StableBTreeMap,
 };
-use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap};
 use lazy_static::lazy_static;
 use logger::LogItem;
-use recipe::Recipe;
-use recipe::RecipeDetailsInput;
-use recipe::RecipeId;
+use recipe::{Recipe, RecipeDetailsInput, RecipeId};
 use run::run::{Run, RunId, Timestamp};
 use serde::{Deserialize, Serialize};
-use std::cell::RefCell;
-use std::sync::Arc;
-use std::time::Duration;
+use serde_bytes::ByteBuf;
+use std::{cell::RefCell, sync::Arc, time::Duration};
 use tasks::execute_tasks;
 use user::User;
 
@@ -60,12 +57,13 @@ const TIMER_INTERVAL_UPDATE_BASE_FEE_PER_GAS: u64 = 60 * 60; // 1 hour
 //     "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
 
 const WASI_MEMORY_ID: MemoryId = MemoryId::new(0);
-const USER_PROFILE_MEMORY_ID: MemoryId = MemoryId::new(1);
-const RECIPE_MEMORY_ID: MemoryId = MemoryId::new(2);
-const RECIPE_NAME_INDEX_MEMORY_ID: MemoryId = MemoryId::new(3);
-const RUNS_MEMORY_ID: MemoryId = MemoryId::new(4);
-const TASKS_MEMORY_ID: MemoryId = MemoryId::new(5);
-const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(6);
+const USERS_MEMORY_ID: MemoryId = MemoryId::new(1);
+const USER_ETH_ADDRESS_MEMORY_ID: MemoryId = MemoryId::new(2);
+const RECIPES_MEMORY_ID: MemoryId = MemoryId::new(3);
+const RECIPE_NAME_INDEX_MEMORY_ID: MemoryId = MemoryId::new(4);
+const RUNS_MEMORY_ID: MemoryId = MemoryId::new(5);
+const TASKS_MEMORY_ID: MemoryId = MemoryId::new(6);
+const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(7);
 
 #[derive(Serialize, Deserialize, CandidType)]
 struct CanisterSettingsInput {
@@ -103,14 +101,20 @@ thread_local! {
     // USER
     static USERS: RefCell<StableBTreeMap<Blob<29>, User, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(USER_PROFILE_MEMORY_ID)),
+            MEMORY_MANAGER.with(|m| m.borrow().get(USERS_MEMORY_ID)),
+        )
+    );
+
+    static USER_ETH_ADDRESS_INDEX: RefCell<StableBTreeMap<EthAddressBytes, Blob<29>, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(USER_ETH_ADDRESS_MEMORY_ID)),
         )
     );
 
     // RECIPES
     static RECIPES: RefCell<StableBTreeMap<RecipeId, recipe::Recipe, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(RECIPE_MEMORY_ID)),
+            MEMORY_MANAGER.with(|m| m.borrow().get(RECIPES_MEMORY_ID)),
         )
     );
 

@@ -79,4 +79,7 @@ service : (CanisterSettingsInput) -> {
   run_register_payment : (blob, text, nat) -> (Result_3);
   transform : (TransformArgs) -> (HttpResponse) query;
   user_create : () -> (Result_5);
+  user_get : () -> (Result_5) query;
+  user_get_by_eth_address : (text) -> (Result_5) query;
+  user_get_by_principal : (blob) -> (Result_5) query;
 }
