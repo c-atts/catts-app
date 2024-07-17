@@ -6,6 +6,7 @@ import {
   createActorContext,
   createUseActorHook,
   isIdentityExpiredError,
+  InterceptorResponseData,
 } from "ic-use-actor";
 import { canisterId, idlFactory } from "catts_engine/declarations";
 
@@ -29,7 +30,7 @@ export default function ActorProvider({ children }: { children: ReactNode }) {
   };
 
   const handleResponseError = (data: InterceptorErrorData) => {
-    console.error("onResponseError", data.error);
+    console.error("onResponseError", data.methodName, data.args, data.error);
     if (isIdentityExpiredError(data.error)) {
       toast.error("Login expired.", {
         id: "login-expired",
@@ -45,8 +46,17 @@ export default function ActorProvider({ children }: { children: ReactNode }) {
   };
 
   const handleRequest = (data: InterceptorRequestData) => {
-    console.log("onRequest", data.args, data.methodName);
+    if (import.meta.env.DEV) {
+      console.log("onRequest", data.methodName, data.args);
+    }
     return data.args;
+  };
+
+  const handleResponse = (data: InterceptorResponseData) => {
+    if (import.meta.env.DEV) {
+      console.log("onResponse", data.methodName, data.args, data.response);
+    }
+    return data.response;
   };
 
   return (
@@ -57,6 +67,7 @@ export default function ActorProvider({ children }: { children: ReactNode }) {
       idlFactory={idlFactory}
       onRequest={handleRequest}
       onRequestError={(error) => errorToast(error)}
+      onResponse={handleResponse}
       onResponseError={handleResponseError}
     >
       {children}
