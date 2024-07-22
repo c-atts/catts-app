@@ -1,10 +1,12 @@
 import { Connector, useAccount, useConnect } from "wagmi";
-
-import { Dialog as HeadlessDialog } from "@headlessui/react";
-// import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import Dialog from "../ui/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function ConnectDialog({
   isOpen,
@@ -20,18 +22,6 @@ export default function ConnectDialog({
     if (isOpen) reset();
   }, [isOpen, reset]);
 
-  // const icon = (connector: Connector) => {
-  //   if (
-  //     isPending &&
-  //     variables &&
-  //     "id" in variables.connector &&
-  //     connector.id === variables.connector.id
-  //   ) {
-  //     return faCircleNotch;
-  //   }
-  //   return undefined;
-  // };
-
   const iconSource = (connector: Connector) => {
     // WalletConnect does not provide an icon, so we provide a custom one.
     if (connector.id === "walletConnect") {
@@ -41,32 +31,31 @@ export default function ConnectDialog({
   };
 
   return (
-    <Dialog
-      className="relative z-50 w-80"
-      isOpen={isOpen}
-      setIsOpen={setIsOpen}
-    >
-      <HeadlessDialog.Title> Connect Wallet</HeadlessDialog.Title>
-
-      {connectors.map((connector) => (
-        <Button
-          className="justify-between w-52"
-          disabled={isConnected || isPending}
-          // icon={icon(connector)}
-          key={connector.id}
-          onClick={() => connect({ connector })}
-          // spin
-          variant="outline"
-        >
-          {connector.name}
-          <img className="w-4 h-4" src={iconSource(connector)} />
-        </Button>
-      ))}
-      {error && (
-        <div className="p-2 text-center text-white bg-red-500">
-          {error.message}
-        </div>
-      )}
+    <Dialog onOpenChange={setIsOpen} open={isOpen}>
+      <DialogContent className="w-64">
+        <DialogHeader>
+          <DialogTitle>Connect Wallet</DialogTitle>
+          <div className="w-full flex flex-col items-center gap-2">
+            {connectors.map((connector) => (
+              <Button
+                className="justify-between w-52"
+                disabled={isConnected || isPending}
+                key={connector.id}
+                onClick={() => connect({ connector })}
+                variant="outline"
+              >
+                {connector.name}
+                <img className="w-4 h-4" src={iconSource(connector)} />
+              </Button>
+            ))}
+            {error && (
+              <div className="p-2 text-center text-white bg-red-500">
+                {error.message}
+              </div>
+            )}
+          </div>
+        </DialogHeader>
+      </DialogContent>
     </Dialog>
   );
 }

@@ -1,15 +1,15 @@
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import EthButton from "./EthButton";
-import WrongNetworkButton from "./WrongNetworkButton";
 import LoginButton from "./LoginButton";
 import ConnectButton from "./ConnectButton";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
-// import { faHistory, faPlus, faScroll } from "@fortawesome/free-solid-svg-icons";
 import { Chain } from "./Chain";
+import { useAccount } from "wagmi";
 
 export default function Header() {
   const { identity } = useSiweIdentity();
+  const { chain, isConnected } = useAccount();
 
   return (
     <div className="flex flex-col gap-10 w-full">
@@ -24,10 +24,9 @@ export default function Header() {
           <div>My Dashboard</div>
         </div>
         <div className="flex flex-col items-center justify-center gap-5 text-sm md:text-base md:flex-row">
-          <ConnectButton />
-          {!identity && <LoginButton />}
-          {identity && <WrongNetworkButton />}
-          <Chain />
+          {!isConnected && <ConnectButton />}
+          {chain && !identity && <LoginButton />}
+          {isConnected && <Chain />}
           <EthButton />
         </div>
         <div className="block text-xl font-bold text-center md:hidden">

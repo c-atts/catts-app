@@ -23,7 +23,7 @@ export const useLogin = () => {
     },
     onSuccess: async (identity) => {
       if (userExists || !identity) {
-        toast.success("Logged in");
+        toast.success("Signed in");
         return;
       }
 

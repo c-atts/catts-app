@@ -2,11 +2,9 @@ import { useAccount, useEnsName } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 import ConnectDialog from "./ConnectDialog";
-import { EthAccountDialog } from "./EthAccountDialog";
-// import { faEthereum } from "@fortawesome/free-brands-svg-icons";
-// import { faWaveSquare } from "@fortawesome/free-solid-svg-icons";
 import { shortenEthAddress } from "../../eth/utils/shortenEthAddress";
 import { useState } from "react";
+import { UserDialog } from "./UserDialog";
 
 export default function EthButton() {
   const { address, isConnected, isConnecting } = useAccount();
@@ -27,16 +25,6 @@ export default function EthButton() {
     }
   };
 
-  // const buttonIcon = () => {
-  //   if (isConnecting) {
-  //     return faWaveSquare;
-  //   } else if (isConnected) {
-  //     return faEthereum;
-  //   } else {
-  //     return faWaveSquare;
-  //   }
-  // };
-
   const buttonText = () => {
     if (isConnecting) {
       return "Connecting...";
@@ -54,10 +42,7 @@ export default function EthButton() {
         isOpen={connectDialogOpen}
         setIsOpen={setConnectDialogOpen}
       />
-      <EthAccountDialog
-        isOpen={accountDialogOpen}
-        setIsOpen={setAccountDialogOpen}
-      />
+      <UserDialog isOpen={accountDialogOpen} setIsOpen={setAccountDialogOpen} />
     </>
   );
 }

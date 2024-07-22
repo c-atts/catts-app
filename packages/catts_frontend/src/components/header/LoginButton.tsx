@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { isChainIdSupported } from "../../wagmi/is-chain-id-supported";
 import { useAccount, useSwitchChain } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
-import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import { ETH_DEFAULT_CHAIN_ID } from "../../config";
 import { useState } from "react";
 import { useLogin } from "../../catts/hooks/useLogin";
+import { LoaderCircle } from "lucide-react";
 
 export default function LoginButton() {
   const { isConnected, chainId } = useAccount();
@@ -41,24 +40,21 @@ export default function LoginButton() {
     return "Sign in with Ethereum";
   };
 
-  // const icon =
-  //   isSwitchingChain || isLoggingIn || isPreparingLogin
-  //     ? faCircleNotch
-  //     : faEthereum;
-
   const disabled =
     isSwitchingChain || isLoggingIn || !isConnected || isPreparingLogin;
 
-  // const spin = isSwitchingChain || isLoggingIn || isPreparingLogin;
-
   return (
-    <Button
-      className="w-56"
-      disabled={disabled}
-      // icon={icon}
-      onClick={handleClick}
-      // spin={spin}
-    >
+    <Button disabled={disabled} onClick={handleClick}>
+      {isSwitchingChain || isLoggingIn || isPreparingLogin ? (
+        <LoaderCircle className="mr-2 w-4 h-4 animate-spin" />
+      ) : (
+        <img
+          alt="Ethereum Logo"
+          className="w-4 h-4 mr-2"
+          src="/ethereum-white.svg"
+        />
+      )}
+
       {text()}
     </Button>
   );
