@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { Chain } from "./Chain";
 import { useAccount } from "wagmi";
+import { Plus } from "lucide-react";
 
 export default function Header() {
   const { identity } = useSiweIdentity();
@@ -35,7 +36,10 @@ export default function Header() {
       </div>
       <div className="flex w-full justify-end pb-10">
         <Link to="/create">
-          <Button>Create Recipe</Button>
+          <Button disabled={!identity}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Recipe
+          </Button>
         </Link>
       </div>
     </div>

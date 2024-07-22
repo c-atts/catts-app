@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { LoaderCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, LoaderCircle } from "lucide-react";
 
 export function Chain() {
   const { chain: connectedChain } = useAccount();
@@ -42,9 +42,15 @@ export function Chain() {
     <div>
       <DropdownMenu>
         <DropdownMenuTrigger>
-          <Button>
+          <Button variant={connectedChain ? "outline" : "default"}>
             {connectedChain ? (
-              <ChainIcon chainName={connectedChain.name} className="h-5 w-5" />
+              <>
+                <ChainIcon
+                  chainName={connectedChain.name}
+                  className="h-5 w-5"
+                />
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </>
             ) : (
               "Select Network"
             )}

@@ -37,7 +37,12 @@ export default function EthButton() {
 
   return (
     <>
-      <Button onClick={handleClick}>{buttonText()}</Button>
+      <Button
+        onClick={handleClick}
+        variant={isConnected ? "outline" : "default"}
+      >
+        {buttonText()}
+      </Button>
       <ConnectDialog
         isOpen={connectDialogOpen}
         setIsOpen={setConnectDialogOpen}
