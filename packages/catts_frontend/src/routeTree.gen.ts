@@ -56,22 +56,37 @@ const RecipeRecipeNameLazyRoute = RecipeRecipeNameLazyImport.update({
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
       preLoaderRoute: typeof IndexLazyImport
       parentRoute: typeof rootRoute
     }
     '/create': {
+      id: '/create'
+      path: '/create'
+      fullPath: '/create'
       preLoaderRoute: typeof CreateLazyImport
       parentRoute: typeof rootRoute
     }
     '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardLazyImport
       parentRoute: typeof rootRoute
     }
     '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
       preLoaderRoute: typeof HistoryLazyImport
       parentRoute: typeof rootRoute
     }
     '/recipe/$recipeName': {
+      id: '/recipe/$recipeName'
+      path: '/recipe/$recipeName'
+      fullPath: '/recipe/$recipeName'
       preLoaderRoute: typeof RecipeRecipeNameLazyImport
       parentRoute: typeof rootRoute
     }
@@ -80,12 +95,44 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren([
+export const routeTree = rootRoute.addChildren({
   IndexLazyRoute,
   CreateLazyRoute,
   DashboardLazyRoute,
   HistoryLazyRoute,
   RecipeRecipeNameLazyRoute,
-])
+})
 
 /* prettier-ignore-end */
+
+/* ROUTE_MANIFEST_START
+{
+  "routes": {
+    "__root__": {
+      "filePath": "__root.tsx",
+      "children": [
+        "/",
+        "/create",
+        "/dashboard",
+        "/history",
+        "/recipe/$recipeName"
+      ]
+    },
+    "/": {
+      "filePath": "index.lazy.tsx"
+    },
+    "/create": {
+      "filePath": "create.lazy.tsx"
+    },
+    "/dashboard": {
+      "filePath": "dashboard.lazy.tsx"
+    },
+    "/history": {
+      "filePath": "history.lazy.tsx"
+    },
+    "/recipe/$recipeName": {
+      "filePath": "recipe.$recipeName.lazy.tsx"
+    }
+  }
+}
+ROUTE_MANIFEST_END */

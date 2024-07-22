@@ -92,8 +92,5 @@ export const EAS_CONFIG: EasConfig[] = [
 
 // The Graph
 
-export const THEGRAPH_QUERY_PROXY_URL =
-  "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
-
 export const GQL_QUERY_PROXY_URL =
   "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";

@@ -23,8 +23,6 @@ export default function RecipeBasics() {
   const { name, description, created, publish_state } = selectedRecipe;
 
   const publishBadgeText = Object.keys(publish_state)[0];
-
-  console.log(publishBadgeText);
   const createdDate = new Date(Number(created / BigInt(1_000_000)));
   const when = formatDistance(new Date(createdDate), new Date(), {
     addSuffix: true,
@@ -32,10 +30,10 @@ export default function RecipeBasics() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-3xl font-bold pb-4">{name}</div>
       <div>
-        <Badge>{publishBadgeText}</Badge>
+        <Badge className="bg-secondary">{publishBadgeText}</Badge>
       </div>
+      <div className="text-3xl font-bold pb-4">{name}</div>
       <div className="leading-relaxed">{description}</div>
       <div className="text-sm text-foreground/50">
         {creatorEnsName || shortenEthAddress(creatorAddress)} created • {when}

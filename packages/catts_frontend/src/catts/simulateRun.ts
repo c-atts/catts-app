@@ -2,7 +2,18 @@ import { Recipe } from "catts_engine/declarations/catts_engine.did";
 import { RunOutput } from "./types/run-output.type";
 import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
 import { transformHexItems } from "./transformHexItems";
-export function simulateRun({
+import {
+  newQuickJSWASMModuleFromVariant,
+  newVariant,
+} from "quickjs-emscripten-core";
+import wasmLocation from "@jitl/quickjs-wasmfile-release-sync/wasm?url";
+import RELEASE_SYNC from "@jitl/quickjs-wasmfile-release-sync";
+
+const variant = newVariant(RELEASE_SYNC, {
+  wasmLocation,
+});
+
+export async function simulateRun({
   recipe,
   queryData,
 }: {
@@ -18,33 +29,48 @@ export function simulateRun({
     JSON.stringify(queryData, null, 2),
   );
 
-  // Define the function that processes the data returned by the recipe queries
-  //TODO  Replace this with secure sandboxed evaluation
-  const processFunction = `
-  const queryResult = JSON.parse(queryResultRaw);
-  ${recipe.processor}
-`;
-  const process: (data: string) => string = new Function(
-    "queryResultRaw",
-    processFunction,
-  ) as (data: string) => string;
+  const QuickJS = await newQuickJSWASMModuleFromVariant(variant);
+  const vm = QuickJS.newContext();
 
-  // Process the data returned by the recipe queries
-  const runOutputRaw = process(JSON.stringify(queryData));
+  try {
+    const queryResultRaw = vm.newString(JSON.stringify(queryData));
+    vm.setProp(vm.global, "queryResultRaw", queryResultRaw);
+    queryResultRaw.dispose();
 
-  // Parse the processed data, make sure it follows the expected schema
-  let runOutput: RunOutput = RunOutput.parse(JSON.parse(runOutputRaw));
+    const processor = `
+      let queryResult = JSON.parse(queryResultRaw);
+      function process() {{
+        ${recipe.processor}
+      }}
+      process();
+    `;
 
-  // Clean the processed data, transforming uint256 values to hex strings
-  runOutput = transformHexItems(runOutput);
+    const result = vm.evalCode(processor);
+    if (result.error) {
+      const error = vm.dump(result.error);
+      result.error.dispose();
+      throw error;
+    }
 
-  // Encode the processed data using the output schema
-  const schemaEncoder = new SchemaEncoder(recipe.schema);
-  const encodedOutput = schemaEncoder.encodeData(runOutput);
+    const runOutputRaw = vm.dump(result.value);
+    result.value.dispose();
 
-  return {
-    runOutputRaw,
-    runOutput,
-    encodedOutput,
-  };
+    // Parse the processed data, make sure it follows the expected schema
+    const runOutput: RunOutput = RunOutput.parse(JSON.parse(runOutputRaw));
+
+    // Clean the processed data, transforming uint256 values to hex strings
+    // runOutput = transformHexItems(runOutput);
+
+    // Encode the processed data using the output schema
+    const schemaEncoder = new SchemaEncoder(recipe.schema);
+    const encodedOutput = schemaEncoder.encodeData(runOutput);
+
+    return {
+      runOutputRaw,
+      runOutput,
+      encodedOutput,
+    };
+  } finally {
+    vm.dispose();
+  }
 }

@@ -25,22 +25,26 @@ function RecipeRunnerInner() {
 
   useEffect(() => {
     if (!data || !selectedRecipe || isSelectedRecipeValid != undefined) return;
-    try {
-      // Simluate the run in the browser
-      const { runOutput } = simulateRun({
-        recipe: selectedRecipe,
-        queryData: data,
-      });
+    (async () => {
+      try {
+        // Simluate the run in the browser
+        const { runOutput } = await simulateRun({
+          recipe: selectedRecipe,
+          queryData: data,
+        });
 
-      // All checks passed, this means we can use this data to create a new attestation
-      setProcessedData(runOutput);
-      setIsSelectedRecipeValid(true);
-    } catch (e) {
-      console.error(e);
-      setSimulateError(isError(e) ? e.message : "Couldn't run simulation");
-      setIsSelectedRecipeValid(false);
-    }
+        // All checks passed, this means we can use this data to create a new attestation
+        setProcessedData(runOutput);
+        setIsSelectedRecipeValid(true);
+      } catch (e) {
+        console.error(e);
+        setSimulateError(isError(e) ? e.message : "Couldn't run simulation");
+        setIsSelectedRecipeValid(false);
+      }
+    })();
   }, [data, selectedRecipe, setIsSelectedRecipeValid, isSelectedRecipeValid]);
+
+  console.log("data", data);
 
   if (isPending)
     return (

@@ -36,6 +36,8 @@ export function useSimulateRecipeQueries() {
         return null;
       }
 
+      console.log("selectedRecipe", selectedRecipe);
+
       const aggregatedResponse: any[] = [];
       for (const query of selectedRecipe.queries) {
         const queryVariables = parseVariablesTemplate(
@@ -58,20 +60,26 @@ export function useSimulateRecipeQueries() {
         //   );
         // }
 
-        const queryResponse = await requestQuery(
-          query.query,
-          queryVariables,
-          query.endpoint,
-        );
-
-        if (typeof queryResponse !== "object") {
-          console.error(
-            `Expected response to be an object, got ${typeof queryResponse}`,
+        try {
+          const queryResponse = await requestQuery(
+            query.query,
+            queryVariables,
+            query.endpoint,
           );
+          console.log("queryResponse", queryResponse);
+
+          if (typeof queryResponse !== "object") {
+            console.error(
+              `Expected response to be an object, got ${typeof queryResponse}`,
+            );
+            return null;
+          }
+
+          aggregatedResponse.push(queryResponse);
+        } catch (error) {
+          console.error("Error fetching query", error);
           return null;
         }
-
-        aggregatedResponse.push(queryResponse);
       }
 
       return aggregatedResponse;
@@ -79,12 +87,20 @@ export function useSimulateRecipeQueries() {
   });
 }
 
-function requestQuery(query: string, variables: any, queryUrl: string) {
+async function requestQuery(query: string, variables: any, queryUrl: string) {
   const cacheId = randomString(8);
   const url = `${GQL_QUERY_PROXY_URL}/${cacheId}`;
-  return request(url, query, variables, {
-    "x-gql-query-url": queryUrl,
-  });
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-gql-query-url": queryUrl,
+    },
+    body: JSON.stringify({ query, variables }),
+  }).then((res) => res.json());
+  // return request(url, query, variables, {
+  //   "x-gql-query-url": queryUrl,
+  // });
 }
 
 // function theGraphRequest(

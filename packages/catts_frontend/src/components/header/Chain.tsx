@@ -41,7 +41,7 @@ export function Chain() {
   return (
     <div>
       <DropdownMenu>
-        <DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
           <Button variant={connectedChain ? "outline" : "default"}>
             {connectedChain ? (
               <>

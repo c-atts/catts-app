@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import useRunContext from "../../../context/useRunContext";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 function formatGraphQLQuery(query: string): string {
   // Normalize spaces and remove unnecessary spaces before and after braces
@@ -73,35 +74,32 @@ export default function RecipeDetails() {
   return (
     <div className="flex flex-col gap-5">
       {showDetails && (
-        <div className="flex flex-col gap-3 prose-l">
-          <h2 className="prose-lg">Queries</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
+        <div className="flex flex-col gap-3">
+          <h2>Queries</h2>
+          <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
             {formattedQueries}
           </pre>
-          <h2 className="prose-lg">Query variables</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
+          <h2>Query variables</h2>
+          <pre className="w-full p-3 overflow-x-auto text-sm border  bg-muted/50">
             {formattedQueryVariables}
           </pre>
-          <h2 className="prose-lg">Query settings</h2>
-          <h2 className="prose-lg">Processor</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
-            {processor[0]
+          <h2>Query settings</h2>
+          <h2>Processor</h2>
+          <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
+            {processor
               .split("\n")
               .map((line) => line.trim())
               .join("\n")}
           </pre>
-          <h2 className="prose-lg">Output Schema</h2>
-          <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500 text-zinc-300">
+          <h2>Output Schema</h2>
+          <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
             {JSON.stringify(schema, null, 2)}
           </pre>
         </div>
       )}
       <div>
-        <Button
-          // icon={faChevron}
-          onClick={() => setShowDetails(!showDetails)}
-          variant="outline"
-        >
+        <Button onClick={() => setShowDetails(!showDetails)} variant="outline">
+          {showDetails ? <ChevronUp /> : <ChevronDown />}
           {showDetails ? "Hide details" : "Show details"}
         </Button>
       </div>
