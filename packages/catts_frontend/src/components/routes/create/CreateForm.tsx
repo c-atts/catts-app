@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
 import { useCreateRecipe } from "@/catts/hooks/useCreateRecipe";
-import Section from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
 
 export default function CreateForm() {
   const {
