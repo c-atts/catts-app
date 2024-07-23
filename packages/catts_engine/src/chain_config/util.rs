@@ -15,23 +15,39 @@ lazy_static! {
         let mut m = HashMap::new();
         m.insert(
             &1u64,
-            RpcServices::EthMainnet(Some(vec![EthMainnetService::Ankr])),
+            RpcServices::EthMainnet(Some(vec![
+                EthMainnetService::Ankr,
+                EthMainnetService::BlockPi,
+                EthMainnetService::Cloudflare,
+            ])),
         );
         m.insert(
             &11155111u64,
-            RpcServices::EthSepolia(Some(vec![EthSepoliaService::Ankr])),
+            RpcServices::EthSepolia(Some(vec![
+                EthSepoliaService::Ankr,
+                EthSepoliaService::BlockPi,
+            ])),
         );
         m.insert(
             &10u64,
-            RpcServices::OptimismMainnet(Some(vec![L2MainnetService::Ankr])),
+            RpcServices::OptimismMainnet(Some(vec![
+                L2MainnetService::Ankr,
+                L2MainnetService::BlockPi,
+            ])),
         );
         m.insert(
             &8453u64,
-            RpcServices::BaseMainnet(Some(vec![L2MainnetService::Ankr])),
+            RpcServices::BaseMainnet(Some(vec![
+                L2MainnetService::Ankr,
+                L2MainnetService::BlockPi,
+            ])),
         );
         m.insert(
             &42161u64,
-            RpcServices::ArbitrumOne(Some(vec![L2MainnetService::Ankr])),
+            RpcServices::ArbitrumOne(Some(vec![
+                L2MainnetService::Ankr,
+                L2MainnetService::BlockPi,
+            ])),
         );
         m
     };
