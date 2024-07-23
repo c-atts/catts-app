@@ -1,15 +1,13 @@
 import { Button } from "@/components/ui/button";
-// import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { isChainIdSupported } from "../../../wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
-import useRunContext from "../../../context/useRunContext";
 import { useSiweIdentity } from "ic-use-siwe-identity";
-
+import { SectionTitle } from "@/components/ui/Section";
+import useRunContext from "@/context/useRunContext";
+import { isChainIdSupported } from "@/wagmi/is-chain-id-supported";
 export default function InitRun() {
   const { identity } = useSiweIdentity();
   const { chainId } = useAccount();
   const {
-    isSimulationOk: isSelectedRecipeValid,
     useCreateRun: useInitRun,
     selectedRecipe,
     initPayAndCreateAttestation,
@@ -23,33 +21,25 @@ export default function InitRun() {
     !identity ||
     !isChainIdSupported(chainId) ||
     !selectedRecipe ||
-    !isSelectedRecipeValid ||
     useInitRun.isPending;
 
   const buttonHidden = useInitRun.data != null && "Ok" in useInitRun.data;
 
   return (
     <div className="flex flex-col gap-5">
+      <SectionTitle>Run recipe</SectionTitle>
       <div>
-        <h2>Run recipe</h2>
-        <p>
-          Once you have simulated to verify the run will produce an attestation,
-          you can go ahead an run the recipe. Creating an attestation takes ca 1
-          minute and costs ca $0.2 depending on chain.
-        </p>
+        Running a recipe means creating an attestation for the currently
+        connected address.
+      </div>
+      <div>
+        Creating an attestation takes ca 1 minute and costs ca $0.2 depending on
+        chain.
       </div>
       {!buttonHidden && (
-        <div>
-          <Button
-            className="mb-4"
-            disabled={disabled}
-            // icon={useInitRun.isPending ? faCircleNotch : undefined}
-            onClick={handleClick}
-            // spin={useInitRun.isPending}
-          >
-            Run
-          </Button>
-        </div>
+        <Button className="mb-4" disabled={disabled} onClick={handleClick}>
+          Run
+        </Button>
       )}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">

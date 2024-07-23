@@ -205,20 +205,13 @@ function SimulateRunInner({ address }: { address: string }) {
 
 export default function SimulateRun() {
   const { identity } = useSiweIdentity();
-  const { chainId } = useAccount();
+  const { address, chainId } = useAccount();
+  const { selectedRecipe } = useRunContext();
+
   const [runSimulation, setRunSimulation] = useState(false);
-  const { selectedRecipe, isSimulationOk: isSelectedRecipeValid } =
-    useRunContext();
-  const { address } = useAccount();
   const [simulateForAddress, setSimulateForAddress] = useState<string>(
     (address as string) || "",
   );
-  const disabled =
-    !identity ||
-    !isChainIdSupported(chainId) ||
-    !selectedRecipe ||
-    isSelectedRecipeValid != undefined ||
-    !simulateForAddress;
 
   const simulate = async () => {
     setRunSimulation(false);
@@ -229,6 +222,13 @@ export default function SimulateRun() {
   const resetSimulation = () => {
     setRunSimulation(false);
   };
+
+  const disabled =
+    !identity ||
+    !isChainIdSupported(chainId) ||
+    !selectedRecipe ||
+    !simulateForAddress ||
+    runSimulation;
 
   return (
     <>

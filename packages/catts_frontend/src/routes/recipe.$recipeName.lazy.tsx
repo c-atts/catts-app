@@ -40,12 +40,14 @@ function Index() {
         <Section>
           <RecipeBasics />
           <RecipeDetails />
+        </Section>
+      </div>
+      <div className="flex flex-col gap-5 w-1/3">
+        <Section>
           <InitRun />
           <PayForRun />
           <CreateAttestation />
         </Section>
-      </div>
-      <div className="flex flex-col gap-5 w-1/3">
         <Section>
           <SimulateRun />
         </Section>

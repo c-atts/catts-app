@@ -10,8 +10,6 @@ import { UseMutationResult } from "@tanstack/react-query";
 export type RunContextType = {
   selectedRecipe?: Recipe;
   setSelectedRecipe: (recipe?: Recipe) => void;
-  isSimulationOk?: boolean;
-  setIsSimulationOk: (isValid: boolean) => void;
   runInProgress?: Run;
   progressMessage?: string;
   errorMessage?: string;

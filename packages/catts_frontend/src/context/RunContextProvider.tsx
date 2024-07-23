@@ -291,11 +291,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           });
           resetRun();
         },
-        isSimulationOk: state?.isSimulationOk,
-        setIsSimulationOk: (ok) =>
-          setState((s) => {
-            return { ...s, isSimulationOk: ok };
-          }),
         runInProgress: state?.runInProgress,
         progressMessage: state?.progressMessage,
         errorMessage: state?.errorMessage,
