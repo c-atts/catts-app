@@ -11,6 +11,8 @@ import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import useRunContext from "@/context/useRunContext";
 import { RunOutput } from "@/catts/types/run-output.type";
 import { isChainIdSupported } from "@/wagmi/is-chain-id-supported";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type SimulationStepStatus = "idle" | "pending" | "success" | "error";
 
@@ -35,21 +37,21 @@ function Status({
     case "pending":
       return (
         <div className="flex items-center gap-2">
-          <LoaderCircle className="w-5 h-5 animate-spin" /> {pendingMessage}
+          <LoaderCircle className="w-5 h-5 animate-spin flex-shrink-0" />
+          {pendingMessage}
         </div>
       );
 
     case "success":
       return (
         <div className="flex items-center gap-2">
-          <CircleCheck className="w-5 h-5 animate-in animate-ping" />{" "}
-          {successMessage}
+          <CircleCheck className="w-5 h-5 flex-shrink-0" /> {successMessage}
         </div>
       );
     case "error":
       return (
         <div className="flex items-center gap-2">
-          <CircleAlert className="w-5 h-5" /> {errorMessage}
+          <CircleAlert className="w-5 h-5 flex-shrink-0" /> {errorMessage}
         </div>
       );
     default:
@@ -98,8 +100,8 @@ function SimulationSteps({
   );
 }
 
-function RecipeRunnerInner() {
-  const { data, error: fetchError } = useFetchRecipeQueries();
+function SimulateRunInner({ address }: { address: string }) {
+  const { data, error: fetchError } = useFetchRecipeQueries(address);
   const { selectedRecipe } = useRunContext();
   const [processorError, setProcessorError] = useState<string>();
   const [processedData, setProcessedData] = useState<RunOutput>();
@@ -131,11 +133,16 @@ function RecipeRunnerInner() {
         _runOutputRaw = runOutputRaw as string;
       } catch (e) {
         console.error(e);
-        setProcessorError(isError(e) ? e.message : "Couldn't run simulation");
+        if (e != undefined && typeof e === "object" && "message" in e) {
+          setProcessorError(e.message as string);
+        } else {
+          setProcessorError("Processor returned an error");
+        }
         setSimulationSteps((s) => ({
           ...s,
           step2Processing: "error",
         }));
+        return;
       }
 
       setSimulationSteps((s) => ({
@@ -202,34 +209,51 @@ export default function SimulateRun() {
   const [runSimulation, setRunSimulation] = useState(false);
   const { selectedRecipe, isSimulationOk: isSelectedRecipeValid } =
     useRunContext();
-
+  const { address } = useAccount();
+  const [simulateForAddress, setSimulateForAddress] = useState<string>(
+    (address as string) || "",
+  );
   const disabled =
     !identity ||
     !isChainIdSupported(chainId) ||
     !selectedRecipe ||
-    isSelectedRecipeValid != undefined;
+    isSelectedRecipeValid != undefined ||
+    !simulateForAddress;
+
+  const simulate = async () => {
+    setRunSimulation(false);
+    await new Promise((r) => setTimeout(r, 300));
+    setRunSimulation(true);
+  };
+
+  const resetSimulation = () => {
+    setRunSimulation(false);
+  };
 
   return (
     <>
       <SectionTitle>Simulate run</SectionTitle>
-      <p>
-        To create attestations based on this recipe, first simulate a run to see
-        if it produces any output for current address. The simulation fetches
-        the attestations specified in the recipe and processes them locally in
-        the browser.
-      </p>
-      {!isSelectedRecipeValid && (
-        <p>
-          <Button
-            className="mt-5"
-            disabled={disabled}
-            onClick={() => setRunSimulation(true)}
-          >
-            Simulate
-          </Button>
-        </p>
-      )}
-      {runSimulation && <RecipeRunnerInner />}
+      <div>
+        Simulate the running of this recipe to see if it produces any output for
+        selected address. The simulation fetches the attestations specified in
+        the recipe and processes them locally in the browser.
+      </div>
+      <div className="grid w-full max-w-sm items-center gap-1.5">
+        <Label htmlFor="address">Recipient Eth address</Label>
+        <Input
+          name="address"
+          onChange={(e) => setSimulateForAddress(e.target.value)}
+          onFocus={resetSimulation}
+          placeholder="0x..."
+          type="text"
+          value={simulateForAddress}
+        />
+      </div>
+
+      <Button disabled={disabled} onClick={simulate}>
+        Simulate
+      </Button>
+      {runSimulation && <SimulateRunInner address={simulateForAddress} />}
     </>
   );
 }

@@ -54,7 +54,8 @@ type Run = record {
   created : nat64;
   creator : blob;
   attestation_uid : opt text;
-  attestation_transaction_hash : opt text;
+  attestation_transaction_hasr : opt text;
+
   recipe_id : blob;
   is_cancelled : bool;
   chain_id : nat64;

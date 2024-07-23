@@ -17,9 +17,8 @@ function parseVariablesTemplate(
   );
 }
 
-export function useFetchRecipeQueries() {
+export function useFetchRecipeQueries(address?: string) {
   const { selectedRecipe } = useRunContext();
-  const { address } = useAccount();
 
   const dynamicVariables = {
     user_eth_address: address ?? "",
