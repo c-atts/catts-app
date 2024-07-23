@@ -1,78 +1,197 @@
 import { useEffect, useState } from "react";
-
 import { Button } from "@/components/ui/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { RunOutput } from "../../../catts/types/run-output.type";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { isChainIdSupported } from "../../../wagmi/is-chain-id-supported";
 import { isError } from "remeda";
-import { simulateRun } from "../../../catts/simulateRun";
 import { useAccount } from "wagmi";
-import { useSimulateRecipeQueries } from "../../../catts/hooks/useSimulateRecipeQueries";
 import { useSiweIdentity } from "ic-use-siwe-identity";
-import useRunContext from "../../../context/useRunContext";
+import { SectionTitle } from "@/components/ui/Section";
+import { runProcessor } from "@/catts/runProcessor";
+import { useFetchRecipeQueries } from "@/catts/hooks/useFetchRecipeQueries";
+import { validateProcessorResult, validateSchemaItems } from "catts-sdk";
+import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
+import useRunContext from "@/context/useRunContext";
+import { RunOutput } from "@/catts/types/run-output.type";
+import { isChainIdSupported } from "@/wagmi/is-chain-id-supported";
+
+type SimulationStepStatus = "idle" | "pending" | "success" | "error";
+
+type SimulationSteps = {
+  step1Fetching: SimulationStepStatus;
+  step2Processing: SimulationStepStatus;
+  step3Validating: SimulationStepStatus;
+};
+
+function Status({
+  stepStatus,
+  pendingMessage,
+  successMessage,
+  errorMessage,
+}: {
+  stepStatus: SimulationStepStatus;
+  pendingMessage: string;
+  successMessage: string;
+  errorMessage?: string;
+}) {
+  switch (stepStatus) {
+    case "pending":
+      return (
+        <div className="flex items-center gap-2">
+          <LoaderCircle className="w-5 h-5 animate-spin" /> {pendingMessage}
+        </div>
+      );
+
+    case "success":
+      return (
+        <div className="flex items-center gap-2">
+          <CircleCheck className="w-5 h-5 animate-in animate-ping" />{" "}
+          {successMessage}
+        </div>
+      );
+    case "error":
+      return (
+        <div className="flex items-center gap-2">
+          <CircleAlert className="w-5 h-5" /> {errorMessage}
+        </div>
+      );
+    default:
+      return null;
+  }
+}
+
+function SimulationSteps({
+  steps,
+  fetchError,
+  processorError,
+  validationError,
+}: {
+  steps: SimulationSteps;
+  fetchError?: Error | null;
+  processorError?: string;
+  validationError?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div>
+        <Status
+          errorMessage={fetchError?.toString()}
+          pendingMessage="Fetching recipe data..."
+          stepStatus={steps.step1Fetching}
+          successMessage="Recipe data fetched"
+        />
+      </div>
+      <div>
+        <Status
+          errorMessage={processorError}
+          pendingMessage="Processing data..."
+          stepStatus={steps.step2Processing}
+          successMessage="Data processed"
+        />
+      </div>
+      <div>
+        <Status
+          errorMessage={validationError}
+          pendingMessage="Validating data..."
+          stepStatus={steps.step3Validating}
+          successMessage="Data validated"
+        />
+      </div>
+    </div>
+  );
+}
 
 function RecipeRunnerInner() {
-  const { data, isPending, error } = useSimulateRecipeQueries();
-  const {
-    selectedRecipe,
-    setIsSimulationOk: setIsSelectedRecipeValid,
-    isSimulationOk: isSelectedRecipeValid,
-  } = useRunContext();
-  const [simulateError, setSimulateError] = useState<string>();
-
+  const { data, error: fetchError } = useFetchRecipeQueries();
+  const { selectedRecipe } = useRunContext();
+  const [processorError, setProcessorError] = useState<string>();
   const [processedData, setProcessedData] = useState<RunOutput>();
+  const [validationError, setValidationError] = useState<string>();
+  const [simulationSteps, setSimulationSteps] = useState<SimulationSteps>({
+    step1Fetching: "pending",
+    step2Processing: "idle",
+    step3Validating: "idle",
+  });
 
   useEffect(() => {
-    if (!data || !selectedRecipe || isSelectedRecipeValid != undefined) return;
+    if (!data || !selectedRecipe) return;
     (async () => {
+      setSimulationSteps((s) => ({
+        ...s,
+        step1Fetching: "success",
+        step2Processing: "pending",
+      }));
+
+      await new Promise((r) => setTimeout(r, 300));
+
+      let _runOutputRaw = "";
       try {
-        // Simluate the run in the browser
-        const { runOutput } = await simulateRun({
+        const { runOutput, runOutputRaw } = await runProcessor({
           recipe: selectedRecipe,
           queryData: data,
         });
-
-        // All checks passed, this means we can use this data to create a new attestation
         setProcessedData(runOutput);
-        setIsSelectedRecipeValid(true);
+        _runOutputRaw = runOutputRaw as string;
       } catch (e) {
         console.error(e);
-        setSimulateError(isError(e) ? e.message : "Couldn't run simulation");
-        setIsSelectedRecipeValid(false);
+        setProcessorError(isError(e) ? e.message : "Couldn't run simulation");
+        setSimulationSteps((s) => ({
+          ...s,
+          step2Processing: "error",
+        }));
+      }
+
+      setSimulationSteps((s) => ({
+        ...s,
+        step2Processing: "success",
+        step3Validating: "pending",
+      }));
+
+      await new Promise((r) => setTimeout(r, 300));
+
+      try {
+        const schemaItems = await validateProcessorResult({
+          processorResult: _runOutputRaw,
+        });
+        await validateSchemaItems({
+          schemaItems,
+          schema: selectedRecipe.schema,
+        });
+        setSimulationSteps((s) => ({
+          ...s,
+          step3Validating: "success",
+        }));
+      } catch (e) {
+        console.error(e);
+        setValidationError(isError(e) ? e.message : "Couldn't validate output");
+        setSimulationSteps((s) => ({
+          ...s,
+          step3Validating: "error",
+        }));
       }
     })();
-  }, [data, selectedRecipe, setIsSelectedRecipeValid, isSelectedRecipeValid]);
+  }, [data, selectedRecipe]);
 
-  console.log("data", data);
-
-  if (isPending)
-    return (
-      <p>
-        <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-        Running simulation
-      </p>
-    );
-
-  if (simulateError) return <p>🔴 {simulateError}</p>;
-
-  if (!data || !isSelectedRecipeValid)
-    return <p>🔴 Recipe did not return any data for this user.</p>;
-
-  if (error) {
-    console.error(error);
-    return <p>🔴 Couldn&apos;t run simulation. </p>;
-  }
+  const allStepsCompleted = Object.values(simulationSteps).every(
+    (step) => step === "success",
+  );
 
   return (
     <>
-      <p>
-        ✅ Simulation was successful. The recipe will generate the following
-        attestation:
-      </p>
-      <pre className="w-full p-3 overflow-x-auto text-sm border border-zinc-500">
-        {JSON.stringify(processedData, null, 2)}
-      </pre>
+      <SimulationSteps
+        fetchError={fetchError}
+        processorError={processorError}
+        steps={simulationSteps}
+        validationError={validationError}
+      />
+      {allStepsCompleted && (
+        <>
+          <p>
+            Simulation was successful. The recipe would generate the following
+            attestation:
+          </p>
+          <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
+            {JSON.stringify(processedData, null, 2)}
+          </pre>
+        </>
+      )}
     </>
   );
 }
@@ -91,28 +210,26 @@ export default function SimulateRun() {
     isSelectedRecipeValid != undefined;
 
   return (
-    <div className="flex flex-col gap-2">
-      <div>
-        <h2>Simulate run</h2>
+    <>
+      <SectionTitle>Simulate run</SectionTitle>
+      <p>
+        To create attestations based on this recipe, first simulate a run to see
+        if it produces any output for current address. The simulation fetches
+        the attestations specified in the recipe and processes them locally in
+        the browser.
+      </p>
+      {!isSelectedRecipeValid && (
         <p>
-          To create attestations based on this recipe, first simulate a run to
-          see if it produces any output for current address. The simulation
-          fetches the attestations specified in the recipe and processes them
-          locally in the browser.
+          <Button
+            className="mt-5"
+            disabled={disabled}
+            onClick={() => setRunSimulation(true)}
+          >
+            Simulate
+          </Button>
         </p>
-        {!isSelectedRecipeValid && (
-          <p>
-            <Button
-              className="mt-5"
-              disabled={disabled}
-              onClick={() => setRunSimulation(true)}
-            >
-              Simulate
-            </Button>
-          </p>
-        )}
-      </div>
+      )}
       {runSimulation && <RecipeRunnerInner />}
-    </div>
+    </>
   );
 }

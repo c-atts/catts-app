@@ -1,7 +1,5 @@
 import { Recipe } from "catts_engine/declarations/catts_engine.did";
 import { RunOutput } from "./types/run-output.type";
-import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
-import { transformHexItems } from "./transformHexItems";
 import {
   newQuickJSWASMModuleFromVariant,
   newVariant,
@@ -9,11 +7,11 @@ import {
 import wasmLocation from "@jitl/quickjs-wasmfile-release-sync/wasm?url";
 import RELEASE_SYNC from "@jitl/quickjs-wasmfile-release-sync";
 
-const variant = newVariant(RELEASE_SYNC, {
+const quickJSVariant = newVariant(RELEASE_SYNC, {
   wasmLocation,
 });
 
-export async function simulateRun({
+export async function runProcessor({
   recipe,
   queryData,
 }: {
@@ -29,7 +27,7 @@ export async function simulateRun({
     JSON.stringify(queryData, null, 2),
   );
 
-  const QuickJS = await newQuickJSWASMModuleFromVariant(variant);
+  const QuickJS = await newQuickJSWASMModuleFromVariant(quickJSVariant);
   const vm = QuickJS.newContext();
 
   try {
@@ -58,17 +56,9 @@ export async function simulateRun({
     // Parse the processed data, make sure it follows the expected schema
     const runOutput: RunOutput = RunOutput.parse(JSON.parse(runOutputRaw));
 
-    // Clean the processed data, transforming uint256 values to hex strings
-    // runOutput = transformHexItems(runOutput);
-
-    // Encode the processed data using the output schema
-    const schemaEncoder = new SchemaEncoder(recipe.schema);
-    const encodedOutput = schemaEncoder.encodeData(runOutput);
-
     return {
       runOutputRaw,
       runOutput,
-      encodedOutput,
     };
   } finally {
     vm.dispose();

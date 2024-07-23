@@ -9,7 +9,7 @@ import InitRun from "../components/routes/recipe/CreateRun";
 import PayForRun from "../components/routes/recipe/PayForRun";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
 import SimulateRun from "../components/routes/recipe/SimulateRun";
-import Section from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
@@ -35,15 +35,21 @@ function Index() {
   }
 
   return (
-    <Section>
-      <div className="flex flex-col gap-5">
-        <RecipeBasics />
-        <RecipeDetails />
-        <SimulateRun />
-        <InitRun />
-        <PayForRun />
-        <CreateAttestation />
+    <div className="flex gap-5">
+      <div className="flex flex-col gap-5 w-2/3">
+        <Section>
+          <RecipeBasics />
+          <RecipeDetails />
+          <InitRun />
+          <PayForRun />
+          <CreateAttestation />
+        </Section>
       </div>
-    </Section>
+      <div className="flex flex-col gap-5 w-1/3">
+        <Section>
+          <SimulateRun />
+        </Section>
+      </div>
+    </div>
   );
 }
