@@ -21,9 +21,9 @@ impl TaskExecutor for GetAttestationUidExecutor {
                 TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
             })?;
 
-            let mut run = run::get_by_id(&run_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Run not found".to_string(),
-            ))?;
+            let mut run = run::get_by_id(&run_id).map_err(|_| {
+                TaskError::Failed("CreateAttestationExecutor: Run not found".to_string())
+            })?;
 
             if run.attestation_uid.is_some() {
                 return Err(TaskError::Failed(

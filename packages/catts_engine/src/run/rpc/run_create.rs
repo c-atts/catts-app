@@ -12,12 +12,7 @@ use ic_cdk::{api::canister_balance, update};
 async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
-
-    let recipe = recipe::get_by_id(&recipe_id).ok_or(HttpError::not_found("Recipe not found"))?;
-
-    if recipe.queries.is_empty() {
-        return Err(HttpError::bad_request("Recipe contains no queries"));
-    }
+    let recipe = recipe::get_by_id(&recipe_id).map_err(HttpError::not_found)?;
 
     chain_config::get(chain_id).ok_or(HttpError::internal_server_error(
         format!("Chain {} is not supported", chain_id).as_str(),

@@ -3,6 +3,7 @@ use ic_stable_structures::{storable::Bound, Storable};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
+use thiserror::Error;
 use validator::{Validate, ValidationError};
 use validator_derive::Validate;
 
@@ -14,6 +15,16 @@ use crate::{
 use super::generate_recipe_id;
 
 pub type RecipeId = [u8; 12];
+
+#[derive(Error, Debug)]
+pub enum RecipeError {
+    #[error("Only drafts can be updated")]
+    NotDraft,
+    #[error("Name already in use")]
+    NameInUse,
+    #[error("Recipe not found")]
+    NotFound,
+}
 
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone, PartialEq)]
 pub enum RecipePublishState {

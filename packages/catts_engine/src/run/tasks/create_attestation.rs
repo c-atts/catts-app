@@ -24,13 +24,13 @@ impl TaskExecutor for CreateAttestationExecutor {
                 TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
             })?;
 
-            let mut run = run::get_by_id(&run_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Run not found".to_string(),
-            ))?;
+            let mut run = run::get_by_id(&run_id).map_err(|_| {
+                TaskError::Failed("CreateAttestationExecutor: Run not found".to_string())
+            })?;
 
-            let recipe = recipe::get_by_id(&run.recipe_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Recipe not found".to_string(),
-            ))?;
+            let recipe = recipe::get_by_id(&run.recipe_id).map_err(|_| {
+                TaskError::Failed("CreateAttestationExecutor: Recipe not found".to_string())
+            })?;
 
             // let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
             //     "CreateAttestationExecutor: Chain config not found".to_string(),

@@ -11,25 +11,18 @@ async fn run_cancel(run_id: RunId) -> Result<Run, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
 
-    let run = match run::get(&address, &run_id) {
-        Some(run) => run,
-        None => return Err(HttpError::not_found(RunError::NotFound)),
-    };
+    let run = run::get(&address, &run_id).map_err(HttpError::not_found)?;
 
     // Only creator can cancel the run
     if run.creator != address.as_byte_array() {
         return Err(HttpError::forbidden("Only creator can cancel the run"));
     }
 
-    let reusult = match run::cancel(&address.as_byte_array(), &run_id) {
-        Ok(run) => Ok(run),
-        Err(err) => match err {
-            RunError::TransactionHashAlreadyRegistered => Err(HttpError::bad_request(
-                "Already paid runs cannot be cancelled",
-            )),
-            RunError::NotFound => Err(HttpError::not_found(err)),
-        },
-    };
+    let run = run::cancel(&address, &run_id).map_err(|err| match err {
+        RunError::CantBeCancelled(msg) => HttpError::bad_request(msg),
+        RunError::NotFound => HttpError::not_found(err),
+        RunError::RecipeNotFound => HttpError::not_found(err),
+    })?;
 
     let cycles_after = canister_balance();
     info(
@@ -40,5 +33,5 @@ async fn run_cancel(run_id: RunId) -> Result<Run, HttpError> {
         .as_str(),
     );
 
-    reusult
+    Ok(run)
 }

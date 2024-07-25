@@ -19,17 +19,14 @@ async fn run_register_payment(
 ) -> Result<Run, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
-    let run = match run::get(&address, &run_id) {
-        Some(run) => run,
-        None => return Err(HttpError::not_found(RunError::NotFound)),
-    };
+    let run = run::get(&address, &run_id).map_err(HttpError::not_found)?;
 
     // Only creator can register payment
     if run.creator != address.as_byte_array() {
         return Err(HttpError::forbidden("Only creator can register payment"));
     }
 
-    let result = match run::register_payment(&address.as_byte_array(), &run_id, &transaction_hash) {
+    let result = match run::register_payment(&address, &run_id, &transaction_hash) {
         Ok(run) => {
             let args: Vec<u8> = bincode::serialize(&ProcessRunPaymentArgs {
                 block_to_process,
@@ -52,8 +49,9 @@ async fn run_register_payment(
             Ok(run)
         }
         Err(e) => match e {
-            RunError::TransactionHashAlreadyRegistered => Err(HttpError::bad_request(e)),
+            RunError::CantBeCancelled(msg) => Err(HttpError::bad_request(msg)),
             RunError::NotFound => Err(HttpError::not_found(e)),
+            RunError::RecipeNotFound => Err(HttpError::not_found(e)),
         },
     };
 

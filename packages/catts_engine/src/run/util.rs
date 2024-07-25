@@ -1,3 +1,4 @@
+use super::types::Run;
 use crate::{
     chain_config::{self},
     declarations::evm_rpc::BlockTag,
@@ -6,10 +7,9 @@ use crate::{
     evm::rpc::{eth_fee_history, eth_get_block_by_number, EvmRpcError},
     recipe::Recipe,
 };
+use anyhow::Result;
 use candid::Nat;
 use thiserror::Error;
-
-use super::types::Run;
 
 pub fn vec_to_run_id(bytes: Vec<u8>) -> Result<[u8; 12], String> {
     if bytes.len() == 12 {
@@ -41,9 +41,7 @@ pub enum EstimateTransactionFeesError {
     EvmRpc(#[from] EvmRpcError),
 }
 
-pub async fn estimate_transaction_fees(
-    run: &Run,
-) -> Result<FeeEstimates, EstimateTransactionFeesError> {
+pub async fn estimate_transaction_fees(run: &Run) -> Result<FeeEstimates> {
     let chain_config = chain_config::get(run.chain_id).ok_or(
         EstimateTransactionFeesError::GetChainConfigError(run.chain_id),
     )?;

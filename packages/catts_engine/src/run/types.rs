@@ -15,8 +15,10 @@ use super::state::generate_run_id;
 pub enum RunError {
     #[error("Run not found")]
     NotFound,
-    #[error("A transaction hash is already registered for this run")]
-    TransactionHashAlreadyRegistered,
+    #[error("Recipe not found")]
+    RecipeNotFound,
+    #[error("Can't be cancelled: {0}")]
+    CantBeCancelled(String),
 }
 
 pub type RunId = [u8; 12];
@@ -64,7 +66,8 @@ impl Run {
         chain_id: u64,
         creator: &EthAddress,
     ) -> Result<Self, RunError> {
-        recipe::get_by_id(recipe_id).ok_or(RunError::NotFound)?;
+        // A run must be created with a valid recipe
+        recipe::get_by_id(recipe_id).map_err(|_| RunError::RecipeNotFound)?;
 
         let created = time();
         let id = generate_run_id(creator, created);

@@ -6,8 +6,5 @@ use ic_cdk::query;
 
 #[query]
 fn recipe_get_by_name(name: String) -> Result<Recipe, HttpError> {
-    match recipe::get_by_name(&name) {
-        Some(recipe) => Ok(recipe),
-        None => Err(HttpError::not_found("Recipe not found")),
-    }
+    recipe::get_by_name(&name).map_err(HttpError::not_found)
 }

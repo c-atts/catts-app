@@ -518,6 +518,7 @@ dependencies = [
 name = "catts_engine"
 version = "0.0.1"
 dependencies = [
+ "anyhow",
  "bincode",
  "blake2",
  "candid",

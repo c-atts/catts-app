@@ -2,7 +2,7 @@ use crate::chain_config::{self, ChainConfig};
 use crate::declarations::evm_rpc::{GetLogsResult, LogEntry, MultiGetLogsResult};
 use crate::evm::rpc::get_payment_logs_for_block;
 use crate::logger::{error, info};
-use crate::run::{self, PaymentVerifiedStatus};
+use crate::run::{self};
 use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType};
 use crate::{
     eth::{remove_address_padding, EthAddress},
@@ -44,9 +44,9 @@ impl TaskExecutor for ProcessRunPaymentExecutor {
             let args: ProcessRunPaymentArgs = bincode::deserialize(&args)
                 .map_err(|_| TaskError::Failed("Invalid arguments".to_string()))?;
 
-            let run = run::get_by_id(&args.run_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Run not found".to_string(),
-            ))?;
+            let run = run::get_by_id(&args.run_id).map_err(|_| {
+                TaskError::Failed("CreateAttestationExecutor: Run not found".to_string())
+            })?;
 
             let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Chain config not found".to_string(),
@@ -200,15 +200,15 @@ fn process_log_entry(
             //     .try_into()
             //     .map_err(|_| PaymentError::Fail("Payment amount is too large".to_string()))?;
 
-            let run = run::get(&event_from_address, &event_run_id).ok_or_else(|| {
-                PaymentError::Fail("Found payment for non-existent run".to_string())
-            })?;
+            // let run = run::get(&event_from_address, &event_run_id).ok_or_else(|| {
+            //     PaymentError::Fail("Found payment for non-existent run".to_string())
+            // })?;
 
-            if run.payment_verified_status == Some(PaymentVerifiedStatus::Verified) {
-                return Err(PaymentError::Fail(
-                    "Payment already verified for this run".to_string(),
-                ));
-            }
+            // if run.payment_verified_status == Some(PaymentVerifiedStatus::Verified) {
+            //     return Err(PaymentError::Fail(
+            //         "Payment already verified for this run".to_string(),
+            //     ));
+            // }
 
             //     if event_amount >= run.fee {
             //         run.payment_transaction_hash
