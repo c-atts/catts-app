@@ -1,12 +1,12 @@
 use crate::chain_config::{self, ChainConfig};
 use crate::declarations::evm_rpc::{GetLogsResult, LogEntry, MultiGetLogsResult};
-use crate::evm_rpc::get_payment_logs_for_block;
+use crate::evm::rpc::get_payment_logs_for_block;
 use crate::logger::{error, info};
+use crate::run::{self, PaymentVerifiedStatus};
 use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType};
 use crate::{
     eth::{remove_address_padding, EthAddress},
     logger::warn,
-    run::run::{vec_to_run_id, PaymentVerifiedStatus, Run},
     ETH_PAYMENT_EVENT_SIGNATURE,
 };
 use ethers_core::abi::ParamType;
@@ -44,7 +44,7 @@ impl TaskExecutor for ProcessRunPaymentExecutor {
             let args: ProcessRunPaymentArgs = bincode::deserialize(&args)
                 .map_err(|_| TaskError::Failed("Invalid arguments".to_string()))?;
 
-            let run = Run::get_by_id(&args.run_id).ok_or(TaskError::Failed(
+            let run = run::get_by_id(&args.run_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Run not found".to_string(),
             ))?;
 
@@ -182,7 +182,7 @@ fn process_log_entry(
             let event_run_id = decoded_data[1].clone().into_fixed_bytes().ok_or_else(|| {
                 PaymentError::Warn("Payment run_id is the wrong data type".to_string())
             })?;
-            let event_run_id = vec_to_run_id(event_run_id).map_err(|_| {
+            let event_run_id = run::vec_to_run_id(event_run_id).map_err(|_| {
                 PaymentError::Warn("Payment run_id is not a valid run_id".to_string())
             })?;
 
@@ -193,17 +193,16 @@ fn process_log_entry(
             }
 
             // amount
-            let event_amount = decoded_data[0].clone().into_uint().ok_or_else(|| {
-                PaymentError::Fail("Payment amount is the wrong data type".to_string())
-            })?;
-            let event_amount: u128 = event_amount
-                .try_into()
-                .map_err(|_| PaymentError::Fail("Payment amount is too large".to_string()))?;
+            // let event_amount = decoded_data[0].clone().into_uint().ok_or_else(|| {
+            //     PaymentError::Fail("Payment amount is the wrong data type".to_string())
+            // })?;
+            // // let event_amount: u128 = event_amount
+            //     .try_into()
+            //     .map_err(|_| PaymentError::Fail("Payment amount is too large".to_string()))?;
 
-            let mut run =
-                Run::get(&event_from_address.as_byte_array(), &event_run_id).ok_or_else(|| {
-                    PaymentError::Fail("Found payment for non-existent run".to_string())
-                })?;
+            let run = run::get(&event_from_address, &event_run_id).ok_or_else(|| {
+                PaymentError::Fail("Found payment for non-existent run".to_string())
+            })?;
 
             if run.payment_verified_status == Some(PaymentVerifiedStatus::Verified) {
                 return Err(PaymentError::Fail(
@@ -211,17 +210,17 @@ fn process_log_entry(
                 ));
             }
 
-            if event_amount >= run.fee {
-                run.payment_transaction_hash
-                    .clone_from(&entry.transactionHash);
-                run.payment_verified_status = Some(PaymentVerifiedStatus::Verified);
-                Run::update(&run);
-                return Ok(());
-            } else {
-                return Err(PaymentError::Fail(
-                    "Payment did not cover the cost of the run".to_string(),
-                ));
-            }
+            //     if event_amount >= run.fee {
+            //         run.payment_transaction_hash
+            //             .clone_from(&entry.transactionHash);
+            //         run.payment_verified_status = Some(PaymentVerifiedStatus::Verified);
+            //         run::save(run);
+            //         return Ok(());
+            //     } else {
+            //         return Err(PaymentError::Fail(
+            //             "Payment did not cover the cost of the run".to_string(),
+            //         ));
+            //     }
         }
         return Err(PaymentError::Warn("Failed to decode log data".to_string()));
     }

@@ -1,6 +1,6 @@
 use ic_cdk::update;
 
-use crate::evm_rpc::get_self_eth_address;
+use crate::evm::rpc::get_self_eth_address;
 
 #[update]
 async fn canister_eth_address() -> Result<String, String> {

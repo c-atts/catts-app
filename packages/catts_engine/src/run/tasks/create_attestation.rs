@@ -1,10 +1,9 @@
 use crate::{
-    chain_config::{self},
     eas::{create_attestation, process_query_result, run_query},
     eth::EthAddress,
     logger::debug,
     recipe::{self},
-    run::run::{vec_to_run_id, PaymentVerifiedStatus, Run},
+    run::{self, PaymentVerifiedStatus},
     tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType},
 };
 use futures::Future;
@@ -21,11 +20,11 @@ impl TaskExecutor for CreateAttestationExecutor {
         args: Vec<u8>,
     ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>> {
         Box::pin(async move {
-            let run_id = vec_to_run_id(args).map_err(|_| {
+            let run_id = run::vec_to_run_id(args).map_err(|_| {
                 TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
             })?;
 
-            let mut run = Run::get_by_id(&run_id).ok_or(TaskError::Failed(
+            let mut run = run::get_by_id(&run_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Run not found".to_string(),
             ))?;
 
@@ -33,9 +32,9 @@ impl TaskExecutor for CreateAttestationExecutor {
                 "CreateAttestationExecutor: Recipe not found".to_string(),
             ))?;
 
-            let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Chain config not found".to_string(),
-            ))?;
+            // let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
+            //     "CreateAttestationExecutor: Chain config not found".to_string(),
+            // ))?;
 
             // Run is already attested, cancel
             if run.attestation_transaction_hash.is_some() {
@@ -60,28 +59,34 @@ impl TaskExecutor for CreateAttestationExecutor {
             let mut query_response = Vec::new();
 
             for i in 0..recipe.queries.len() {
-                let response = run_query(&recipient, &recipe.queries[i])
-                    .await
-                    .map_err(|err| {
+                let response = run_query(&recipient, &recipe.queries[i]).await;
+                match response {
+                    Ok(qr) => {
+                        query_response.push(qr);
+                    }
+                    Err(err) => {
                         run.attestation_create_error = Some(err.to_string());
-                        Run::update(&run);
-                        TaskError::Failed(format!("Error running EAS query: {}", err))
-                    })?;
-                query_response.push(response);
+                        run::save(run);
+                        return Err(TaskError::Failed(format!(
+                            "Error running EAS query: {}",
+                            err
+                        )));
+                    }
+                }
             }
             let aggregated_response = format!("[{}]", query_response.join(","));
 
             let attestation_data = process_query_result(&recipe.processor, &aggregated_response);
 
             let attestation_transaction_hash =
-                create_attestation(&recipe, &attestation_data, &recipient, &chain_config)
+                create_attestation(&recipe, &run, &attestation_data, &recipient, run.chain_id)
                     .await
                     .map_err(|err| {
                         TaskError::Failed(format!("Error creating attestation: {}", err))
                     })?;
 
             run.attestation_transaction_hash = Some(attestation_transaction_hash.clone());
-            Run::update(&run);
+            run::save(run);
 
             add_task(
                 ic_cdk::api::time() + GET_ATTESTATION_UID_FIRST_TIME_INTERVAL,

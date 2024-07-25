@@ -1,4 +1,4 @@
-use candid::{CandidType, Decode, Encode, Nat};
+use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -69,7 +69,6 @@ pub struct Recipe {
     pub resolver: String,
 
     pub revokable: bool,
-    pub gas: Option<Nat>,
     pub publish_state: RecipePublishState,
 }
 
@@ -159,7 +158,6 @@ impl Recipe {
             schema: details.schema.clone(),
             resolver: details.resolver.clone(),
             revokable: details.revokable,
-            gas: None,
             publish_state: RecipePublishState::Draft,
         };
 

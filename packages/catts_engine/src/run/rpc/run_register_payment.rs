@@ -3,10 +3,7 @@ use ic_cdk::{api::canister_balance, update};
 use crate::{
     error::Error,
     logger::info,
-    run::{
-        run::{Run, RunError, RunId},
-        tasks::process_run_payment::ProcessRunPaymentArgs,
-    },
+    run::{self, tasks::process_run_payment::ProcessRunPaymentArgs, Run, RunError, RunId},
     tasks::{add_task, Task, TaskType},
     user::auth_guard,
 };
@@ -22,7 +19,7 @@ async fn run_register_payment(
 ) -> Result<Run, Error> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
-    let run = match Run::get(&address.as_byte_array(), &run_id) {
+    let run = match run::get(&address, &run_id) {
         Some(run) => run,
         None => return Err(Error::not_found(RunError::NotFound)),
     };
@@ -32,7 +29,7 @@ async fn run_register_payment(
         return Err(Error::forbidden("Only creator can register payment"));
     }
 
-    let result = match Run::register_payment(&address.as_byte_array(), &run_id, &transaction_hash) {
+    let result = match run::register_payment(&address.as_byte_array(), &run_id, &transaction_hash) {
         Ok(run) => {
             let args: Vec<u8> = bincode::serialize(&ProcessRunPaymentArgs {
                 block_to_process,

@@ -1,73 +1,47 @@
 use crate::{
     chain_config::ChainConfig,
     declarations::evm_rpc::{
-        evm_rpc, BlockTag, GetLogsArgs, GetTransactionCountArgs, GetTransactionCountResult,
-        GetTransactionReceiptResult, MultiGetLogsResult, MultiGetTransactionCountResult,
-        MultiGetTransactionReceiptResult, MultiSendRawTransactionResult, RpcConfig,
+        evm_rpc, Block, BlockTag, FeeHistory, FeeHistoryArgs, FeeHistoryResult,
+        GetBlockByNumberResult, GetLogsArgs, GetTransactionCountArgs, GetTransactionCountResult,
+        GetTransactionReceiptResult, MultiFeeHistoryResult, MultiGetBlockByNumberResult,
+        MultiGetLogsResult, MultiGetTransactionCountResult, MultiGetTransactionReceiptResult,
+        MultiSendRawTransactionResult, RequestResult, RpcConfig, RpcError,
         SendRawTransactionResult, SendRawTransactionStatus, TransactionReceipt,
     },
-    CANISTER_SETTINGS, ETH_DEFAULT_CALL_CYCLES,
+    evm::util::{ecdsa_key_id, nat_to_u256, nat_to_u64},
+    ETH_DEFAULT_CALL_CYCLES,
 };
 use candid::Nat;
 use ethers_core::{
     abi::{
-        ethereum_types::{Address, U256, U64},
-        Contract, FunctionExt, Token,
+        ethereum_types::{Address, U256},
+        Contract, Token,
     },
-    types::Bytes,
     utils::keccak256,
 };
 use ic_cdk::api::{
     call::{call_with_payment128, CallResult, RejectionCode},
     management_canister::ecdsa::{
-        ecdsa_public_key, sign_with_ecdsa, EcdsaKeyId, EcdsaPublicKeyArgument,
-        SignWithEcdsaArgument,
+        ecdsa_public_key, sign_with_ecdsa, EcdsaPublicKeyArgument, SignWithEcdsaArgument,
     },
 };
 use k256::{elliptic_curve::sec1::ToEncodedPoint, PublicKey};
-use serde::{Deserialize, Serialize};
+use serde_bytes::ByteBuf;
+use serde_json::json;
 use std::{cell::RefCell, str::FromStr};
 use thiserror::Error;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct JsonRpcRequest {
-    id: u64,
-    jsonrpc: String,
-    method: String,
-    params: (EthCallParams, String),
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct EthCallParams {
-    to: String,
-    data: String,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct JsonRpcResult {
-    result: Option<String>,
-    error: Option<JsonRpcError>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct JsonRpcError {
-    code: isize,
-    message: String,
-}
-
-fn ecdsa_key_id() -> EcdsaKeyId {
-    EcdsaKeyId {
-        curve: ic_cdk::api::management_canister::ecdsa::EcdsaCurve::Secp256k1,
-        name: CANISTER_SETTINGS.with(|settings| settings.borrow().ecdsa_key_id.clone()),
-    }
-}
+use super::{
+    types::{JsonRpcErrorResponse, JsonRpcResponse, SignRequest},
+    util::get_abi_function_by_name,
+};
 
 async fn next_id(chain_config: &ChainConfig) -> Nat {
     let res: CallResult<(MultiGetTransactionCountResult,)> = call_with_payment128(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_getTransactionCount",
         (
-            chain_config.eth_service(),
+            chain_config.rpc_services.clone(),
             None::<RpcConfig>,
             GetTransactionCountArgs {
                 address: get_self_eth_address().await,
@@ -84,15 +58,8 @@ async fn next_id(chain_config: &ChainConfig) -> Nat {
     }
 }
 
-pub fn max_fee_per_gas(chain_config: &ChainConfig) -> Nat {
-    chain_config.base_fee_per_gas.clone() * 2_u8
-}
-
 #[derive(Error, Debug)]
 pub enum EthTransactionError {
-    #[error("Function not found: {0}")]
-    FunctionNotFound(String),
-
     #[error("Unable to encode args")]
     ArgsEncoding,
 
@@ -104,36 +71,28 @@ pub enum EthTransactionError {
 
     #[error("MultiSendRawTransaction: {0:?}")]
     MultiSendRawTransaction(MultiSendRawTransactionResult),
+
+    #[error("Rpc error: {0:?}")]
+    RpcError(RpcError),
+
+    #[error("Json error: {0}")]
+    JsonError(#[from] serde_json::Error),
+
+    #[error("JsonRpc error: {0:?}")]
+    JsonRpcError(JsonRpcErrorResponse),
 }
 
-/// Submit an ETH TX.
 pub async fn eth_transaction(
     contract_address: String,
-    abi: &Contract,
+    abi_contract: &Contract,
     function_name: &str,
     args: &[Token],
     gas: Nat,
+    max_priority_fee_per_gas: Nat,
     chain_config: &ChainConfig,
 ) -> Result<String, EthTransactionError> {
-    let f = match abi.functions_by_name(function_name).map(|v| &v[..]) {
-        Ok([f]) => Ok(f),
-        Ok(fs) => {
-            panic!(
-                "Found {} function overloads. Please pass one of the following: {}",
-                fs.len(),
-                fs.iter()
-                    .map(|f| format!("{:?}", f.abi_signature()))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )
-        }
-        Err(_) => abi
-            .functions()
-            .find(|f| function_name == f.abi_signature())
-            .ok_or_else(|| EthTransactionError::FunctionNotFound(function_name.to_string())),
-    }?;
-
-    let data = f
+    let abi_function = get_abi_function_by_name(abi_contract, function_name);
+    let data = abi_function
         .encode_input(args)
         .map_err(|_| EthTransactionError::ArgsEncoding)?;
 
@@ -141,8 +100,7 @@ pub async fn eth_transaction(
         chain_id: chain_config.chain_id.into(),
         to: contract_address,
         gas,
-        max_fee_per_gas: max_fee_per_gas(chain_config),
-        max_priority_fee_per_gas: chain_config.priority_fee.clone(),
+        max_priority_fee_per_gas,
         value: 0_u8.into(),
         nonce: next_id(chain_config).await,
         data: Some(data.into()),
@@ -153,7 +111,7 @@ pub async fn eth_transaction(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_sendRawTransaction",
         (
-            chain_config.eth_service(),
+            chain_config.rpc_services.clone(),
             None::<RpcConfig>,
             signed_data.clone(),
         ),
@@ -173,16 +131,61 @@ pub async fn eth_transaction(
     }
 }
 
+pub async fn eth_estimate_gas(
+    contract_address: String,
+    abi_contract: &Contract,
+    function_name: &str,
+    args: &[Token],
+    chain_config: &ChainConfig,
+) -> Result<String, EthTransactionError> {
+    let abi_function = get_abi_function_by_name(abi_contract, function_name);
+    let data = abi_function
+        .encode_input(args)
+        .map_err(|_| EthTransactionError::ArgsEncoding)?;
+
+    let json_rpc_payload = json!({
+        "id": 1,
+        "jsonrpc": "2.0",
+        "method": "eth_estimateGas",
+        "params": [{
+            "to": contract_address,
+            "data": format!("0x{}", hex::encode(data)),
+        }, "latest"],
+    })
+    .to_string();
+
+    let (result,): (RequestResult,) = call_with_payment128(
+        crate::declarations::evm_rpc::evm_rpc.0,
+        "request",
+        (
+            chain_config.default_rpc_service.clone(),
+            json_rpc_payload,
+            2048_u64,
+        ),
+        ETH_DEFAULT_CALL_CYCLES,
+    )
+    .await
+    .map_err(EthTransactionError::CallError)?;
+
+    match result {
+        RequestResult::Ok(s) => serde_json::from_str::<JsonRpcResponse>(&s)
+            .map_err(EthTransactionError::JsonError)
+            .and_then(|r| match r {
+                JsonRpcResponse::Success(s) => Ok(s.result),
+                JsonRpcResponse::Error(e) => Err(EthTransactionError::JsonRpcError(e)),
+            }),
+        RequestResult::Err(e) => Err(EthTransactionError::RpcError(e)),
+    }
+}
+
 pub async fn eth_get_transaction_receipt(
     hash: &str,
     chain_config: &ChainConfig,
 ) -> Result<TransactionReceipt, String> {
-    ic_cdk::println!("eth_get_transaction_receipt: {}", hash);
-
     let (res,): (MultiGetTransactionReceiptResult,) = call_with_payment128(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_getTransactionReceipt",
-        (chain_config.eth_service(), None::<RpcConfig>, hash),
+        (chain_config.rpc_services.clone(), None::<RpcConfig>, hash),
         ETH_DEFAULT_CALL_CYCLES,
     )
     .await
@@ -207,7 +210,7 @@ pub async fn get_payment_logs_for_block(
         evm_rpc.0,
         "eth_getLogs",
         (
-            chain_config.eth_service(),
+            chain_config.rpc_services.clone(),
             1,
             GetLogsArgs {
                 addresses: vec![chain_config.payment_contract.clone()],
@@ -224,19 +227,6 @@ pub async fn get_payment_logs_for_block(
         Ok(result) => Ok(result),
         Err(err) => Err(format!("{:?}", err)),
     }
-}
-
-#[derive(Debug)]
-struct SignRequest {
-    pub chain_id: Nat,
-    pub to: String,
-    pub gas: Nat,
-    pub max_fee_per_gas: Nat,
-    pub max_priority_fee_per_gas: Nat,
-    /// ETH to send
-    pub value: Nat,
-    pub nonce: Nat,
-    pub data: Option<Bytes>,
 }
 
 /// Computes a signature for an [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559) transaction.
@@ -259,8 +249,8 @@ async fn sign_transaction(req: SignRequest) -> String {
         nonce: Some(nat_to_u256(&req.nonce)),
         data: req.data,
         access_list: Default::default(),
+        max_fee_per_gas: None,
         max_priority_fee_per_gas: Some(nat_to_u256(&req.max_priority_fee_per_gas)),
-        max_fee_per_gas: Some(nat_to_u256(&req.max_fee_per_gas)),
     };
 
     let mut unsigned_tx_bytes = tx.rlp().to_vec();
@@ -324,15 +314,6 @@ async fn pubkey_and_signature(message_hash: Vec<u8>) -> (Vec<u8>, Vec<u8>) {
         response.expect("failed to sign the message").0.signature,
     )
 }
-fn nat_to_u256(n: &Nat) -> U256 {
-    let be_bytes = n.0.to_bytes_be();
-    U256::from_big_endian(&be_bytes)
-}
-
-fn nat_to_u64(n: &Nat) -> U64 {
-    let be_bytes = n.0.to_bytes_be();
-    U64::from_big_endian(&be_bytes)
-}
 
 thread_local! {
     static SELF_ETH_ADDRESS: RefCell<Option<String>> =
@@ -364,4 +345,123 @@ pub async fn get_self_eth_address() -> String {
     }
 
     SELF_ETH_ADDRESS.with(|maybe_address| maybe_address.borrow().clone().unwrap())
+}
+
+#[derive(Error, Debug)]
+pub enum EvmRpcError {
+    #[error("Rpc error: {0}")]
+    Rpc(String),
+    #[error("IC call error: {0}")]
+    Ic(String),
+    #[error("Inconsistent responses from multiple RPC services")]
+    Inconsistent,
+    #[error("Unexpected error: {0}")]
+    Unexpected(String),
+}
+
+/// Returns the latest block with one caveat: if multiple Rpc services are specified and
+/// they return inconsistent responses, the function will return the earliest block in the
+/// - the "smallest common" latest block.
+pub async fn eth_get_block_by_number(
+    block_tag: BlockTag,
+    chain_config: &ChainConfig,
+) -> Result<Block, EvmRpcError> {
+    let call_result: CallResult<(MultiGetBlockByNumberResult,)> = call_with_payment128(
+        evm_rpc.0,
+        "eth_getBlockByNumber",
+        (
+            chain_config.rpc_services.clone(),
+            None::<RpcConfig>,
+            block_tag,
+            false,
+        ),
+        ETH_DEFAULT_CALL_CYCLES,
+    )
+    .await;
+
+    let block: Block = match call_result {
+        Ok((MultiGetBlockByNumberResult::Consistent(block),)) => match block {
+            GetBlockByNumberResult::Ok(block) => block,
+            GetBlockByNumberResult::Err(e) => {
+                return Err(EvmRpcError::Rpc(format!("{:?}", e)));
+            }
+        },
+        Ok((MultiGetBlockByNumberResult::Inconsistent(res),)) => {
+            let mut maybe_earliest_block: Option<Block> = None;
+            for r in res {
+                if let (_, GetBlockByNumberResult::Ok(b)) = r {
+                    match maybe_earliest_block {
+                        Some(ref earliest_block) => {
+                            if b.number < earliest_block.number {
+                                maybe_earliest_block = Some(b);
+                            }
+                        }
+                        None => {
+                            maybe_earliest_block = Some(b);
+                        }
+                    }
+                }
+            }
+            match maybe_earliest_block {
+                Some(earliest_block) => earliest_block,
+                None => {
+                    return Err(EvmRpcError::Unexpected("No block found".to_string()));
+                }
+            }
+        }
+        Err(e) => {
+            return Err(EvmRpcError::Ic(e.1));
+        }
+    };
+
+    Ok(block)
+}
+
+pub async fn eth_fee_history(
+    block_count: &Nat,
+    newest_block: &BlockTag,
+    reward_percentiles: Option<Vec<u8>>,
+    chain_config: &ChainConfig,
+) -> Result<FeeHistory, EvmRpcError> {
+    let fee_history_args: FeeHistoryArgs = FeeHistoryArgs {
+        blockCount: block_count.clone(),
+        newestBlock: newest_block.clone(),
+        rewardPercentiles: reward_percentiles.map(ByteBuf::from),
+    };
+
+    let call_result: CallResult<(MultiFeeHistoryResult,)> = call_with_payment128(
+        evm_rpc.0,
+        "eth_feeHistory",
+        (
+            chain_config.rpc_services.clone(),
+            None::<RpcConfig>,
+            fee_history_args,
+        ),
+        ETH_DEFAULT_CALL_CYCLES,
+    )
+    .await;
+
+    let fee_history: FeeHistory = match call_result {
+        Ok((res,)) => match res {
+            MultiFeeHistoryResult::Consistent(fee_history) => match fee_history {
+                FeeHistoryResult::Ok(maybe_fee_history) => match maybe_fee_history {
+                    Some(fee_history) => fee_history,
+                    None => {
+                        return Err(EvmRpcError::Unexpected("No fee history found".to_string()));
+                    }
+                },
+                FeeHistoryResult::Err(e) => {
+                    return Err(EvmRpcError::Rpc(format!("{:?}", e)));
+                }
+            },
+            MultiFeeHistoryResult::Inconsistent(_) => {
+                return Err(EvmRpcError::Inconsistent);
+            }
+        },
+        Err(e) => {
+            return Err(EvmRpcError::Ic(e.1));
+        }
+    };
+
+    Ok(fee_history)
 }

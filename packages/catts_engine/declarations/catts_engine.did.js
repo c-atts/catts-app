@@ -39,7 +39,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const Recipe = IDL.Record({
     'id' : IDL.Vec(IDL.Nat8),
-    'gas' : IDL.Opt(IDL.Nat),
     'resolver' : IDL.Text,
     'created' : IDL.Nat64,
     'creator' : IDL.Vec(IDL.Nat8),
@@ -67,11 +66,13 @@ export const idlFactory = ({ IDL }) => {
   });
   const Run = IDL.Record({
     'id' : IDL.Vec(IDL.Nat8),
-    'fee' : IDL.Nat,
+    'gas' : IDL.Opt(IDL.Nat),
     'created' : IDL.Nat64,
     'creator' : IDL.Vec(IDL.Nat8),
     'attestation_uid' : IDL.Opt(IDL.Text),
     'attestation_transaction_hash' : IDL.Opt(IDL.Text),
+    'base_fee_per_gas' : IDL.Opt(IDL.Nat),
+    'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat),
     'recipe_id' : IDL.Vec(IDL.Nat8),
     'is_cancelled' : IDL.Bool,
     'chain_id' : IDL.Nat64,

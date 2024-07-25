@@ -32,7 +32,6 @@ export type PaymentVerifiedStatus = { 'VerificationFailed' : null } |
   { 'Pending' : null };
 export interface Recipe {
   'id' : Uint8Array | number[],
-  'gas' : [] | [bigint],
   'resolver' : string,
   'created' : bigint,
   'creator' : Uint8Array | number[],
@@ -79,11 +78,13 @@ export type Result_5 = { 'Ok' : User } |
   { 'Err' : Error };
 export interface Run {
   'id' : Uint8Array | number[],
-  'fee' : bigint,
+  'gas' : [] | [bigint],
   'created' : bigint,
   'creator' : Uint8Array | number[],
   'attestation_uid' : [] | [string],
   'attestation_transaction_hash' : [] | [string],
+  'base_fee_per_gas' : [] | [bigint],
+  'max_priority_fee_per_gas' : [] | [bigint],
   'recipe_id' : Uint8Array | number[],
   'is_cancelled' : boolean,
   'chain_id' : bigint,

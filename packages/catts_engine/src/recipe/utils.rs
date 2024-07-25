@@ -1,7 +1,8 @@
-use crate::eth::EthAddress;
-use crate::recipe::RecipeId;
-use blake2::digest::{Update, VariableOutput};
-use blake2::Blake2bVar;
+use crate::{eth::EthAddress, recipe::RecipeId};
+use blake2::{
+    digest::{Update, VariableOutput},
+    Blake2bVar,
+};
 
 pub fn generate_recipe_id(creator: &EthAddress, name: &str) -> RecipeId {
     let mut hasher = Blake2bVar::new(12).unwrap();

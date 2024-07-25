@@ -9,7 +9,7 @@ mod declarations;
 mod eas;
 mod error;
 mod eth;
-mod evm_rpc;
+mod evm;
 mod graphql;
 mod logger;
 mod recipe;
@@ -19,7 +19,7 @@ mod tasks;
 mod user;
 
 use candid::CandidType;
-use chain_config::{init_chain_configs, update_base_fee_per_gas, ChainConfig};
+use chain_config::{init_chain_configs, ChainConfig};
 use error::Error;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
@@ -35,26 +35,24 @@ use ic_stable_structures::{
 use lazy_static::lazy_static;
 use logger::LogItem;
 use recipe::{Recipe, RecipeDetailsInput, RecipeId};
-use run::run::{Run, RunId, Timestamp};
+use run::{Run, RunId};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
 use std::{cell::RefCell, sync::Arc, time::Duration};
-use tasks::execute_tasks;
+use tasks::{execute_tasks, Timestamp};
 use user::User;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
 const ETH_DEFAULT_CALL_CYCLES: u128 = 30_000_000_000;
-const ETH_FEE_HISTORY_BLOCK_COUNT: u64 = 4;
 
 const ETH_PAYMENT_EVENT_SIGNATURE: &str =
     "0x7c8809bb951e482559074456e6716ca166b1b6992b1205cfaae883fae81cf86a";
 
 const TIMER_INTERVAL_EXECUTE_TASKS: u64 = 15; // 15 seconds
-const TIMER_INTERVAL_UPDATE_BASE_FEE_PER_GAS: u64 = 60 * 60; // 1 hour
 
-// const THEGRAPH_QUERY_PROXY_URL: &str =
-//     "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
+const THEGRAPH_QUERY_PROXY_URL: &str =
+    "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
 
 const WASI_MEMORY_ID: MemoryId = MemoryId::new(0);
 const USERS_MEMORY_ID: MemoryId = MemoryId::new(1);
@@ -125,7 +123,7 @@ thread_local! {
     );
 
     // RUNS
-    static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::run::Run, Memory>> = RefCell::new(
+    static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::Run, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(RUNS_MEMORY_ID)),
         )
@@ -171,31 +169,11 @@ fn start_task_timer() {
     });
 }
 
-fn start_base_fee_update_timer() {
-    CHAIN_CONFIGS.with_borrow(|chain_configs| {
-        for (index, (chain_id, _)) in chain_configs.iter().enumerate() {
-            // Initial update
-            ic_cdk_timers::set_timer(Duration::from_secs(index as u64 * 10), move || {
-                update_base_fee_per_gas(chain_id);
-            });
-
-            // And then set the timer
-            ic_cdk_timers::set_timer_interval(
-                Duration::from_secs(TIMER_INTERVAL_UPDATE_BASE_FEE_PER_GAS),
-                move || {
-                    update_base_fee_per_gas(chain_id);
-                },
-            );
-        }
-    });
-}
-
 fn init_and_upgrade(settings: CanisterSettingsInput) {
     init_wasi();
     save_canister_settings(settings);
     start_task_timer();
     init_chain_configs();
-    start_base_fee_update_timer();
 }
 
 #[init]

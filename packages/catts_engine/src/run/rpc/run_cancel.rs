@@ -1,7 +1,7 @@
 use crate::{
     error::Error,
     logger::info,
-    run::run::{Run, RunError, RunId},
+    run::{self, Run, RunError, RunId},
     user::auth_guard,
 };
 use ic_cdk::{api::canister_balance, update};
@@ -11,7 +11,7 @@ async fn run_cancel(run_id: RunId) -> Result<Run, Error> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
 
-    let run = match Run::get(&address.as_byte_array(), &run_id) {
+    let run = match run::get(&address, &run_id) {
         Some(run) => run,
         None => return Err(Error::not_found(RunError::NotFound)),
     };
@@ -21,7 +21,7 @@ async fn run_cancel(run_id: RunId) -> Result<Run, Error> {
         return Err(Error::forbidden("Only creator can cancel the run"));
     }
 
-    let reusult = match Run::cancel(&address.as_byte_array(), &run_id) {
+    let reusult = match run::cancel(&address.as_byte_array(), &run_id) {
         Ok(run) => Ok(run),
         Err(err) => match err {
             RunError::TransactionHashAlreadyRegistered => {

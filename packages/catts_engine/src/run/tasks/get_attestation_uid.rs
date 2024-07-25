@@ -2,9 +2,9 @@ use std::pin::Pin;
 
 use crate::{
     chain_config::{self},
-    evm_rpc::eth_get_transaction_receipt,
+    evm::rpc::eth_get_transaction_receipt,
     logger::debug,
-    run::run::{vec_to_run_id, Run},
+    run::{self},
     tasks::{TaskError, TaskExecutor, TaskResult},
 };
 use futures::Future;
@@ -17,11 +17,11 @@ impl TaskExecutor for GetAttestationUidExecutor {
         args: Vec<u8>,
     ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>> {
         Box::pin(async move {
-            let run_id = vec_to_run_id(args).map_err(|_| {
+            let run_id = run::vec_to_run_id(args).map_err(|_| {
                 TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
             })?;
 
-            let mut run = Run::get_by_id(&run_id).ok_or(TaskError::Failed(
+            let mut run = run::get_by_id(&run_id).ok_or(TaskError::Failed(
                 "CreateAttestationExecutor: Run not found".to_string(),
             ))?;
 
@@ -65,7 +65,7 @@ impl TaskExecutor for GetAttestationUidExecutor {
             debug("CreateAttestationExecutor: Attestation uid found");
             let uid = receipt.logs[0].data.clone();
             run.attestation_uid = Some(uid);
-            Run::update(&run);
+            run::save(run);
 
             Ok(TaskResult::success())
         })

@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { ChevronDown, ChevronUp, LoaderCircle } from "lucide-react";
+import { ChevronDown, LoaderCircle } from "lucide-react";
 
 export function Chain() {
   const { chain: connectedChain } = useAccount();

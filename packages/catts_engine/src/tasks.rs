@@ -1,5 +1,4 @@
 use crate::logger::debug;
-use crate::run::run::Timestamp;
 use crate::run::tasks::create_attestation::CreateAttestationExecutor;
 use crate::run::tasks::get_attestation_uid::GetAttestationUidExecutor;
 use crate::run::tasks::process_run_payment::ProcessRunPaymentExecutor;
@@ -11,6 +10,8 @@ use std::borrow::Cow;
 use std::future::Future;
 use std::pin::Pin;
 use thiserror::Error;
+
+pub type Timestamp = u64;
 
 #[derive(Error, Debug)]
 pub enum TaskError {

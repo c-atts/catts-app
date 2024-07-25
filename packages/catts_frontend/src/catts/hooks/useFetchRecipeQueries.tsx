@@ -2,7 +2,6 @@ import { GQL_QUERY_PROXY_URL } from "@/config";
 import useRunContext from "@/context/useRunContext";
 import { useQuery } from "@tanstack/react-query";
 import { randomString } from "remeda";
-import { useAccount } from "wagmi";
 
 function parseVariablesTemplate(
   variablesTemplate: string,

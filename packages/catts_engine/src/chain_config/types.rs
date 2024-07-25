@@ -1,20 +1,19 @@
 use std::borrow::Cow;
 
-use candid::{CandidType, Decode, Encode, Nat};
+use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
-use serde::{Deserialize, Serialize};
 
-use crate::declarations::evm_rpc::{RpcApi, RpcServices};
+use crate::declarations::evm_rpc::{RpcService, RpcServices};
 
-#[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
+#[derive(CandidType, Clone, Deserialize)]
 pub struct ChainConfig {
     pub chain_id: u64,
-    pub base_fee_per_gas: Nat,
-    pub priority_fee: Nat,
     pub eth_usd_price: f64,
     pub rpc_api_endpoint: String,
     pub eas_contract: String,
     pub payment_contract: String,
+    pub rpc_services: RpcServices,
+    pub default_rpc_service: RpcService,
 }
 
 impl Storable for ChainConfig {
@@ -27,17 +26,4 @@ impl Storable for ChainConfig {
     }
 
     const BOUND: Bound = Bound::Unbounded;
-}
-
-impl ChainConfig {
-    pub fn eth_service(&self) -> RpcServices {
-        let rpc_api: RpcApi = RpcApi {
-            url: self.rpc_api_endpoint.clone(),
-            headers: None,
-        };
-        RpcServices::Custom {
-            chainId: self.chain_id,
-            services: vec![rpc_api],
-        }
-    }
 }
