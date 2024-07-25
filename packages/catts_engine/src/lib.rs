@@ -7,10 +7,10 @@ mod controllers;
 )]
 mod declarations;
 mod eas;
-mod error;
 mod eth;
 mod evm;
 mod graphql;
+mod http_error;
 mod logger;
 mod recipe;
 mod run;
@@ -20,9 +20,9 @@ mod user;
 
 use candid::CandidType;
 use chain_config::{init_chain_configs, ChainConfig};
-use error::Error;
 use eth::EthAddressBytes;
 use ethers_core::abi::Contract;
+use http_error::HttpError;
 use ic_cdk::{
     api::management_canister::http_request::{HttpResponse, TransformArgs},
     export_candid, init, post_upgrade, trap,

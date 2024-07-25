@@ -1,6 +1,6 @@
 use crate::{
     chain_config::{self},
-    error::Error,
+    http_error::HttpError,
     logger,
     recipe::{self, RecipeId},
     run::{self, estimate_gas_usage, util::estimate_transaction_fees, Run},
@@ -9,29 +9,29 @@ use crate::{
 use ic_cdk::{api::canister_balance, update};
 
 #[update]
-async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, Error> {
+async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
 
-    let recipe = recipe::get_by_id(&recipe_id).ok_or(Error::not_found("Recipe not found"))?;
+    let recipe = recipe::get_by_id(&recipe_id).ok_or(HttpError::not_found("Recipe not found"))?;
 
     if recipe.queries.is_empty() {
-        return Err(Error::bad_request("Recipe contains no queries"));
+        return Err(HttpError::bad_request("Recipe contains no queries"));
     }
 
-    chain_config::get(chain_id).ok_or(Error::internal_server_error(
+    chain_config::get(chain_id).ok_or(HttpError::internal_server_error(
         format!("Chain {} is not supported", chain_id).as_str(),
     ))?;
 
-    let mut run = Run::new(&recipe_id, chain_id, &address).map_err(Error::bad_request)?;
+    let mut run = Run::new(&recipe_id, chain_id, &address).map_err(HttpError::bad_request)?;
 
     let fee_estimates = estimate_transaction_fees(&run)
         .await
-        .map_err(Error::internal_server_error)?;
+        .map_err(HttpError::internal_server_error)?;
 
     let gas = estimate_gas_usage(&recipe, &run)
         .await
-        .map_err(Error::internal_server_error)?;
+        .map_err(HttpError::internal_server_error)?;
 
     ic_cdk::println!(
         "base_fee_per_gas: {}, max_priority_fee_per_gas: {}, gas: {}",

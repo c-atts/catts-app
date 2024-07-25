@@ -1,5 +1,5 @@
 use crate::{
-    error::Error,
+    http_error::HttpError,
     logger::info,
     run::{self, Run},
     user::auth_guard,
@@ -7,7 +7,7 @@ use crate::{
 use ic_cdk::{api::canister_balance, update};
 
 #[update]
-async fn run_list_for_user() -> Result<Vec<Run>, Error> {
+async fn run_list_for_user() -> Result<Vec<Run>, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
 

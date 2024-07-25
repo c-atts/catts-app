@@ -18,13 +18,13 @@ pub enum HttpStatusCode {
 }
 
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
-pub struct Error {
+pub struct HttpError {
     code: u16,
     message: String,
     details: Option<String>,
 }
 
-impl Error {
+impl HttpError {
     pub fn new(code: u16, message: String, details: Option<String>) -> Self {
         Self {
             code,

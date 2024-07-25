@@ -1,5 +1,5 @@
 use crate::{
-    error::Error,
+    http_error::HttpError,
     logger::info,
     run::{self, Run, RunError, RunId},
     user::auth_guard,
@@ -7,27 +7,27 @@ use crate::{
 use ic_cdk::{api::canister_balance, update};
 
 #[update]
-async fn run_cancel(run_id: RunId) -> Result<Run, Error> {
+async fn run_cancel(run_id: RunId) -> Result<Run, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
 
     let run = match run::get(&address, &run_id) {
         Some(run) => run,
-        None => return Err(Error::not_found(RunError::NotFound)),
+        None => return Err(HttpError::not_found(RunError::NotFound)),
     };
 
     // Only creator can cancel the run
     if run.creator != address.as_byte_array() {
-        return Err(Error::forbidden("Only creator can cancel the run"));
+        return Err(HttpError::forbidden("Only creator can cancel the run"));
     }
 
     let reusult = match run::cancel(&address.as_byte_array(), &run_id) {
         Ok(run) => Ok(run),
         Err(err) => match err {
-            RunError::TransactionHashAlreadyRegistered => {
-                Err(Error::bad_request("Already paid runs cannot be cancelled"))
-            }
-            RunError::NotFound => Err(Error::not_found(err)),
+            RunError::TransactionHashAlreadyRegistered => Err(HttpError::bad_request(
+                "Already paid runs cannot be cancelled",
+            )),
+            RunError::NotFound => Err(HttpError::not_found(err)),
         },
     };
 

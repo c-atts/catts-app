@@ -1,5 +1,5 @@
-use crate::error::Error;
 use crate::eth::EthAddress;
+use crate::http_error::HttpError;
 use crate::user;
 use candid::Principal;
 use thiserror::Error;
@@ -30,6 +30,6 @@ pub fn get_caller_eth_address() -> Result<EthAddress, GetPrincipalEthAddressErro
     }
 }
 
-pub fn auth_guard() -> Result<EthAddress, Error> {
-    get_caller_eth_address().map_err(Error::unauthorized)
+pub fn auth_guard() -> Result<EthAddress, HttpError> {
+    get_caller_eth_address().map_err(HttpError::unauthorized)
 }

@@ -1,7 +1,7 @@
 use ic_cdk::{api::canister_balance, update};
 
 use crate::{
-    error::Error,
+    http_error::HttpError,
     logger::info,
     run::{self, tasks::process_run_payment::ProcessRunPaymentArgs, Run, RunError, RunId},
     tasks::{add_task, Task, TaskType},
@@ -16,17 +16,17 @@ async fn run_register_payment(
     run_id: RunId,
     transaction_hash: String,
     block_to_process: u128,
-) -> Result<Run, Error> {
+) -> Result<Run, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
     let run = match run::get(&address, &run_id) {
         Some(run) => run,
-        None => return Err(Error::not_found(RunError::NotFound)),
+        None => return Err(HttpError::not_found(RunError::NotFound)),
     };
 
     // Only creator can register payment
     if run.creator != address.as_byte_array() {
-        return Err(Error::forbidden("Only creator can register payment"));
+        return Err(HttpError::forbidden("Only creator can register payment"));
     }
 
     let result = match run::register_payment(&address.as_byte_array(), &run_id, &transaction_hash) {
@@ -52,8 +52,8 @@ async fn run_register_payment(
             Ok(run)
         }
         Err(e) => match e {
-            RunError::TransactionHashAlreadyRegistered => Err(Error::bad_request(e)),
-            RunError::NotFound => Err(Error::not_found(e)),
+            RunError::TransactionHashAlreadyRegistered => Err(HttpError::bad_request(e)),
+            RunError::NotFound => Err(HttpError::not_found(e)),
         },
     };
 
