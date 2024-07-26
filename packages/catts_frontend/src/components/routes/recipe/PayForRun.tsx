@@ -1,11 +1,10 @@
 import EthTxLink from "../../../components/EthTxLink";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TransactionExecutionError } from "viem";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import { formatEther } from "viem/utils";
 import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import useRunContext from "../../../context/useRunContext";
 import { CHAIN_CONFIG } from "../../../config";
+import { LoaderCircle } from "lucide-react";
 
 export function PayForRunInner() {
   const { usePayForRun, runInProgress, progressMessage } = useRunContext();
@@ -19,10 +18,12 @@ export function PayForRunInner() {
     (runInProgress.payment_transaction_hash.length === 0 && !usePayForRun.error)
   ) {
     return (
-      <p>
-        <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-        {progressMessage}
-      </p>
+      <div className="flex justify-between w-full">
+        <div>{progressMessage}</div>
+        <div>
+          <LoaderCircle className="w-5 h-5 animate-spin" />
+        </div>
+      </div>
     );
   }
 
@@ -41,7 +42,7 @@ export function PayForRunInner() {
   return (
     <>
       <div className="flex justify-between w-full">
-        <div className="text-sm text-zinc-500">Payment tx</div>
+        <div className="text-sm text-foreground/50">Payment tx</div>
         <EthTxLink
           chainId={Number(runInProgress.chain_id)}
           tx={runInProgress.payment_transaction_hash[0]}
@@ -57,10 +58,12 @@ export function PayForRunInner() {
           <div>✅</div>
         </div>
       ) : (
-        <p>
-          <FontAwesomeIcon className="mr-2" icon={faCircleNotch} spin />
-          Verifying payment...
-        </p>
+        <div className="flex justify-between w-full">
+          <div>Verifying payment ...</div>
+          <div>
+            <LoaderCircle className="w-5 h-5 animate-spin" />
+          </div>
+        </div>
       )}
     </>
   );
@@ -86,8 +89,8 @@ export default function PayForRun() {
       <div className="flex flex-col gap-2 pl-10">
         {cost !== undefined && (
           <div className="flex justify-between w-full">
-            <div className="text-sm text-zinc-500">Transaction fee</div>
-            <div className="text-sm text-zinc-500">
+            <div className="text-sm text-foreground/50">Transaction fee</div>
+            <div className="text-sm text-foreground/50">
               {formatEther(cost)}{" "}
               {CHAIN_CONFIG[Number(runInProgress?.chain_id)].nativeTokenName}
             </div>

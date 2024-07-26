@@ -30,13 +30,13 @@ export function RunHistoryListItem({ run }: { run: Run }) {
             className="w-6 h-6"
           />
         </div>
-        <div className="flex flex-col gap-2 text-sm text-zinc-500">
+        <div className="flex flex-col gap-2 text-sm text-foreground/50">
           <div className="flex items-center justify-between w-full h-8">
             <div>Created</div>
             <div>{when}</div>
           </div>
         </div>
-        <div className="flex flex-col gap-2 text-sm text-zinc-500">
+        <div className="flex flex-col gap-2 text-sm text-foreground/50">
           <div className="flex items-center justify-between w-full h-8">
             <div>Transaction fee</div>
             <div>
@@ -46,7 +46,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
           </div>
         </div>
         {run.payment_transaction_hash.length > 0 && (
-          <div className="flex flex-col gap-2 text-sm text-zinc-500">
+          <div className="flex flex-col gap-2 text-sm text-foreground/50">
             <div className="flex items-center justify-between w-full h-8">
               <div>Payment Tx</div>
               <EthTxLink
@@ -57,7 +57,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
           </div>
         )}
         {paymentStatus && (
-          <div className="flex flex-col gap-2 text-sm text-zinc-500">
+          <div className="flex flex-col gap-2 text-sm text-foreground/50">
             <div className="flex items-center justify-between w-full h-8">
               <div>Payment verified status</div>
               {paymentVerifiedStatusToString(run)}
@@ -77,7 +77,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
           </div>
         )}
         {run.attestation_transaction_hash.length > 0 && (
-          <div className="flex flex-col gap-2 text-sm text-zinc-500">
+          <div className="flex flex-col gap-2 text-sm text-foreground/50">
             <div className="flex items-center justify-between w-full h-8">
               <div>Attestation Tx</div>
               <EthTxLink
@@ -88,7 +88,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
           </div>
         )}
         {run.attestation_uid.length > 0 && (
-          <div className="flex flex-col gap-2 text-sm text-zinc-500">
+          <div className="flex flex-col gap-2 text-sm text-foreground/50">
             <div className="flex items-center justify-between w-full h-8">
               <div>Attestation Uid</div>
               <AttestationUidLink
