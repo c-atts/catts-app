@@ -7,7 +7,7 @@ export interface CanisterSettingsInput {
   'siwe_provider_canister' : string,
   'evm_rpc_canister' : string,
 }
-export interface Error {
+export interface HttpError {
   'code' : number,
   'message' : string,
   'details' : [] | [string],
@@ -67,20 +67,21 @@ export interface RecipeQuery {
 export type Result = { 'Ok' : string } |
   { 'Err' : string };
 export type Result_1 = { 'Ok' : Recipe } |
-  { 'Err' : Error };
+  { 'Err' : HttpError };
 export type Result_2 = { 'Ok' : Array<Recipe> } |
   { 'Err' : string };
 export type Result_3 = { 'Ok' : Run } |
-  { 'Err' : Error };
+  { 'Err' : HttpError };
 export type Result_4 = { 'Ok' : Array<Run> } |
-  { 'Err' : Error };
+  { 'Err' : HttpError };
 export type Result_5 = { 'Ok' : User } |
-  { 'Err' : Error };
+  { 'Err' : HttpError };
 export interface Run {
   'id' : Uint8Array | number[],
   'gas' : [] | [bigint],
   'created' : bigint,
   'creator' : Uint8Array | number[],
+  'user_fee' : [] | [bigint],
   'attestation_uid' : [] | [string],
   'attestation_transaction_hash' : [] | [string],
   'base_fee_per_gas' : [] | [bigint],

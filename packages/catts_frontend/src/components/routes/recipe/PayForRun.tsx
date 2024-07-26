@@ -71,7 +71,9 @@ export default function PayForRun() {
   const { data: initRunData } = useInitRun;
 
   const cost =
-    initRunData && "Ok" in initRunData ? initRunData?.Ok?.fee : undefined;
+    initRunData && "Ok" in initRunData
+      ? initRunData?.Ok?.user_fee[0]
+      : undefined;
 
   return (
     <div className="flex flex-col gap-2">

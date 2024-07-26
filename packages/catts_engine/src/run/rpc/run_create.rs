@@ -3,7 +3,7 @@ use crate::{
     http_error::HttpError,
     logger,
     recipe::{self, RecipeId},
-    run::{self, estimate_gas_usage, util::estimate_transaction_fees, Run},
+    run::{self, estimate_gas_usage, get_user_fee_for_chain, util::estimate_transaction_fees, Run},
     user::auth_guard,
 };
 use ic_cdk::{api::canister_balance, update};
@@ -28,6 +28,8 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError
         .await
         .map_err(HttpError::internal_server_error)?;
 
+    let user_fee = get_user_fee_for_chain(chain_id).map_err(HttpError::internal_server_error)?;
+
     ic_cdk::println!(
         "base_fee_per_gas: {}, max_priority_fee_per_gas: {}, gas: {}",
         fee_estimates.base_fee_per_gas,
@@ -38,6 +40,7 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError
     run.gas = Some(gas);
     run.base_fee_per_gas = Some(fee_estimates.base_fee_per_gas);
     run.max_priority_fee_per_gas = Some(fee_estimates.max_priority_fee_per_gas);
+    run.user_fee = Some(user_fee);
 
     let run = run::save(run);
 

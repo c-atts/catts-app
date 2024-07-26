@@ -3,7 +3,7 @@ type CanisterSettingsInput = record {
   siwe_provider_canister : text;
   evm_rpc_canister : text;
 };
-type Error = record { code : nat16; message : text; details : opt text };
+type HttpError = record { code : nat16; message : text; details : opt text };
 type HttpHeader = record { value : text; name : text };
 type HttpResponse = record {
   status : nat;
@@ -42,16 +42,17 @@ type RecipeDetailsInput = record {
 type RecipePublishState = variant { Draft; Unpublished; Published };
 type RecipeQuery = record { endpoint : text; "query" : text; variables : text };
 type Result = variant { Ok : text; Err : text };
-type Result_1 = variant { Ok : Recipe; Err : Error };
+type Result_1 = variant { Ok : Recipe; Err : HttpError };
 type Result_2 = variant { Ok : vec Recipe; Err : text };
-type Result_3 = variant { Ok : Run; Err : Error };
-type Result_4 = variant { Ok : vec Run; Err : Error };
-type Result_5 = variant { Ok : User; Err : Error };
+type Result_3 = variant { Ok : Run; Err : HttpError };
+type Result_4 = variant { Ok : vec Run; Err : HttpError };
+type Result_5 = variant { Ok : User; Err : HttpError };
 type Run = record {
   id : blob;
   gas : opt nat;
   created : nat64;
   creator : blob;
+  user_fee : opt nat;
   attestation_uid : opt text;
   attestation_transaction_hash : opt text;
   base_fee_per_gas : opt nat;

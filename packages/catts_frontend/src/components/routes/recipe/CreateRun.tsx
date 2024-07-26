@@ -4,6 +4,7 @@ import { useSiweIdentity } from "ic-use-siwe-identity";
 import { SectionTitle } from "@/components/ui/Section";
 import useRunContext from "@/context/useRunContext";
 import { isChainIdSupported } from "@/wagmi/is-chain-id-supported";
+import { LoaderCircle } from "lucide-react";
 export default function InitRun() {
   const { identity } = useSiweIdentity();
   const { chainId } = useAccount();
@@ -49,6 +50,14 @@ export default function InitRun() {
           Initialise run
         </div>
         <div className="pl-10">
+          {useInitRun.isPending && (
+            <div className="flex justify-between w-full">
+              <div>Initialising...</div>
+              <div>
+                <LoaderCircle className="w-5 h-5 animate-spin" />
+              </div>
+            </div>
+          )}
           {useInitRun.data && "Err" in useInitRun.data && (
             <div className="flex justify-between w-full">
               <div>Error: {useInitRun.data.Err.message}</div>

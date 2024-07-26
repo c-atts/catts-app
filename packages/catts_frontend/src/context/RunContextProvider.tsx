@@ -97,7 +97,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         address: CHAIN_CONFIG[chainId].paymentContractAddress as `0x${string}`,
         functionName: "payRun",
         args: [toHex(run.id as Uint8Array)],
-        value: run.fee,
+        value: run.user_fee[0],
       });
 
       if (!transactionHash) {

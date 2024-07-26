@@ -52,12 +52,12 @@ export const idlFactory = ({ IDL }) => {
     'processor' : IDL.Text,
     'revokable' : IDL.Bool,
   });
-  const Error = IDL.Record({
+  const HttpError = IDL.Record({
     'code' : IDL.Nat16,
     'message' : IDL.Text,
     'details' : IDL.Opt(IDL.Text),
   });
-  const Result_1 = IDL.Variant({ 'Ok' : Recipe, 'Err' : Error });
+  const Result_1 = IDL.Variant({ 'Ok' : Recipe, 'Err' : HttpError });
   const Result_2 = IDL.Variant({ 'Ok' : IDL.Vec(Recipe), 'Err' : IDL.Text });
   const PaymentVerifiedStatus = IDL.Variant({
     'VerificationFailed' : IDL.Null,
@@ -69,6 +69,7 @@ export const idlFactory = ({ IDL }) => {
     'gas' : IDL.Opt(IDL.Nat),
     'created' : IDL.Nat64,
     'creator' : IDL.Vec(IDL.Nat8),
+    'user_fee' : IDL.Opt(IDL.Nat),
     'attestation_uid' : IDL.Opt(IDL.Text),
     'attestation_transaction_hash' : IDL.Opt(IDL.Text),
     'base_fee_per_gas' : IDL.Opt(IDL.Nat),
@@ -80,8 +81,8 @@ export const idlFactory = ({ IDL }) => {
     'payment_verified_status' : IDL.Opt(PaymentVerifiedStatus),
     'payment_transaction_hash' : IDL.Opt(IDL.Text),
   });
-  const Result_3 = IDL.Variant({ 'Ok' : Run, 'Err' : Error });
-  const Result_4 = IDL.Variant({ 'Ok' : IDL.Vec(Run), 'Err' : Error });
+  const Result_3 = IDL.Variant({ 'Ok' : Run, 'Err' : HttpError });
+  const Result_4 = IDL.Variant({ 'Ok' : IDL.Vec(Run), 'Err' : HttpError });
   const HttpHeader = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
   const HttpResponse = IDL.Record({
     'status' : IDL.Nat,
@@ -93,7 +94,7 @@ export const idlFactory = ({ IDL }) => {
     'response' : HttpResponse,
   });
   const User = IDL.Record({ 'eth_address' : IDL.Text });
-  const Result_5 = IDL.Variant({ 'Ok' : User, 'Err' : Error });
+  const Result_5 = IDL.Variant({ 'Ok' : User, 'Err' : HttpError });
   return IDL.Service({
     'canister_eth_address' : IDL.Func([], [Result], []),
     'logs' : IDL.Func([], [IDL.Vec(LogItem)], ['query']),

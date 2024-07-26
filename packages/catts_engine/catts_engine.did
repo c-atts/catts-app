@@ -52,6 +52,7 @@ type Run = record {
   gas : opt nat;
   created : nat64;
   creator : blob;
+  user_fee : opt nat;
   attestation_uid : opt text;
   attestation_transaction_hash : opt text;
   base_fee_per_gas : opt nat;
