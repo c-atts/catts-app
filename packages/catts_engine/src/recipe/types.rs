@@ -9,7 +9,7 @@ use validator_derive::Validate;
 
 use crate::{
     eas::Uid,
-    eth::{EthAddress, EthAddressBytes},
+    eth_address::{EthAddress, EthAddressBytes},
 };
 
 use super::generate_recipe_id;

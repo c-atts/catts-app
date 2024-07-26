@@ -2,14 +2,13 @@ use super::types::Run;
 use crate::{
     chain_config::{self},
     declarations::evm_rpc::BlockTag,
-    eas::{self, EstimateAttestationGasUsageError, RunEasQueryError},
-    eth::EthAddress,
-    evm::rpc::{eth_fee_history, eth_get_block_by_number, EvmRpcError},
+    eas::{self},
+    eth_address::EthAddress,
+    evm::rpc::{eth_fee_history, eth_get_block_by_number},
     recipe::Recipe,
 };
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use candid::Nat;
-use thiserror::Error;
 
 pub fn vec_to_run_id(bytes: Vec<u8>) -> Result<[u8; 12], String> {
     if bytes.len() == 12 {
@@ -33,18 +32,8 @@ fn median_index(length: usize) -> usize {
     (length - 1) / 2
 }
 
-#[derive(Error, Debug)]
-pub enum EstimateTransactionFeesError {
-    #[error("Couldn't get config for chain: {0}")]
-    GetChainConfigError(u64),
-    #[error("EvmRpc Error: {0}")]
-    EvmRpc(#[from] EvmRpcError),
-}
-
 pub async fn estimate_transaction_fees(run: &Run) -> Result<FeeEstimates> {
-    let chain_config = chain_config::get(run.chain_id).ok_or(
-        EstimateTransactionFeesError::GetChainConfigError(run.chain_id),
-    )?;
+    let chain_config = chain_config::get(run.chain_id)?;
 
     let latest_block = eth_get_block_by_number(BlockTag::Latest, &chain_config).await?;
 
@@ -92,19 +81,7 @@ pub async fn estimate_transaction_fees(run: &Run) -> Result<FeeEstimates> {
     })
 }
 
-#[derive(Error, Debug)]
-pub enum EstimateGasError {
-    #[error("Eas query error: {0}")]
-    EasQuery(#[from] RunEasQueryError),
-    #[error("Unable to estimate gas usage: {0}")]
-    EstimateAttestationGasUsage(#[from] EstimateAttestationGasUsageError),
-    #[error("Couldn't get chain config for chain: {0}")]
-    ChainConfigNotFound(u64),
-    #[error("Format error: {0}")]
-    FormatError(String),
-}
-
-pub async fn estimate_gas_usage(recipe: &Recipe, run: &Run) -> Result<Nat, EstimateGasError> {
+pub async fn estimate_gas_usage(recipe: &Recipe, run: &Run) -> Result<Nat> {
     let recipient = EthAddress::from(run.creator);
     let mut query_response = Vec::new();
 
@@ -117,8 +94,7 @@ pub async fn estimate_gas_usage(recipe: &Recipe, run: &Run) -> Result<Nat, Estim
 
     let attestation_data = eas::process_query_result(&recipe.processor, &aggregated_response);
 
-    let chain_config = chain_config::get(run.chain_id)
-        .ok_or(EstimateGasError::ChainConfigNotFound(run.chain_id))?;
+    let chain_config = chain_config::get(run.chain_id)?;
 
     let gas_usage =
         eas::estimate_attestation_gas_usage(recipe, &attestation_data, &recipient, &chain_config)
@@ -126,13 +102,10 @@ pub async fn estimate_gas_usage(recipe: &Recipe, run: &Run) -> Result<Nat, Estim
 
     let gas_usage = gas_usage
         .strip_prefix("0x")
-        .ok_or(EstimateGasError::FormatError(
-            "Gas usage should start with 0x".to_string(),
-        ))?;
+        .ok_or(anyhow!("Gas usage should start with 0x".to_string()))?;
 
-    let gas_usage = u64::from_str_radix(gas_usage, 16).map_err(|err| {
-        EstimateGasError::FormatError(format!("Error decoding gas usage: {}", err))
-    })?;
+    let gas_usage = u64::from_str_radix(gas_usage, 16)
+        .map_err(|err| anyhow!(format!("Error decoding gas usage: {}", err)))?;
 
     Ok(Nat::from(gas_usage))
 }

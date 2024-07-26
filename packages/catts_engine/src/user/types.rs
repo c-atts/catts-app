@@ -1,6 +1,17 @@
 use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
 use std::borrow::Cow;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum UserError {
+    #[error("User already exists")]
+    AlreadyExists,
+    #[error("Invalid user principal")]
+    InvalidPrincipal,
+    #[error("User not found")]
+    NotFound,
+}
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
 pub struct User {

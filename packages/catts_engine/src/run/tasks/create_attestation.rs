@@ -1,6 +1,6 @@
 use crate::{
     eas::{create_attestation, process_query_result, run_query},
-    eth::EthAddress,
+    eth_address::EthAddress,
     logger::debug,
     recipe::{self},
     run::{self, PaymentVerifiedStatus},

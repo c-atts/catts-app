@@ -1,27 +1,34 @@
-use crate::chain_config::{self, ChainConfig};
-use crate::eth::EthAddress;
-use crate::evm::rpc::{eth_estimate_gas, eth_transaction, EthTransactionError};
-use crate::graphql::insert_dynamic_variables;
-use crate::recipe::{Recipe, RecipeQuery};
-use crate::run::Run;
-use crate::{ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, THEGRAPH_QUERY_PROXY_URL};
-use blake2::digest::{Update, VariableOutput};
-use blake2::Blake2bVar;
-use ethers_core::abi::{encode, encode_packed, ethereum_types::H160, Address, Token};
-use ethers_core::types::U256;
-use ethers_core::utils::keccak256;
-use ic_cdk::api::call::RejectionCode;
-use ic_cdk::api::management_canister::http_request::{
-    http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
+use crate::{
+    chain_config::{self, ChainConfig},
+    eth_address::EthAddress,
+    evm::rpc::{eth_estimate_gas, eth_transaction},
+    graphql::insert_dynamic_variables,
+    recipe::{Recipe, RecipeQuery},
+    run::Run,
+    ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, THEGRAPH_QUERY_PROXY_URL,
+};
+use anyhow::{anyhow, Result};
+use blake2::{
+    digest::{Update, VariableOutput},
+    Blake2bVar,
+};
+use ethers_core::{
+    abi::{encode, encode_packed, ethereum_types::H160, Address, Token},
+    types::U256,
+    utils::keccak256,
+};
+use ic_cdk::api::{
+    call::RejectionCode,
+    management_canister::http_request::{
+        http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
+    },
 };
 use javy::Runtime;
-// use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
-use std::str::FromStr;
-use std::sync::Arc;
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 use thiserror::Error;
+
 pub type Uid = String;
 
 // Enum to represent possible types for SchemaValue
@@ -235,20 +242,20 @@ pub fn process_query_result(processor: &str, query_result: &str) -> String {
     }
 }
 
-#[derive(Error, Debug)]
-pub enum CreateAttestationError {
-    #[error("Could not load chain config")]
-    CouldNotLoadChainConfig,
+// #[derive(Error, Debug)]
+// // pub enum CreateAttestationError {
+//     #[error("Could not load chain config")]
+//     CouldNotLoadChainConfig,
 
-    #[error("Unable to get schema uid: {0}")]
-    UnableToGetSchemaUid(#[from] GetSchemaUidError),
+//     #[error("Unable to get schema uid: {0}")]
+//     UnableToGetSchemaUid(#[from] GetSchemaUidError),
 
-    #[error("Recipe don't have a gas amount specified")]
-    NoRecipeGasAmount,
+//     #[error("Recipe don't have a gas amount specified")]
+//     NoRecipeGasAmount,
 
-    #[error("Eth transaction error: {0}")]
-    EthTransaction(#[from] EthTransactionError),
-}
+//     #[error("Eth transaction error: {0}")]
+//     EthTransaction(#[from] EthTransactionError),
+// }
 
 pub async fn create_attestation(
     recipe: &Recipe,
@@ -256,9 +263,8 @@ pub async fn create_attestation(
     attestation_data: &str,
     recipient: &EthAddress,
     chain_id: u64,
-) -> Result<String, CreateAttestationError> {
-    let chain_config =
-        chain_config::get(chain_id).ok_or(CreateAttestationError::CouldNotLoadChainConfig)?;
+) -> Result<String> {
+    let chain_config = chain_config::get(chain_id)?;
 
     let schema_uid = get_schema_uid(
         &recipe.schema,
@@ -283,14 +289,13 @@ pub async fn create_attestation(
     let gas = run
         .gas
         .clone()
-        .ok_or(CreateAttestationError::NoRecipeGasAmount)?;
+        .ok_or(anyhow!("Recipe don't have a gas amount specified"))?;
 
-    let max_priority_fee_per_gas = run
-        .max_priority_fee_per_gas
-        .clone()
-        .ok_or(CreateAttestationError::NoRecipeGasAmount)?;
+    let max_priority_fee_per_gas = run.max_priority_fee_per_gas.clone().ok_or(anyhow!(
+        "Recipe don't have a max_priority_fee_per_gas amount specified"
+    ))?;
 
-    eth_transaction(
+    Ok(eth_transaction(
         chain_config.eas_contract.clone(),
         &Arc::clone(&ETH_EAS_CONTRACT),
         "attest",
@@ -299,28 +304,27 @@ pub async fn create_attestation(
         max_priority_fee_per_gas,
         &chain_config,
     )
-    .await
-    .map_err(CreateAttestationError::EthTransaction)
+    .await?)
 }
 
-#[derive(Error, Debug)]
-pub enum EstimateAttestationGasUsageError {
-    #[error("Could not load chain config")]
-    CouldNotLoadChainConfig,
+// #[derive(Error, Debug)]
+// pub enum EstimateAttestationGasUsageError {
+//     #[error("Could not load chain config")]
+//     CouldNotLoadChainConfig,
 
-    #[error("Unable to get schema uid: {0}")]
-    UnableToGetSchemaUid(#[from] GetSchemaUidError),
+//     #[error("Unable to get schema uid: {0}")]
+//     UnableToGetSchemaUid(#[from] GetSchemaUidError),
 
-    #[error("Eth transaction error: {0}")]
-    EthTransaction(#[from] EthTransactionError),
-}
+//     #[error("Eth transaction error: {0}")]
+//     EthTransaction(#[from] EthTransactionError),
+// }
 
 pub async fn estimate_attestation_gas_usage(
     recipe: &Recipe,
     attestation_data: &str,
     recipient: &EthAddress,
     chain_config: &ChainConfig,
-) -> Result<String, EstimateAttestationGasUsageError> {
+) -> Result<String> {
     let schema_uid = get_schema_uid(&recipe.schema, &recipe.resolver, recipe.revokable)?;
 
     let encoded_abi_data = encode_abi_data(attestation_data);
@@ -337,16 +341,14 @@ pub async fn estimate_attestation_gas_usage(
 
     let attest_request = Token::Tuple(vec![schema_token, attestation_request_data]);
 
-    let chain_config = chain_config::get(chain_config.chain_id)
-        .ok_or(EstimateAttestationGasUsageError::CouldNotLoadChainConfig)?;
+    let chain_config = chain_config::get(chain_config.chain_id)?;
 
-    eth_estimate_gas(
+    Ok(eth_estimate_gas(
         chain_config.eas_contract.clone(),
         &Arc::clone(&ETH_EAS_CONTRACT),
         "attest",
         &[attest_request],
         &chain_config,
     )
-    .await
-    .map_err(EstimateAttestationGasUsageError::EthTransaction)
+    .await?)
 }

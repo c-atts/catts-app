@@ -5,7 +5,7 @@ use crate::logger::{error, info};
 use crate::run::{self};
 use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType};
 use crate::{
-    eth::{remove_address_padding, EthAddress},
+    eth_address::{remove_address_padding, EthAddress},
     logger::warn,
     ETH_PAYMENT_EVENT_SIGNATURE,
 };
@@ -48,9 +48,9 @@ impl TaskExecutor for ProcessRunPaymentExecutor {
                 TaskError::Failed("CreateAttestationExecutor: Run not found".to_string())
             })?;
 
-            let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Chain config not found".to_string(),
-            ))?;
+            let chain_config = chain_config::get(run.chain_id).map_err(|_| {
+                TaskError::Failed("CreateAttestationExecutor: Chain config not found".to_string())
+            })?;
 
             match process_run_payment(args.clone(), &chain_config).await {
                 Ok(_) => {

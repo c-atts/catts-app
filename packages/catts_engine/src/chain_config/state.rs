@@ -1,8 +1,10 @@
-use super::ChainConfig;
+use super::{ChainConfig, ChainConfigError};
 use crate::CHAIN_CONFIGS;
 
-pub fn get(chain_id: u64) -> Option<ChainConfig> {
-    CHAIN_CONFIGS.with_borrow(|configs| configs.get(&chain_id))
+pub fn get(chain_id: u64) -> Result<ChainConfig, ChainConfigError> {
+    CHAIN_CONFIGS
+        .with_borrow(|configs| configs.get(&chain_id))
+        .ok_or(ChainConfigError::NotFound)
 }
 
 pub fn _set(config: ChainConfig) {

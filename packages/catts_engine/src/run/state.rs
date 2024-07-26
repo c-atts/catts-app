@@ -1,5 +1,5 @@
 use crate::{
-    eth::{EthAddress, EthAddressBytes},
+    eth_address::{EthAddress, EthAddressBytes},
     recipe::RecipeId,
     RUNS,
 };

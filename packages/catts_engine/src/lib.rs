@@ -7,7 +7,7 @@ mod controllers;
 )]
 mod declarations;
 mod eas;
-mod eth;
+mod eth_address;
 mod evm;
 mod graphql;
 mod http_error;
@@ -20,7 +20,7 @@ mod user;
 
 use candid::CandidType;
 use chain_config::{init_chain_configs, ChainConfig};
-use eth::EthAddressBytes;
+use eth_address::EthAddressBytes;
 use ethers_core::abi::Contract;
 use http_error::HttpError;
 use ic_cdk::{

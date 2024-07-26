@@ -1,5 +1,5 @@
 use crate::{
-    eth::{EthAddress, EthAddressBytes},
+    eth_address::{EthAddress, EthAddressBytes},
     recipe::{self, RecipeId},
 };
 use candid::{CandidType, Decode, Encode, Nat};

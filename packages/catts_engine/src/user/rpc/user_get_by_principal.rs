@@ -13,5 +13,5 @@ async fn user_get_by_principal(principal_bytes: ByteBuf) -> Result<User, HttpErr
         return Err(HttpError::bad_request("Principal must be 29 bytes"));
     }
     let principal = Principal::from_slice(principal_bytes.as_ref());
-    user::get_by_principal(principal).ok_or_else(|| HttpError::not_found("User not found"))
+    user::get_by_principal(principal).map_err(HttpError::not_found)
 }

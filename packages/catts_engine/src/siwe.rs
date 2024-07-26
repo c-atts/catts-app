@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use crate::{
     declarations::ic_siwe_provider::{GetAddressResponse, IcSiweProvider},
-    eth::EthAddress,
+    eth_address::EthAddress,
     CANISTER_SETTINGS,
 };
 

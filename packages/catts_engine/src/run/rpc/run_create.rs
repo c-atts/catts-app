@@ -14,9 +14,9 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError
     let address = auth_guard()?;
     let recipe = recipe::get_by_id(&recipe_id).map_err(HttpError::not_found)?;
 
-    chain_config::get(chain_id).ok_or(HttpError::internal_server_error(
-        format!("Chain {} is not supported", chain_id).as_str(),
-    ))?;
+    chain_config::get(chain_id).map_err(|_| {
+        HttpError::internal_server_error(format!("Chain {} is not supported", chain_id).as_str())
+    })?;
 
     let mut run = Run::new(&recipe_id, chain_id, &address).map_err(HttpError::bad_request)?;
 

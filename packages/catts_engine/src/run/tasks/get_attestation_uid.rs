@@ -31,9 +31,9 @@ impl TaskExecutor for GetAttestationUidExecutor {
                 ));
             }
 
-            let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
-                "CreateAttestationExecutor: Chain config not found".to_string(),
-            ))?;
+            let chain_config = chain_config::get(run.chain_id).map_err(|_| {
+                TaskError::Failed("CreateAttestationExecutor: Chain config not found".to_string())
+            })?;
 
             let attestation_transaction_hash = match run.attestation_transaction_hash {
                 Some(ref hash) => hash.clone(),

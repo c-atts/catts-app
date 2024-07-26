@@ -3,7 +3,7 @@ use ic_cdk::{api::canister_balance, update};
 use crate::{
     http_error::HttpError,
     logger::info,
-    run::{self, tasks::process_run_payment::ProcessRunPaymentArgs, Run, RunError, RunId},
+    run::{self, tasks::process_run_payment::ProcessRunPaymentArgs, Run, RunId},
     tasks::{add_task, Task, TaskType},
     user::auth_guard,
 };
@@ -48,11 +48,7 @@ async fn run_register_payment(
 
             Ok(run)
         }
-        Err(e) => match e {
-            RunError::CantBeCancelled(msg) => Err(HttpError::bad_request(msg)),
-            RunError::NotFound => Err(HttpError::not_found(e)),
-            RunError::RecipeNotFound => Err(HttpError::not_found(e)),
-        },
+        Err(e) => Err(HttpError::internal_server_error(e)),
     };
 
     let cycles_after = canister_balance();

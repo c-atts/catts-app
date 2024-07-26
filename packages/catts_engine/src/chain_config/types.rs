@@ -2,8 +2,15 @@ use std::borrow::Cow;
 
 use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
+use thiserror::Error;
 
 use crate::declarations::evm_rpc::{RpcService, RpcServices};
+
+#[derive(Error, Debug)]
+pub enum ChainConfigError {
+    #[error("Chain config not found")]
+    NotFound,
+}
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct ChainConfig {

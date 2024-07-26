@@ -1,4 +1,4 @@
-use crate::{eth::EthAddress, recipe::RecipeId};
+use crate::{eth_address::EthAddress, recipe::RecipeId};
 use blake2::{
     digest::{Update, VariableOutput},
     Blake2bVar,
