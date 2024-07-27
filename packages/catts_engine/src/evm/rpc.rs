@@ -2,11 +2,11 @@ use crate::{
     chain_config::ChainConfig,
     declarations::evm_rpc::{
         evm_rpc, Block, BlockTag, FeeHistory, FeeHistoryArgs, FeeHistoryResult,
-        GetBlockByNumberResult, GetLogsArgs, GetTransactionCountArgs, GetTransactionCountResult,
-        GetTransactionReceiptResult, MultiFeeHistoryResult, MultiGetBlockByNumberResult,
-        MultiGetLogsResult, MultiGetTransactionCountResult, MultiGetTransactionReceiptResult,
-        MultiSendRawTransactionResult, RequestResult, RpcConfig, RpcError,
-        SendRawTransactionResult, SendRawTransactionStatus, TransactionReceipt,
+        GetBlockByNumberResult, GetLogsArgs, GetLogsResult, GetTransactionCountArgs,
+        GetTransactionCountResult, GetTransactionReceiptResult, LogEntry, MultiFeeHistoryResult,
+        MultiGetBlockByNumberResult, MultiGetLogsResult, MultiGetTransactionCountResult,
+        MultiGetTransactionReceiptResult, MultiSendRawTransactionResult, RequestResult, RpcConfig,
+        RpcError, SendRawTransactionResult, SendRawTransactionStatus, TransactionReceipt,
     },
     evm::util::{ecdsa_key_id, nat_to_u256, nat_to_u64},
     ETH_DEFAULT_CALL_CYCLES,
@@ -80,14 +80,19 @@ pub enum EthTransactionError {
 
     #[error("JsonRpc error: {0:?}")]
     JsonRpcError(JsonRpcErrorResponse),
+
+    #[error("Inconsistent response")]
+    InconsistentResponse,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn eth_transaction(
     contract_address: String,
     abi_contract: &Contract,
     function_name: &str,
     args: &[Token],
     gas: Nat,
+    max_fee_per_gas: Nat,
     max_priority_fee_per_gas: Nat,
     chain_config: &ChainConfig,
 ) -> Result<String, EthTransactionError> {
@@ -100,6 +105,7 @@ pub async fn eth_transaction(
         chain_id: chain_config.chain_id.into(),
         to: contract_address,
         gas,
+        max_fee_per_gas,
         max_priority_fee_per_gas,
         value: 0_u8.into(),
         nonce: next_id(chain_config).await,
@@ -202,11 +208,11 @@ pub async fn eth_get_transaction_receipt(
     }
 }
 
-pub async fn get_payment_logs_for_block(
+pub async fn get_run_payment_logs(
     block_number: u128,
     chain_config: &ChainConfig,
-) -> Result<(MultiGetLogsResult,), String> {
-    let res: CallResult<(MultiGetLogsResult,)> = call_with_payment128(
+) -> Result<Vec<LogEntry>, EthTransactionError> {
+    let (res,): (MultiGetLogsResult,) = call_with_payment128(
         evm_rpc.0,
         "eth_getLogs",
         (
@@ -221,11 +227,15 @@ pub async fn get_payment_logs_for_block(
         ),
         ETH_DEFAULT_CALL_CYCLES,
     )
-    .await;
+    .await
+    .map_err(EthTransactionError::CallError)?;
 
     match res {
-        Ok(result) => Ok(result),
-        Err(err) => Err(format!("{:?}", err)),
+        MultiGetLogsResult::Consistent(log_result) => match log_result {
+            GetLogsResult::Ok(entries) => Ok(entries),
+            GetLogsResult::Err(err) => Err(EthTransactionError::RpcError(err)),
+        },
+        MultiGetLogsResult::Inconsistent(_) => Err(EthTransactionError::InconsistentResponse),
     }
 }
 
@@ -249,7 +259,7 @@ async fn sign_transaction(req: SignRequest) -> String {
         nonce: Some(nat_to_u256(&req.nonce)),
         data: req.data,
         access_list: Default::default(),
-        max_fee_per_gas: None,
+        max_fee_per_gas: Some(nat_to_u256(&req.max_fee_per_gas)),
         max_priority_fee_per_gas: Some(nat_to_u256(&req.max_priority_fee_per_gas)),
     };
 

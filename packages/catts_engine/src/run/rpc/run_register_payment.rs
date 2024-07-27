@@ -3,7 +3,7 @@ use ic_cdk::{api::canister_balance, update};
 use crate::{
     http_error::HttpError,
     logger::info,
-    run::{self, tasks::process_run_payment::ProcessRunPaymentArgs, Run, RunId},
+    run::{self, tasks::register_payment::ProcessRunPaymentArgs, Run, RunId},
     tasks::{add_task, Task, TaskType},
     user::auth_guard,
 };
@@ -26,30 +26,26 @@ async fn run_register_payment(
         return Err(HttpError::forbidden("Only creator can register payment"));
     }
 
-    let result = match run::register_payment(&address, &run_id, &transaction_hash) {
-        Ok(run) => {
-            let args: Vec<u8> = bincode::serialize(&ProcessRunPaymentArgs {
-                block_to_process,
-                from_address: address.as_byte_array(),
-                run_id,
-            })
-            .unwrap();
+    let run = run::register_payment(&address, &run_id, &transaction_hash)
+        .map_err(HttpError::bad_request)?;
 
-            add_task(
-                0, // Run ASAP
-                Task {
-                    task_type: TaskType::ProcessRunPayment,
-                    args,
-                    max_retries: PROCESS_RUN_PAYMENT_MAX_RETRIES,
-                    execute_count: 0,
-                    retry_interval: PROCESS_RUN_PAYMENT_RETRY_INTERVAL,
-                },
-            );
+    let args: Vec<u8> = bincode::serialize(&ProcessRunPaymentArgs {
+        block_to_process,
+        from_address: address.as_byte_array(),
+        run_id,
+    })
+    .unwrap();
 
-            Ok(run)
-        }
-        Err(e) => Err(HttpError::internal_server_error(e)),
-    };
+    add_task(
+        0, // Run ASAP
+        Task {
+            task_type: TaskType::ProcessRunPayment,
+            args,
+            max_retries: PROCESS_RUN_PAYMENT_MAX_RETRIES,
+            execute_count: 0,
+            retry_interval: PROCESS_RUN_PAYMENT_RETRY_INTERVAL,
+        },
+    );
 
     let cycles_after = canister_balance();
     info(
@@ -60,5 +56,5 @@ async fn run_register_payment(
         .as_str(),
     );
 
-    result
+    Ok(run)
 }

@@ -19,6 +19,8 @@ pub enum RunError {
     RecipeNotFound,
     #[error("Can't be cancelled: {0}")]
     CantBeCancelled(String),
+    #[error("Already paid")]
+    AlreadyPaid,
 }
 
 pub type RunId = [u8; 12];

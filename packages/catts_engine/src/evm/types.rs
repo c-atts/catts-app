@@ -43,6 +43,7 @@ pub struct SignRequest {
     pub chain_id: Nat,
     pub to: String,
     pub gas: Nat,
+    pub max_fee_per_gas: Nat,
     pub max_priority_fee_per_gas: Nat,
     pub value: Nat,
     pub nonce: Nat,

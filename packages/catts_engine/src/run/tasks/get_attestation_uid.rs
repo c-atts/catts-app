@@ -3,43 +3,36 @@ use std::pin::Pin;
 use crate::{
     chain_config::{self},
     evm::rpc::eth_get_transaction_receipt,
-    logger::debug,
+    logger,
     run::{self},
-    tasks::{TaskError, TaskExecutor, TaskResult},
+    tasks::{Task, TaskError, TaskExecutor},
 };
 use futures::Future;
 
 pub struct GetAttestationUidExecutor {}
 
 impl TaskExecutor for GetAttestationUidExecutor {
-    fn execute(
-        &self,
-        args: Vec<u8>,
-    ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>> {
+    fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>> {
         Box::pin(async move {
-            let run_id = run::vec_to_run_id(args).map_err(|_| {
-                TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
-            })?;
+            let run_id = run::vec_to_run_id(task.args)
+                .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
-            let mut run = run::get_by_id(&run_id).map_err(|_| {
-                TaskError::Failed("CreateAttestationExecutor: Run not found".to_string())
-            })?;
+            let mut run = run::get_by_id(&run_id)
+                .map_err(|_| TaskError::Cancel("Run not found".to_string()))?;
 
             if run.attestation_uid.is_some() {
-                return Err(TaskError::Failed(
-                    "CreateAttestationExecutor: Run already attested".to_string(),
-                ));
+                return Err(TaskError::Cancel("Run already attested".to_string()));
             }
 
-            let chain_config = chain_config::get(run.chain_id).map_err(|_| {
-                TaskError::Failed("CreateAttestationExecutor: Chain config not found".to_string())
-            })?;
+            let chain_config = chain_config::get(run.chain_id)
+                .map_err(|_| TaskError::Cancel("Chain config not found".to_string()))?;
 
             let attestation_transaction_hash = match run.attestation_transaction_hash {
                 Some(ref hash) => hash.clone(),
                 None => {
-                    debug("CreateAttestationExecutor: Run not yet attested");
-                    return Ok(TaskResult::retry());
+                    return Err(TaskError::Retry(
+                        "Attestation transaction hash not found".to_string(),
+                    ));
                 }
             };
 
@@ -49,25 +42,22 @@ impl TaskExecutor for GetAttestationUidExecutor {
                 {
                     Ok(receipt) => receipt,
                     Err(err) => {
-                        debug(&format!(
-                            "CreateAttestationExecutor: Error getting transaction receipt: {}",
-                            err
-                        ));
-                        return Ok(TaskResult::retry());
+                        return Err(TaskError::Retry(err.to_string()));
                     }
                 };
 
             if receipt.logs.is_empty() {
-                debug("CreateAttestationExecutor: No logs in transaction receipt");
-                return Ok(TaskResult::retry());
+                return Err(TaskError::Retry(
+                    "No logs in transaction receipt".to_string(),
+                ));
             }
 
-            debug("CreateAttestationExecutor: Attestation uid found");
+            logger::debug("Attestation uid found");
             let uid = receipt.logs[0].data.clone();
             run.attestation_uid = Some(uid);
             run::save(run);
 
-            Ok(TaskResult::success())
+            Ok(())
         })
     }
 }

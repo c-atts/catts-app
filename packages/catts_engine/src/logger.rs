@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use candid::CandidType;
 use std::cell::RefCell;
 use std::cmp::{Ord, PartialOrd};

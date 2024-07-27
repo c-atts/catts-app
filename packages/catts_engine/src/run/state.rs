@@ -28,13 +28,10 @@ pub fn cancel(address: &EthAddress, run_id: &RunId) -> Result<Run, RunError> {
     let mut run = get(address, run_id)?;
 
     // Runs can only be cancelled if they are not paid or if the payment is pending
-    if run.payment_transaction_hash.is_some() {
+    if run.payment_transaction_hash.is_some()
+        || run.payment_verified_status == Some(PaymentVerifiedStatus::Verified)
+    {
         return Err(RunError::CantBeCancelled("Run is already paid".to_string()));
-    }
-    if run.payment_verified_status == Some(PaymentVerifiedStatus::Verified) {
-        return Err(RunError::CantBeCancelled(
-            "Run is already verified".to_string(),
-        ));
     }
 
     run.is_cancelled = true;
@@ -76,7 +73,7 @@ pub fn register_payment(
     let mut run = get(address, run_id)?;
 
     if run.payment_transaction_hash.is_some() {
-        return Err(RunError::CantBeCancelled("Run is already paid".to_string()));
+        return Err(RunError::AlreadyPaid);
     }
 
     run.payment_transaction_hash = Some(transaction_hash.to_string());

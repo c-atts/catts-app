@@ -242,89 +242,11 @@ pub fn process_query_result(processor: &str, query_result: &str) -> String {
     }
 }
 
-// #[derive(Error, Debug)]
-// // pub enum CreateAttestationError {
-//     #[error("Could not load chain config")]
-//     CouldNotLoadChainConfig,
-
-//     #[error("Unable to get schema uid: {0}")]
-//     UnableToGetSchemaUid(#[from] GetSchemaUidError),
-
-//     #[error("Recipe don't have a gas amount specified")]
-//     NoRecipeGasAmount,
-
-//     #[error("Eth transaction error: {0}")]
-//     EthTransaction(#[from] EthTransactionError),
-// }
-
-pub async fn create_attestation(
-    recipe: &Recipe,
-    run: &Run,
-    attestation_data: &str,
-    recipient: &EthAddress,
-    chain_id: u64,
-) -> Result<String> {
-    let chain_config = chain_config::get(chain_id)?;
-
-    let schema_uid = get_schema_uid(
-        &recipe.schema,
-        "0x0000000000000000000000000000000000000000",
-        false,
-    )?;
-
-    let encoded_abi_data = encode_abi_data(attestation_data);
-
-    let schema_token = Token::FixedBytes(schema_uid.to_vec());
-    let attestation_request_data = Token::Tuple(vec![
-        Token::Address(H160(recipient.as_byte_array())), // recipient
-        Token::Uint((0).into()),                         // expirationTime
-        Token::Bool(false),                              // revocable
-        Token::FixedBytes([0u8; 32].to_vec()),           // refUID
-        Token::Bytes(encoded_abi_data),                  // data
-        Token::Uint((0).into()),                         // value
-    ]);
-
-    let attest_request = Token::Tuple(vec![schema_token, attestation_request_data]);
-
-    let gas = run
-        .gas
-        .clone()
-        .ok_or(anyhow!("Recipe don't have a gas amount specified"))?;
-
-    let max_priority_fee_per_gas = run.max_priority_fee_per_gas.clone().ok_or(anyhow!(
-        "Recipe don't have a max_priority_fee_per_gas amount specified"
-    ))?;
-
-    Ok(eth_transaction(
-        chain_config.eas_contract.clone(),
-        &Arc::clone(&ETH_EAS_CONTRACT),
-        "attest",
-        &[attest_request],
-        gas,
-        max_priority_fee_per_gas,
-        &chain_config,
-    )
-    .await?)
-}
-
-// #[derive(Error, Debug)]
-// pub enum EstimateAttestationGasUsageError {
-//     #[error("Could not load chain config")]
-//     CouldNotLoadChainConfig,
-
-//     #[error("Unable to get schema uid: {0}")]
-//     UnableToGetSchemaUid(#[from] GetSchemaUidError),
-
-//     #[error("Eth transaction error: {0}")]
-//     EthTransaction(#[from] EthTransactionError),
-// }
-
-pub async fn estimate_attestation_gas_usage(
+pub fn create_attest_request(
     recipe: &Recipe,
     attestation_data: &str,
     recipient: &EthAddress,
-    chain_config: &ChainConfig,
-) -> Result<String> {
+) -> Result<Token> {
     let schema_uid = get_schema_uid(&recipe.schema, &recipe.resolver, recipe.revokable)?;
 
     let encoded_abi_data = encode_abi_data(attestation_data);
@@ -339,7 +261,55 @@ pub async fn estimate_attestation_gas_usage(
         Token::Uint((0).into()),                         // value
     ]);
 
-    let attest_request = Token::Tuple(vec![schema_token, attestation_request_data]);
+    Ok(Token::Tuple(vec![schema_token, attestation_request_data]))
+}
+
+pub async fn create_attestation(
+    recipe: &Recipe,
+    run: &Run,
+    attestation_data: &str,
+    recipient: &EthAddress,
+    chain_id: u64,
+) -> Result<String> {
+    let attest_request = create_attest_request(recipe, attestation_data, recipient)?;
+
+    let gas = run
+        .gas
+        .clone()
+        .ok_or(anyhow!("Recipe don't have a gas amount specified"))?;
+
+    let base_fee_per_gas = run.base_fee_per_gas.clone().ok_or(anyhow!(
+        "Run don't have a base_fee_per_gas amount specified"
+    ))?;
+
+    let max_priority_fee_per_gas = run.max_priority_fee_per_gas.clone().ok_or(anyhow!(
+        "Run don't have a max_priority_fee_per_gas amount specified"
+    ))?;
+
+    let max_fee_per_gas = base_fee_per_gas + max_priority_fee_per_gas.clone();
+
+    let chain_config = chain_config::get(chain_id)?;
+
+    Ok(eth_transaction(
+        chain_config.eas_contract.clone(),
+        &Arc::clone(&ETH_EAS_CONTRACT),
+        "attest",
+        &[attest_request],
+        gas,
+        max_fee_per_gas,
+        max_priority_fee_per_gas,
+        &chain_config,
+    )
+    .await?)
+}
+
+pub async fn estimate_attestation_gas_usage(
+    recipe: &Recipe,
+    attestation_data: &str,
+    recipient: &EthAddress,
+    chain_config: &ChainConfig,
+) -> Result<String> {
+    let attest_request = create_attest_request(recipe, attestation_data, recipient)?;
 
     let chain_config = chain_config::get(chain_config.chain_id)?;
 

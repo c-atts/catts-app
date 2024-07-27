@@ -53,7 +53,7 @@ build-engine:
 deploy-engine: build-engine
 	dfx deploy catts_engine --with-cycles 10t --argument "( \
 	    record { \
-	        ecdsa_key_id = \"test_key\"; \
+	        ecdsa_key_id = \"dfx_test_key\"; \
 	        siwe_provider_canister = \"$$(dfx canister id ic_siwe_provider)\"; \
 			evm_rpc_canister = \"$$(dfx canister id evm_rpc)\"; \
 	    } \

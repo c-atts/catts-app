@@ -1,10 +1,9 @@
 use crate::{
     eas::{create_attestation, process_query_result, run_query},
     eth_address::EthAddress,
-    logger::debug,
     recipe::{self},
     run::{self, PaymentVerifiedStatus},
-    tasks::{add_task, Task, TaskError, TaskExecutor, TaskResult, TaskType},
+    tasks::{add_task, Task, TaskError, TaskExecutor, TaskType},
 };
 use futures::Future;
 use std::pin::Pin;
@@ -15,42 +14,29 @@ const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 10;
 pub struct CreateAttestationExecutor {}
 
 impl TaskExecutor for CreateAttestationExecutor {
-    fn execute(
-        &self,
-        args: Vec<u8>,
-    ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>> {
+    fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>> {
         Box::pin(async move {
-            let run_id = run::vec_to_run_id(args).map_err(|_| {
-                TaskError::Failed("CreateAttestationExecutor: Invalid arguments".to_string())
-            })?;
+            let run_id = run::vec_to_run_id(task.args)
+                .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
-            let mut run = run::get_by_id(&run_id).map_err(|_| {
-                TaskError::Failed("CreateAttestationExecutor: Run not found".to_string())
-            })?;
+            let mut run = run::get_by_id(&run_id)
+                .map_err(|_| TaskError::Cancel("Run not found".to_string()))?;
 
-            let recipe = recipe::get_by_id(&run.recipe_id).map_err(|_| {
-                TaskError::Failed("CreateAttestationExecutor: Recipe not found".to_string())
-            })?;
-
-            // let chain_config = chain_config::get(run.chain_id).ok_or(TaskError::Failed(
-            //     "CreateAttestationExecutor: Chain config not found".to_string(),
-            // ))?;
+            let recipe = recipe::get_by_id(&run.recipe_id)
+                .map_err(|_| TaskError::Cancel("Recipe not found".to_string()))?;
 
             // Run is already attested, cancel
             if run.attestation_transaction_hash.is_some() {
-                return Err(TaskError::Failed(
-                    "CreateAttestationExecutor: Run already attested".to_string(),
-                ));
+                return Err(TaskError::Cancel("Run already attested".to_string()));
             }
 
             // Run is not yet paid, pause and retry
             if run.payment_verified_status != Some(PaymentVerifiedStatus::Verified) {
-                debug("CreateAttestationExecutor: Run not yet paid");
-                return Ok(TaskResult::retry());
+                return Err(TaskError::Retry("Run not yet paid".to_string()));
             }
 
             if recipe.queries.is_empty() {
-                return Err(TaskError::Failed(
+                return Err(TaskError::Cancel(
                     "CreateAttestationExecutor: Recipe contains no queries".to_string(),
                 ));
             }
@@ -67,7 +53,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                     Err(err) => {
                         run.attestation_create_error = Some(err.to_string());
                         run::save(run);
-                        return Err(TaskError::Failed(format!(
+                        return Err(TaskError::Cancel(format!(
                             "Error running EAS query: {}",
                             err
                         )));
@@ -82,7 +68,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 create_attestation(&recipe, &run, &attestation_data, &recipient, run.chain_id)
                     .await
                     .map_err(|err| {
-                        TaskError::Failed(format!("Error creating attestation: {}", err))
+                        TaskError::Cancel(format!("Error creating attestation: {}", err))
                     })?;
 
             run.attestation_transaction_hash = Some(attestation_transaction_hash.clone());
@@ -99,7 +85,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 },
             );
 
-            Ok(TaskResult::success())
+            Ok(())
         })
     }
 }

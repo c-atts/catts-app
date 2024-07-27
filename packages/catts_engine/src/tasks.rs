@@ -1,22 +1,26 @@
-use crate::logger::debug;
-use crate::run::tasks::create_attestation::CreateAttestationExecutor;
-use crate::run::tasks::get_attestation_uid::GetAttestationUidExecutor;
-use crate::run::tasks::process_run_payment::ProcessRunPaymentExecutor;
-use crate::{logger::error, TASKS};
+use crate::{
+    logger,
+    run::tasks::{
+        create_attestation::CreateAttestationExecutor,
+        get_attestation_uid::GetAttestationUidExecutor, register_payment::RegisterPaymentExecutor,
+    },
+    TASKS,
+};
 use candid::{CandidType, Decode, Encode};
 use ic_stable_structures::{storable::Bound, Storable};
 use serde::Deserialize;
-use std::borrow::Cow;
-use std::future::Future;
-use std::pin::Pin;
+use std::{borrow::Cow, future::Future, pin::Pin};
 use thiserror::Error;
 
 pub type Timestamp = u64;
 
 #[derive(Error, Debug)]
 pub enum TaskError {
-    #[error("Task failed: {0}")]
-    Failed(String),
+    #[error("{0}")]
+    Cancel(String),
+
+    #[error("{0}")]
+    Retry(String),
 }
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
@@ -47,52 +51,26 @@ impl Storable for Task {
     const BOUND: Bound = Bound::Unbounded;
 }
 
-#[derive(PartialEq)]
-pub enum TaskResultEnum {
-    Retry,
-    Success,
-    Cancel,
-}
-
-pub struct TaskResult {
-    pub result: TaskResultEnum,
-}
-
-impl TaskResult {
-    pub fn success() -> Self {
-        TaskResult {
-            result: TaskResultEnum::Success,
-        }
-    }
-
-    pub fn retry() -> Self {
-        TaskResult {
-            result: TaskResultEnum::Retry,
-        }
-    }
-
-    pub fn cancel() -> Self {
-        TaskResult {
-            result: TaskResultEnum::Cancel,
-        }
-    }
-}
-
 pub trait TaskExecutor {
-    fn execute(
-        &self,
-        args: Vec<u8>,
-    ) -> Pin<Box<dyn Future<Output = Result<TaskResult, TaskError>> + Send>>;
+    fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>>;
 }
 
-pub fn add_task(when: Timestamp, task: Task) {
+fn get_executor_for_task(task: &Task) -> Box<dyn TaskExecutor> {
+    match task.task_type {
+        TaskType::ProcessRunPayment => Box::new(RegisterPaymentExecutor {}),
+        TaskType::CreateAttestation => Box::new(CreateAttestationExecutor {}),
+        TaskType::GetAttestationUid => Box::new(GetAttestationUidExecutor {}),
+    }
+}
+
+pub fn add_task(run_time: Timestamp, task: Task) {
     // If the task is scheduled to run in the past, execute it immediately
-    if when < ic_cdk::api::time() {
+    if run_time < ic_cdk::api::time() {
         execute_task(task);
         return;
     }
     TASKS.with_borrow_mut(|tasks| {
-        tasks.insert(when, task);
+        tasks.insert(run_time, task);
     });
 }
 
@@ -101,8 +79,8 @@ pub fn execute_tasks() {
     let current_time = ic_cdk::api::time();
 
     TASKS.with_borrow_mut(|tasks| {
-        while let Some((task_scheduled_time, _)) = tasks.first_key_value() {
-            if task_scheduled_time > current_time {
+        while let Some((run_time, _)) = tasks.first_key_value() {
+            if run_time > current_time {
                 break;
             }
 
@@ -117,8 +95,8 @@ pub fn execute_tasks() {
     }
 }
 
-fn execute_task(task: Task) {
-    debug(
+fn execute_task(mut task: Task) {
+    logger::debug(
         format!(
             "Executing task {:?}, retry {:?}",
             task.task_type,
@@ -127,38 +105,26 @@ fn execute_task(task: Task) {
         .as_str(),
     );
     ic_cdk::spawn(async move {
-        match get_executor_for_task(&task)
-            .execute(task.args.clone())
-            .await
-        {
-            Ok(result) => handle_task_result(task, result),
-            Err(e) => error(&e.to_string()),
+        match get_executor_for_task(&task).execute(task.clone()).await {
+            Ok(_) => logger::debug("Task executed successfully"),
+            Err(e) => match e {
+                TaskError::Retry(reason) => {
+                    if task.execute_count + 1 < task.max_retries {
+                        task.execute_count += 1;
+                        TASKS.with_borrow_mut(|tasks| {
+                            tasks.insert(ic_cdk::api::time() + task.retry_interval, task);
+                        });
+                        logger::debug(format!("Task failed, retrying: {}", reason).as_str());
+                    } else {
+                        logger::debug(
+                            format!("Task failed, max retries reached: {}", reason).as_str(),
+                        );
+                    }
+                }
+                TaskError::Cancel(reason) => {
+                    logger::debug(format!("Task failed, cancelling: {}", reason).as_str());
+                }
+            },
         }
     });
-}
-
-fn get_executor_for_task(task: &Task) -> Box<dyn TaskExecutor> {
-    match task.task_type {
-        TaskType::ProcessRunPayment => Box::new(ProcessRunPaymentExecutor {}),
-        TaskType::CreateAttestation => Box::new(CreateAttestationExecutor {}),
-        TaskType::GetAttestationUid => Box::new(GetAttestationUidExecutor {}),
-    }
-}
-
-fn handle_task_result(mut task: Task, result: TaskResult) {
-    match result.result {
-        TaskResultEnum::Success => debug("Task executed successfully"),
-        TaskResultEnum::Retry => {
-            if task.execute_count + 1 < task.max_retries {
-                task.execute_count += 1;
-                TASKS.with_borrow_mut(|tasks| {
-                    tasks.insert(ic_cdk::api::time() + task.retry_interval, task);
-                });
-                debug("Task failed, retrying");
-            } else {
-                debug("Task failed, max retries reached");
-            }
-        }
-        TaskResultEnum::Cancel => debug("Task cancelled"),
-    }
 }
