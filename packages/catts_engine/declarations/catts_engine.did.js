@@ -59,11 +59,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const Result_1 = IDL.Variant({ 'Ok' : Recipe, 'Err' : HttpError });
   const Result_2 = IDL.Variant({ 'Ok' : IDL.Vec(Recipe), 'Err' : IDL.Text });
-  const PaymentVerifiedStatus = IDL.Variant({
-    'VerificationFailed' : IDL.Null,
-    'Verified' : IDL.Null,
-    'Pending' : IDL.Null,
-  });
   const Run = IDL.Record({
     'id' : IDL.Vec(IDL.Nat8),
     'gas' : IDL.Opt(IDL.Nat),
@@ -75,10 +70,11 @@ export const idlFactory = ({ IDL }) => {
     'base_fee_per_gas' : IDL.Opt(IDL.Nat),
     'max_priority_fee_per_gas' : IDL.Opt(IDL.Nat),
     'recipe_id' : IDL.Vec(IDL.Nat8),
+    'payment_block_number' : IDL.Opt(IDL.Nat),
     'is_cancelled' : IDL.Bool,
+    'error' : IDL.Opt(IDL.Text),
     'chain_id' : IDL.Nat64,
-    'attestation_create_error' : IDL.Opt(IDL.Text),
-    'payment_verified_status' : IDL.Opt(PaymentVerifiedStatus),
+    'payment_log_index' : IDL.Opt(IDL.Nat),
     'payment_transaction_hash' : IDL.Opt(IDL.Text),
   });
   const Result_3 = IDL.Variant({ 'Ok' : Run, 'Err' : HttpError });

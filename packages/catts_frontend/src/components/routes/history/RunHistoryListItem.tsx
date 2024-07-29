@@ -39,10 +39,12 @@ export function RunHistoryListItem({ run }: { run: Run }) {
         <div className="flex flex-col gap-2 text-sm text-foreground/50">
           <div className="flex items-center justify-between w-full h-8">
             <div>Transaction fee</div>
-            <div>
-              {formatEther(run.fee)}{" "}
-              {CHAIN_CONFIG[Number(run.chain_id)]?.nativeTokenName}
-            </div>
+            {run.user_fee.length > 0 && typeof run.user_fee[0] === "bigint" && (
+              <div>
+                {formatEther(run.user_fee[0])}{" "}
+                {CHAIN_CONFIG[Number(run.chain_id)]?.nativeTokenName}
+              </div>
+            )}
           </div>
         </div>
         {run.payment_transaction_hash.length > 0 && (

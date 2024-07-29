@@ -5,26 +5,21 @@ import { SectionTitle } from "@/components/ui/Section";
 import useRunContext from "@/context/useRunContext";
 import { isChainIdSupported } from "@/wagmi/is-chain-id-supported";
 import { LoaderCircle } from "lucide-react";
-export default function InitRun() {
+export default function InitRun({ recipeId }: { recipeId: Uint8Array }) {
   const { identity } = useSiweIdentity();
   const { chainId } = useAccount();
   const {
-    useCreateRun: useInitRun,
-    selectedRecipe,
     initPayAndCreateAttestation,
+    inProgress,
+    runInProgress,
+    errorMessage,
   } = useRunContext();
 
   const handleClick = () => {
-    initPayAndCreateAttestation();
+    initPayAndCreateAttestation(recipeId);
   };
 
-  const disabled =
-    !identity ||
-    !isChainIdSupported(chainId) ||
-    !selectedRecipe ||
-    useInitRun.isPending;
-
-  const buttonHidden = useInitRun.data != null && "Ok" in useInitRun.data;
+  const disabled = !identity || !isChainIdSupported(chainId) || inProgress;
 
   return (
     <div className="flex flex-col gap-5">
@@ -37,11 +32,9 @@ export default function InitRun() {
         Creating an attestation takes ca 1 minute and costs ca $0.2 depending on
         chain.
       </div>
-      {!buttonHidden && (
-        <Button className="mb-4" disabled={disabled} onClick={handleClick}>
-          Run
-        </Button>
-      )}
+      <Button className="mb-4" disabled={disabled} onClick={handleClick}>
+        Run
+      </Button>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-zinc-300 text-zinc-800">
@@ -50,7 +43,7 @@ export default function InitRun() {
           Initialise run
         </div>
         <div className="pl-10">
-          {useInitRun.isPending && (
+          {inProgress && !runInProgress && !errorMessage && (
             <div className="flex justify-between w-full">
               <div>Initialising...</div>
               <div>
@@ -58,13 +51,13 @@ export default function InitRun() {
               </div>
             </div>
           )}
-          {useInitRun.data && "Err" in useInitRun.data && (
+          {inProgress && !runInProgress && errorMessage && (
             <div className="flex justify-between w-full">
-              <div>Error: {useInitRun.data.Err.message}</div>
+              <div>Error: {errorMessage}</div>
               <div>🔴</div>
             </div>
           )}
-          {useInitRun.data && "Ok" in useInitRun.data && (
+          {inProgress && runInProgress && (
             <div className="flex justify-between w-full">
               <div>Initialised</div>
               <div>✅</div>

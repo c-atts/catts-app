@@ -5,8 +5,9 @@ use crate::{
 };
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
+use candid::Nat;
 
-use super::types::{PaymentVerifiedStatus, Run, RunError, RunId};
+use super::types::{Run, RunError, RunId};
 
 pub fn generate_run_id(creator: &EthAddress, created: u64) -> RunId {
     let mut hasher = Blake2bVar::new(12).unwrap();
@@ -27,10 +28,8 @@ pub fn save(run: Run) -> Run {
 pub fn cancel(address: &EthAddress, run_id: &RunId) -> Result<Run, RunError> {
     let mut run = get(address, run_id)?;
 
-    // Runs can only be cancelled if they are not paid or if the payment is pending
-    if run.payment_transaction_hash.is_some()
-        || run.payment_verified_status == Some(PaymentVerifiedStatus::Verified)
-    {
+    // Runs can only be cancelled if they are not paid yet
+    if run.payment_transaction_hash.is_some() {
         return Err(RunError::CantBeCancelled("Run is already paid".to_string()));
     }
 
@@ -69,6 +68,7 @@ pub fn register_payment(
     address: &EthAddress,
     run_id: &RunId,
     transaction_hash: &str,
+    block_to_process: u128,
 ) -> Result<Run, RunError> {
     let mut run = get(address, run_id)?;
 
@@ -77,6 +77,7 @@ pub fn register_payment(
     }
 
     run.payment_transaction_hash = Some(transaction_hash.to_string());
-    run.payment_verified_status = Some(PaymentVerifiedStatus::Pending);
+    run.payment_block_number = Some(Nat::from(block_to_process));
+
     Ok(save(run))
 }

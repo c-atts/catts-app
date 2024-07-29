@@ -15,6 +15,8 @@ import { useRegisterRunPayment } from "../catts/hooks/useRegisterRunPayment";
 import { useAccount, useWriteContract } from "wagmi";
 import { wait } from "../utils/wait";
 import { waitForTransactionReceipt } from "@wagmi/core";
+import { getRunStatus } from "@/catts/getRunStatus";
+import { RunStatus } from "@/catts/types/run-status.type";
 
 export const RunContext = createContext<RunContextType | undefined>(undefined);
 
@@ -22,50 +24,54 @@ const GET_UID_RETRY_LIMIT = 30;
 const GET_UID_RETRY_INTERVAL = 5_000;
 
 export function RunContextProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<RunContextStateType>({});
+  const [state, setState] = useState<RunContextStateType>({
+    inProgress: false,
+  });
   const { chainId } = useAccount();
 
   const _useCreateRun = useCreateRun();
   const _usePayForRun = useWriteContract();
   const _useCancelRun = useCancelRun();
   const _useRegisterRunPayment = useRegisterRunPayment();
-  // const _useGetAttestationUid = useGetAttestationUid();
 
-  async function initPayAndCreateAttestation() {
-    if (!state.selectedRecipe) {
-      console.error("No selected recipe.");
-      return;
-    }
-
+  async function initPayAndCreateAttestation(recipeId: Uint8Array) {
     setState((s) => {
       return {
         ...s,
-        progressMessage: "Initializing...",
+        inProgress: true,
         errorMessage: undefined,
       };
     });
 
     try {
       const res = await _useCreateRun.mutateAsync({
-        recipeId: state.selectedRecipe.id,
+        recipeId,
         chainId,
       });
       if (res) {
         if ("Ok" in res) {
+          if (res.Ok.error.length > 0) {
+            setState((s) => {
+              return {
+                ...s,
+                errorMessage: "Error initialising run.",
+              };
+            });
+            throw new Error(res.Ok.error[0]);
+          }
           await payAndCreateAttestation(res.Ok);
         } else {
-          console.error(res.Err);
           throw new Error(res.Err.message);
         }
       }
     } catch (e) {
       console.error(e);
-      const errorMessage = isError(e) ? e.message : "Error initializing run.";
       setState((s) => {
         return {
           ...s,
-          errorMessage,
-          progressMessage: undefined,
+          errorMessage:
+            s.errorMessage ||
+            (isError(e) ? e.message : "Error initializing run."),
         };
       });
     }
@@ -86,8 +92,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       return {
         ...s,
         runInProgress: run,
-        progressMessage: "Paying...",
-        errorMessage: undefined,
       };
     });
 
@@ -111,7 +115,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           runInProgress: {
             ...run,
           },
-          progressMessage: "Waiting for confirmations...",
         };
       });
     } catch (e) {
@@ -146,13 +149,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         throw new Error("No transaction receipt returned.");
       }
 
-      setState((s) => {
-        return {
-          ...s,
-          isPaymentTransactionConfirmed: true,
-        };
-      });
-
       await createAttestation(run, res.blockNumber);
     } catch (e) {
       console.error(e);
@@ -179,22 +175,34 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       return {
         ...s,
         runInProgress: run,
-        progressMessage: "Creating attestation...",
-        errorMessage: undefined,
       };
     });
 
     try {
-      await _useRegisterRunPayment.mutateAsync({ run, block });
+      const res = await _useRegisterRunPayment.mutateAsync({ run, block });
+      if (res) {
+        if ("Ok" in res) {
+          if (res.Ok.error.length > 0) {
+            setState((s) => {
+              return {
+                ...s,
+                errorMessage: "Error registering payment.",
+              };
+            });
+            throw new Error(res.Ok.error[0]);
+          }
+        } else {
+          throw new Error(res.Err.message);
+        }
+      }
     } catch (e) {
       console.error(e);
-      const errorMessage = isError(e) ? e.message : "Error starting run.";
       setState((s) => {
         return {
           ...s,
-          runInProgress: undefined,
-          errorMessage,
-          progressMessage: undefined,
+          errorMessage:
+            s.errorMessage ||
+            (isError(e) ? e.message : "Error registering payment."),
         };
       });
       return;
@@ -207,60 +215,49 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         const res = await catts_engine.run_get(run.id);
         if (res) {
           if ("Ok" in res) {
-            if (res.Ok.payment_verified_status.length > 0) {
-              run.payment_verified_status = res.Ok.payment_verified_status;
+            if (res.Ok.error.length > 0) {
+              let errorMessage = "";
+              switch (getRunStatus(res.Ok)) {
+                case RunStatus.PaymentRegistered:
+                  errorMessage = "Couldn't register payment.";
+                  break;
+                case RunStatus.PaymentVerified:
+                  errorMessage = "Couldn't create attestation.";
+                  break;
+                default:
+                  errorMessage = "Couldn't get attestation UID.";
+              }
               setState((s) => {
                 return {
                   ...s,
-                  runInProgress: {
-                    ...run,
-                  },
-                  progressMessage: "Payment verified, creating attestation...",
+                  runInProgress: res.Ok,
+                  errorMessage,
                 };
               });
-            }
-
-            if (res.Ok.attestation_transaction_hash.length > 0) {
-              run.attestation_transaction_hash =
-                res.Ok.attestation_transaction_hash;
+              throw new Error(res.Ok.error[0]);
+            } else {
               setState((s) => {
                 return {
                   ...s,
-                  runInProgress: {
-                    ...run,
-                  },
-                  progressMessage: "Attestation created, getting UID...",
+                  runInProgress: res.Ok,
                 };
               });
-            }
-
-            if (res.Ok.attestation_uid.length > 0) {
-              run.attestation_uid = res.Ok.attestation_uid;
-              setState((s) => {
-                return {
-                  ...s,
-                  runInProgress: {
-                    ...run,
-                  },
-                };
-              });
-              break;
+              if (getRunStatus(res.Ok) === RunStatus.AttestationUidConfirmed) {
+                break;
+              }
             }
           } else if ("Err" in res) {
-            console.error(res.Err);
             throw new Error(res.Err.message);
           }
         }
       } catch (e) {
         console.error(e);
-        const errorMessage = isError(e)
-          ? e.message
-          : "Error getting attestation uid.";
         setState((s) => {
           return {
             ...s,
-            errorMessage,
-            progressMessage: undefined,
+            errorMessage:
+              s.errorMessage ||
+              (isError(e) ? e.message : "Error creating attestation."),
           };
         });
         return;
@@ -292,7 +289,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
           resetRun();
         },
         runInProgress: state?.runInProgress,
-        progressMessage: state?.progressMessage,
         errorMessage: state?.errorMessage,
         useCreateRun: _useCreateRun,
         usePayForRun: _usePayForRun,
@@ -302,6 +298,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         payAndCreateAttestation,
         createAttestation,
         resetRun,
+        inProgress: state.inProgress,
       }}
     >
       {children}

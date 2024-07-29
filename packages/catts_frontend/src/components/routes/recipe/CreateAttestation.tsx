@@ -1,77 +1,75 @@
 import AttestationUidLink from "../../../components/AttestationUidLink";
 import EthTxLink from "../../../components/EthTxLink";
-import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import useRunContext from "../../../context/useRunContext";
 import { LoaderCircle } from "lucide-react";
+import { useRunStatus } from "@/catts/hooks/useRunStatus";
+import { RunStatus } from "@/catts/types/run-status.type";
 
 export function CreateAttestationInner() {
-  const { runInProgress } = useRunContext();
+  const { runInProgress, errorMessage } = useRunContext();
+  const runStatus = useRunStatus(runInProgress);
 
-  const paymentStatus = paymentVerifiedStatusToString(runInProgress);
+  if (!runInProgress) return null;
 
   return (
     <>
-      {runInProgress &&
-        runInProgress.payment_transaction_hash.length > 0 &&
-        paymentStatus === "Verified" &&
-        runInProgress.attestation_transaction_hash.length === 0 && (
-          <div className="flex justify-between w-full">
-            <div>Creating attestation ...</div>
-            <div>
-              <LoaderCircle className="w-5 h-5 animate-spin" />
-            </div>
-          </div>
-        )}
-
-      {runInProgress &&
-        runInProgress.attestation_transaction_hash.length > 0 && (
-          <div className="flex justify-between w-full">
-            <div className="text-sm text-foreground/50">Attesttation tx</div>
-            <div className="text-sm text-foreground/50">
-              <EthTxLink
-                chainId={Number(runInProgress.chain_id)}
-                tx={runInProgress?.attestation_transaction_hash[0]}
-              />
-            </div>
-          </div>
-        )}
-
-      {runInProgress &&
-        runInProgress.attestation_transaction_hash.length > 0 &&
-        runInProgress.attestation_uid.length === 0 && (
-          <div className="flex justify-between w-full">
-            <div> Attestation created, getting UID...</div>
-            <div>
-              <LoaderCircle className="w-5 h-5 animate-spin" />
-            </div>
-          </div>
-        )}
-
-      {runInProgress && runInProgress.attestation_uid.length > 0 && (
+      {runStatus === RunStatus.PaymentVerified && !errorMessage && (
         <div className="flex justify-between w-full">
-          <div className="text-sm text-foreground/50">Attestation uid</div>
+          <div>Creating attestation ...</div>
+          <div>
+            <LoaderCircle className="w-5 h-5 animate-spin" />
+          </div>
+        </div>
+      )}
+
+      {runStatus >= RunStatus.AttestationCreated && (
+        <div className="flex justify-between w-full">
+          <div className="text-sm text-foreground/50">Attesttation tx</div>
           <div className="text-sm text-foreground/50">
-            <AttestationUidLink
+            <EthTxLink
               chainId={Number(runInProgress.chain_id)}
-              uid={runInProgress?.attestation_uid[0]}
+              tx={runInProgress?.attestation_transaction_hash[0]}
             />
           </div>
         </div>
       )}
 
-      {runInProgress && runInProgress.attestation_uid.length > 0 && (
+      {runStatus === RunStatus.AttestationCreated && !errorMessage && (
         <div className="flex justify-between w-full">
-          <div>Attestation created</div>
-          <div>✅</div>
+          <div> Attestation created, getting UID...</div>
+          <div>
+            <LoaderCircle className="w-5 h-5 animate-spin" />
+          </div>
         </div>
       )}
 
-      {/* {useStartRun.data && "Err" in useStartRun.data && (
-        <div className="flex justify-between w-full">
-          <div>There was an error creating the attestation</div>
-          <div>🔴</div>
-        </div>
-      )} */}
+      {runStatus === RunStatus.AttestationUidConfirmed && (
+        <>
+          <div className="flex justify-between w-full">
+            <div className="text-sm text-foreground/50">Attestation uid</div>
+            <div className="text-sm text-foreground/50">
+              <AttestationUidLink
+                chainId={Number(runInProgress.chain_id)}
+                uid={runInProgress?.attestation_uid[0]}
+              />
+            </div>
+          </div>
+          <div className="flex justify-between w-full">
+            <div>Attestation created</div>
+            <div>✅</div>
+          </div>
+        </>
+      )}
+
+      {(runStatus === RunStatus.PaymentVerified ||
+        runStatus === RunStatus.AttestationCreated ||
+        runStatus === RunStatus.AttestationUidConfirmed) &&
+        errorMessage && (
+          <div className="flex justify-between w-full">
+            <div>Error: {errorMessage}</div>
+            <div>🔴</div>
+          </div>
+        )}
     </>
   );
 }

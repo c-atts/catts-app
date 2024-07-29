@@ -25,13 +25,6 @@ pub enum RunError {
 
 pub type RunId = [u8; 12];
 
-#[derive(Serialize, Deserialize, Debug, CandidType, PartialEq, Clone)]
-pub enum PaymentVerifiedStatus {
-    Pending,
-    Verified,
-    VerificationFailed,
-}
-
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone)]
 pub struct Run {
     pub id: RunId,
@@ -44,11 +37,21 @@ pub struct Run {
     pub max_priority_fee_per_gas: Option<Nat>,
     pub user_fee: Option<Nat>,
     pub payment_transaction_hash: Option<String>,
-    pub payment_verified_status: Option<PaymentVerifiedStatus>,
+    pub payment_block_number: Option<Nat>,
+    pub payment_log_index: Option<Nat>,
     pub attestation_transaction_hash: Option<String>,
-    pub attestation_create_error: Option<String>,
     pub attestation_uid: Option<String>,
     pub is_cancelled: bool,
+    pub error: Option<String>,
+}
+
+#[derive(PartialEq, PartialOrd)]
+pub enum RunStatus {
+    PaymentPending = 0,
+    PaymentRegistered = 1,
+    PaymentVerified = 2,
+    AttestationCreated = 3,
+    AttestationUidConfirmed = 4,
 }
 
 impl Storable for Run {
@@ -86,13 +89,30 @@ impl Run {
             max_priority_fee_per_gas: None,
             user_fee: None,
             payment_transaction_hash: None,
-            payment_verified_status: None,
+            payment_block_number: None,
+            payment_log_index: None,
             attestation_transaction_hash: None,
-            attestation_create_error: None,
             attestation_uid: None,
             is_cancelled: false,
+            error: None,
         };
 
         Ok(run)
+    }
+
+    pub fn status(&self) -> RunStatus {
+        if self.attestation_uid.is_some() {
+            return RunStatus::AttestationUidConfirmed;
+        }
+        if self.attestation_transaction_hash.is_some() {
+            return RunStatus::AttestationCreated;
+        }
+        if self.payment_log_index.is_some() {
+            return RunStatus::PaymentVerified;
+        }
+        if self.payment_transaction_hash.is_some() {
+            return RunStatus::PaymentRegistered;
+        }
+        RunStatus::PaymentPending
     }
 }

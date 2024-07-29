@@ -26,7 +26,7 @@ async fn run_register_payment(
         return Err(HttpError::forbidden("Only creator can register payment"));
     }
 
-    let run = run::register_payment(&address, &run_id, &transaction_hash)
+    let run = run::register_payment(&address, &run_id, &transaction_hash, block_to_process)
         .map_err(HttpError::bad_request)?;
 
     let args: Vec<u8> = bincode::serialize(&ProcessRunPaymentArgs {

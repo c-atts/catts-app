@@ -1,82 +1,68 @@
 import EthTxLink from "../../../components/EthTxLink";
-import { TransactionExecutionError } from "viem";
 import { formatEther } from "viem/utils";
-import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
 import useRunContext from "../../../context/useRunContext";
 import { CHAIN_CONFIG } from "../../../config";
 import { LoaderCircle } from "lucide-react";
+import { useRunStatus } from "@/catts/hooks/useRunStatus";
+import { RunStatus } from "@/catts/types/run-status.type";
 
 export function PayForRunInner() {
-  const { usePayForRun, runInProgress, progressMessage } = useRunContext();
+  const { runInProgress, errorMessage } = useRunContext();
+  const runStatus = useRunStatus(runInProgress);
 
   if (!runInProgress) return null;
 
-  const paymentStatus = paymentVerifiedStatusToString(runInProgress);
-
-  if (
-    usePayForRun.isPending ||
-    (runInProgress.payment_transaction_hash.length === 0 && !usePayForRun.error)
-  ) {
-    return (
-      <div className="flex justify-between w-full">
-        <div>{progressMessage}</div>
-        <div>
-          <LoaderCircle className="w-5 h-5 animate-spin" />
-        </div>
-      </div>
-    );
-  }
-
-  if (usePayForRun.error) {
-    return (
-      <div className="flex justify-between w-full">
-        <div>
-          Error:{" "}
-          {(usePayForRun.error as TransactionExecutionError).shortMessage}
-        </div>
-        <div>🔴</div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="flex justify-between w-full">
-        <div className="text-sm text-foreground/50">Payment tx</div>
-        <EthTxLink
-          chainId={Number(runInProgress.chain_id)}
-          tx={runInProgress.payment_transaction_hash[0]}
-        />
-      </div>
-      <div className="flex justify-between w-full">
-        <div>Run paid</div>
-        <div>✅</div>
-      </div>
-      {paymentStatus === "Verified" ? (
+      {runStatus === RunStatus.PaymentPending && !errorMessage && (
         <div className="flex justify-between w-full">
-          <div>Payment verified</div>
-          <div>✅</div>
-        </div>
-      ) : (
-        <div className="flex justify-between w-full">
-          <div>Verifying payment ...</div>
+          <div>Waiting for payment …</div>
           <div>
             <LoaderCircle className="w-5 h-5 animate-spin" />
           </div>
         </div>
       )}
+
+      {runStatus >= RunStatus.PaymentRegistered && (
+        <div className="flex justify-between w-full">
+          <div className="text-sm text-foreground/50">Payment tx</div>
+          <EthTxLink
+            chainId={Number(runInProgress.chain_id)}
+            tx={runInProgress.payment_transaction_hash[0]}
+          />
+        </div>
+      )}
+
+      {runStatus === RunStatus.PaymentRegistered && !errorMessage && (
+        <div className="flex justify-between w-full">
+          <div>Waiting for confirmations...</div>
+          <div>
+            <LoaderCircle className="w-5 h-5 animate-spin" />
+          </div>
+        </div>
+      )}
+
+      {runStatus >= RunStatus.PaymentVerified && (
+        <div className="flex justify-between w-full">
+          <div>Run paid</div>
+          <div>✅</div>
+        </div>
+      )}
+
+      {(runStatus === RunStatus.PaymentPending ||
+        runStatus === RunStatus.PaymentRegistered) &&
+        errorMessage && (
+          <div className="flex justify-between w-full">
+            <div>Error: {errorMessage}</div>
+            <div>🔴</div>
+          </div>
+        )}
     </>
   );
 }
 
 export default function PayForRun() {
-  const { useCreateRun: useInitRun, runInProgress } = useRunContext();
-  const { data: initRunData } = useInitRun;
-
-  const cost =
-    initRunData && "Ok" in initRunData
-      ? initRunData?.Ok?.user_fee[0]
-      : undefined;
+  const { runInProgress } = useRunContext();
 
   return (
     <div className="flex flex-col gap-2">
@@ -86,19 +72,18 @@ export default function PayForRun() {
         </div>
         Pay for run
       </div>
-      <div className="flex flex-col gap-2 pl-10">
-        {cost !== undefined && (
+      {runInProgress && (
+        <div className="flex flex-col gap-2 pl-10">
           <div className="flex justify-between w-full">
             <div className="text-sm text-foreground/50">Transaction fee</div>
             <div className="text-sm text-foreground/50">
-              {formatEther(cost)}{" "}
+              {formatEther(runInProgress.user_fee[0] as bigint)}{" "}
               {CHAIN_CONFIG[Number(runInProgress?.chain_id)].nativeTokenName}
             </div>
           </div>
-        )}
-
-        <PayForRunInner />
-      </div>
+          <PayForRunInner />
+        </div>
+      )}
     </div>
   );
 }

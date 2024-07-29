@@ -5,7 +5,7 @@ import { useGetRecipeByName } from "../catts/hooks/useGetRecipeBySlug";
 import useRunContext from "../context/useRunContext";
 import RecipeBasics from "../components/routes/recipe/RecipeBasics";
 import CreateAttestation from "../components/routes/recipe/CreateAttestation";
-import InitRun from "../components/routes/recipe/CreateRun";
+import InitRun from "../components/routes/recipe/InitRun";
 import PayForRun from "../components/routes/recipe/PayForRun";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
 import SimulateRun from "../components/routes/recipe/SimulateRun";
@@ -44,7 +44,7 @@ function Index() {
       </div>
       <div className="flex flex-col gap-5 w-1/3">
         <Section>
-          <InitRun />
+          <InitRun recipeId={recipe.Ok.id as Uint8Array} />
           <PayForRun />
           <CreateAttestation />
         </Section>

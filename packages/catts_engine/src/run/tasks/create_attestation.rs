@@ -2,11 +2,13 @@ use crate::{
     eas::{create_attestation, process_query_result, run_query},
     eth_address::EthAddress,
     recipe::{self},
-    run::{self, PaymentVerifiedStatus},
+    run::{self, RunStatus},
     tasks::{add_task, Task, TaskError, TaskExecutor, TaskType},
 };
 use futures::Future;
 use std::pin::Pin;
+
+use super::util::save_error_and_cancel;
 const GET_ATTESTATION_UID_FIRST_TIME_INTERVAL: u64 = 5_000_000_000; // 5 seconds
 const GET_ATTESTATION_UID_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
 const GET_ATTESTATION_UID_MAX_RETRIES: u32 = 10;
@@ -20,25 +22,26 @@ impl TaskExecutor for CreateAttestationExecutor {
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
             let mut run = run::get_by_id(&run_id)
-                .map_err(|_| TaskError::Cancel("Run not found".to_string()))?;
+                .map_err(|_| save_error_and_cancel(&run_id, "Run not found".to_string()))?;
 
             let recipe = recipe::get_by_id(&run.recipe_id)
-                .map_err(|_| TaskError::Cancel("Recipe not found".to_string()))?;
+                .map_err(|_| save_error_and_cancel(&run_id, "Recipe not found".to_string()))?;
 
             // Run is already attested, cancel
             if run.attestation_transaction_hash.is_some() {
-                return Err(TaskError::Cancel("Run already attested".to_string()));
+                save_error_and_cancel(&run_id, "Run already attested".to_string());
             }
 
-            // Run is not yet paid, pause and retry
-            if run.payment_verified_status != Some(PaymentVerifiedStatus::Verified) {
-                return Err(TaskError::Retry("Run not yet paid".to_string()));
+            if run.status() == RunStatus::PaymentPending {
+                save_error_and_cancel(&run_id, "Run not yet paid".to_string());
+            }
+
+            if run.status() == RunStatus::PaymentRegistered {
+                save_error_and_cancel(&run_id, "Run payment not yet verified".to_string());
             }
 
             if recipe.queries.is_empty() {
-                return Err(TaskError::Cancel(
-                    "CreateAttestationExecutor: Recipe contains no queries".to_string(),
-                ));
+                save_error_and_cancel(&run_id, "Recipe contains no queries".to_string());
             }
 
             let recipient = EthAddress::from(run.creator);
@@ -51,12 +54,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                         query_response.push(qr);
                     }
                     Err(err) => {
-                        run.attestation_create_error = Some(err.to_string());
-                        run::save(run);
-                        return Err(TaskError::Cancel(format!(
-                            "Error running EAS query: {}",
-                            err
-                        )));
+                        save_error_and_cancel(&run_id, format!("Error running EAS query: {}", err));
                     }
                 }
             }
@@ -68,7 +66,10 @@ impl TaskExecutor for CreateAttestationExecutor {
                 create_attestation(&recipe, &run, &attestation_data, &recipient, run.chain_id)
                     .await
                     .map_err(|err| {
-                        TaskError::Cancel(format!("Error creating attestation: {}", err))
+                        save_error_and_cancel(
+                            &run_id,
+                            format!("Error creating attestation: {}", err),
+                        )
                     })?;
 
             run.attestation_transaction_hash = Some(attestation_transaction_hash.clone());

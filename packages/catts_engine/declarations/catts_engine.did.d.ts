@@ -27,9 +27,6 @@ export type LogLevel = { 'Error' : null } |
   { 'Info' : null } |
   { 'Warn' : null } |
   { 'Debug' : null };
-export type PaymentVerifiedStatus = { 'VerificationFailed' : null } |
-  { 'Verified' : null } |
-  { 'Pending' : null };
 export interface Recipe {
   'id' : Uint8Array | number[],
   'resolver' : string,
@@ -87,10 +84,11 @@ export interface Run {
   'base_fee_per_gas' : [] | [bigint],
   'max_priority_fee_per_gas' : [] | [bigint],
   'recipe_id' : Uint8Array | number[],
+  'payment_block_number' : [] | [bigint],
   'is_cancelled' : boolean,
+  'error' : [] | [string],
   'chain_id' : bigint,
-  'attestation_create_error' : [] | [string],
-  'payment_verified_status' : [] | [PaymentVerifiedStatus],
+  'payment_log_index' : [] | [bigint],
   'payment_transaction_hash' : [] | [string],
 }
 export interface TransformArgs {

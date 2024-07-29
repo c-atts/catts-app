@@ -12,7 +12,6 @@ type HttpResponse = record {
 };
 type LogItem = record { level : LogLevel; message : text; timestamp : nat64 };
 type LogLevel = variant { Error; Info; Warn; Debug };
-type PaymentVerifiedStatus = variant { VerificationFailed; Verified; Pending };
 type Recipe = record {
   id : blob;
   resolver : text;
@@ -58,10 +57,11 @@ type Run = record {
   base_fee_per_gas : opt nat;
   max_priority_fee_per_gas : opt nat;
   recipe_id : blob;
+  payment_block_number : opt nat;
   is_cancelled : bool;
+  error : opt text;
   chain_id : nat64;
-  attestation_create_error : opt text;
-  payment_verified_status : opt PaymentVerifiedStatus;
+  payment_log_index : opt nat;
   payment_transaction_hash : opt text;
 };
 type TransformArgs = record { context : blob; response : HttpResponse };

@@ -2,16 +2,19 @@ use crate::chain_config::{self, ChainConfig};
 use crate::declarations::evm_rpc::LogEntry;
 use crate::evm::rpc::get_run_payment_logs;
 use crate::logger::{self};
-use crate::run::{self, PaymentVerifiedStatus, Run};
+use crate::run::{self, Run, RunStatus};
 use crate::tasks::{add_task, Task, TaskError, TaskExecutor, TaskType};
 use crate::{
     eth_address::{remove_address_padding, EthAddress},
     ETH_PAYMENT_EVENT_SIGNATURE,
 };
+use anyhow::{anyhow, bail, Result};
 use ethers_core::abi::ParamType;
 use futures::Future;
 use serde::{Deserialize, Serialize};
 use std::pin::Pin;
+
+use super::util::save_error_and_cancel;
 
 const CREATE_ATTESTATION_RETRY_INTERVAL: u64 = 15_000_000_000; // 15 seconds
 const CREATE_ATTESTATION_MAX_RETRIES: u32 = 3;
@@ -31,31 +34,43 @@ impl TaskExecutor for RegisterPaymentExecutor {
             let args: ProcessRunPaymentArgs = bincode::deserialize(&task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
-            let run = run::get_by_id(&args.run_id).map_err(|e| TaskError::Cancel(e.to_string()))?;
+            let mut run =
+                run::get_by_id(&args.run_id).map_err(|e| TaskError::Cancel(e.to_string()))?;
 
-            let chain_config =
-                chain_config::get(run.chain_id).map_err(|e| TaskError::Cancel(e.to_string()))?;
+            let chain_config = chain_config::get(run.chain_id)
+                .map_err(|e| save_error_and_cancel(&args.run_id, e.to_string()))?;
 
             let payment_logs = get_run_payment_logs(args.block_to_process, &chain_config)
                 .await
                 .map_err(|e| TaskError::Retry(e.to_string()))?;
 
             for entry in payment_logs {
-                let maybe_run = process_log_entry(&entry, &args, &chain_config)?;
-                if maybe_run.is_some() {
-                    logger::info("Payment log entry processed successfully");
-                    add_task(
-                        0, // Run ASAP
-                        Task {
-                            task_type: TaskType::CreateAttestation,
-                            args: args.run_id.to_vec(),
-                            max_retries: CREATE_ATTESTATION_MAX_RETRIES,
-                            execute_count: 0,
-                            retry_interval: CREATE_ATTESTATION_RETRY_INTERVAL,
-                        },
-                    );
-                    return Ok(());
+                if entry.transactionHash != run.payment_transaction_hash {
+                    continue;
                 }
+
+                process_log_entry(&entry, &args, &chain_config)
+                    .map_err(|e| save_error_and_cancel(&args.run_id, e.to_string()))?;
+
+                run.payment_transaction_hash = entry.transactionHash;
+                run.payment_block_number = entry.blockNumber;
+                run.payment_log_index = entry.logIndex;
+
+                logger::info("Payment log entry processed successfully");
+
+                run::save(run);
+
+                add_task(
+                    0, // Run ASAP
+                    Task {
+                        task_type: TaskType::CreateAttestation,
+                        args: args.run_id.to_vec(),
+                        max_retries: CREATE_ATTESTATION_MAX_RETRIES,
+                        execute_count: 0,
+                        retry_interval: CREATE_ATTESTATION_RETRY_INTERVAL,
+                    },
+                );
+                return Ok(());
             }
 
             Err(TaskError::Cancel("No valid log entries found".to_string()))
@@ -67,15 +82,13 @@ fn process_log_entry(
     entry: &LogEntry,
     args: &ProcessRunPaymentArgs,
     chain_config: &ChainConfig,
-) -> Result<Option<Run>, TaskError> {
+) -> Result<Run> {
     if entry.address.to_lowercase() != chain_config.payment_contract.to_lowercase() {
-        logger::debug("Payment log entry address does not match the expected address.");
-        return Ok(None);
+        bail!("Payment log entry address does not match the expected address");
     }
 
     if entry.topics.len() < 2 {
-        logger::debug("Not enough topics in payment log entry");
-        return Ok(None);
+        bail!("Not enough topics in payment log entry");
     }
 
     let event_signature = &entry.topics[0];
@@ -83,8 +96,7 @@ fn process_log_entry(
         .to_lowercase()
         .eq(ETH_PAYMENT_EVENT_SIGNATURE)
     {
-        logger::debug("Payment log entry signature does not match the expected signature.");
-        return Ok(None);
+        bail!("Payment log entry signature does not match the expected signature");
     }
 
     let event_from_address = &entry.topics[1];
@@ -92,16 +104,14 @@ fn process_log_entry(
     let event_from_address = match EthAddress::new(&event_from_address) {
         Ok(address) => address,
         Err(_) => {
-            logger::debug("Payment log entry from address is not a valid address");
-            return Ok(None);
+            bail!("Payment log entry from address is not a valid address");
         }
     };
 
     let from_address = EthAddress::from(args.from_address);
 
     if event_from_address.as_byte_array() != from_address.as_byte_array() {
-        logger::debug("Payment from address does not match the expected address");
-        return Ok(None);
+        bail!("Payment log entry from address does not match the expected address");
     }
 
     // Hex string to raw bytes
@@ -111,84 +121,70 @@ fn process_log_entry(
             ethers_core::abi::decode(&[ParamType::Uint(256), ParamType::FixedBytes(12)], &data)
         {
             if decoded_data.len() < 2 {
-                logger::debug("Decoded data has less than 2 elements");
-                return Ok(None);
+                bail!("Decoded data has less than 2 elements");
             }
 
             let event_run_id = match decoded_data[1].clone().into_fixed_bytes() {
                 Some(bytes) => bytes,
                 None => {
-                    logger::debug("Payment run_id is the wrong data type");
-                    return Ok(None);
+                    bail!("Payment run_id is the wrong data type");
                 }
             };
 
             let event_run_id = match run::vec_to_run_id(event_run_id) {
                 Ok(run_id) => run_id,
                 Err(_) => {
-                    logger::debug("Payment run_id is not a valid run_id");
-                    return Ok(None);
+                    bail!("Payment run_id is not a valid run_id");
                 }
             };
 
             if event_run_id != args.run_id {
-                logger::debug("Payment run_id does not match the expected run_id");
-                return Ok(None);
+                bail!("Payment run_id does not match the expected run_id");
+            }
+
+            let run = match run::get(&event_from_address, &event_run_id) {
+                Ok(run) => run,
+                Err(_) => {
+                    bail!("Found payment for non-existent run");
+                }
+            };
+
+            if run.status() == RunStatus::PaymentPending {
+                bail!("No payment transaction is registered for this run");
+            }
+
+            if run.status() > RunStatus::PaymentRegistered {
+                bail!("Run payment is already verified");
             }
 
             let event_amount = match decoded_data[0].clone().into_uint() {
                 Some(amount) => amount,
                 None => {
-                    logger::debug("Payment amount is the wrong data type");
-                    return Ok(None);
+                    bail!("Payment amount is the wrong data type");
                 }
             };
 
             let event_amount: u128 = match event_amount.try_into() {
                 Ok(amount) => amount,
                 Err(_) => {
-                    logger::debug("Payment amount is too large");
-                    return Ok(None);
+                    bail!("Payment amount is too large");
                 }
             };
-
-            let mut run = match run::get(&event_from_address, &event_run_id) {
-                Ok(run) => run,
-                Err(_) => {
-                    logger::debug("Found payment for non-existent run");
-                    return Ok(None);
-                }
-            };
-
-            if run.payment_verified_status == Some(PaymentVerifiedStatus::Verified) {
-                return Err(TaskError::Cancel(
-                    "Payment already verified for this run".to_string(),
-                ));
-            }
 
             let user_fee = match run.user_fee.clone() {
                 Some(fee) => fee,
                 None => {
-                    return Err(TaskError::Cancel(
-                        "Run does not have a user fee".to_string(),
-                    ));
+                    bail!("Run does not have a user fee");
                 }
             };
 
             if event_amount >= user_fee {
-                run.payment_transaction_hash
-                    .clone_from(&entry.transactionHash);
-                run.payment_verified_status = Some(PaymentVerifiedStatus::Verified);
-                return Ok(Some(run::save(run)));
+                return Ok(run);
             } else {
-                return Err(TaskError::Cancel(
-                    "Payment did not cover the cost of the run".to_string(),
-                ));
+                bail!("Payment did not cover the cost of the run");
             }
         }
-        logger::debug("Failed to decode log data");
-        return Ok(None);
+        bail!("Failed to decode log data");
     }
-    logger::debug("Failed to decode log hex data");
-    Ok(None)
+    Err(anyhow!("Failed to decode log hex data"))
 }

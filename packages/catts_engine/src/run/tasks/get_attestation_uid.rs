@@ -9,6 +9,8 @@ use crate::{
 };
 use futures::Future;
 
+use super::util::save_error_and_cancel;
+
 pub struct GetAttestationUidExecutor {}
 
 impl TaskExecutor for GetAttestationUidExecutor {
@@ -18,20 +20,22 @@ impl TaskExecutor for GetAttestationUidExecutor {
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
             let mut run = run::get_by_id(&run_id)
-                .map_err(|_| TaskError::Cancel("Run not found".to_string()))?;
+                .map_err(|_| save_error_and_cancel(&run_id, "Run not found".to_string()))?;
 
             if run.attestation_uid.is_some() {
-                return Err(TaskError::Cancel("Run already attested".to_string()));
+                save_error_and_cancel(&run_id, "Run already attested".to_string());
             }
 
-            let chain_config = chain_config::get(run.chain_id)
-                .map_err(|_| TaskError::Cancel("Chain config not found".to_string()))?;
+            let chain_config = chain_config::get(run.chain_id).map_err(|_| {
+                save_error_and_cancel(&run_id, "Chain config not found".to_string())
+            })?;
 
             let attestation_transaction_hash = match run.attestation_transaction_hash {
                 Some(ref hash) => hash.clone(),
                 None => {
-                    return Err(TaskError::Retry(
-                        "Attestation transaction hash not found".to_string(),
+                    return Err(save_error_and_cancel(
+                        &run_id,
+                        "No attestation transaction hash".to_string(),
                     ));
                 }
             };

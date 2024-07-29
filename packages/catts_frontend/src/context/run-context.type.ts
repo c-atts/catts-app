@@ -38,8 +38,9 @@ export type RunContextType = {
     Uint8Array | number[],
     unknown
   >;
-  initPayAndCreateAttestation: () => Promise<void>;
+  initPayAndCreateAttestation: (recipeId: Uint8Array) => Promise<void>;
   payAndCreateAttestation: (run: Run) => Promise<void>;
   createAttestation: (run: Run, block: bigint) => Promise<void>;
   resetRun: () => void;
+  inProgress: boolean;
 };
