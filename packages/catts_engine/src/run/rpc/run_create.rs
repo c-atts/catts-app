@@ -3,7 +3,9 @@ use crate::{
     http_error::HttpError,
     logger,
     recipe::{self, RecipeId},
-    run::{self, estimate_gas_usage, util::estimate_transaction_fees, Run},
+    run::{
+        self, estimate_gas_usage, get_min_user_fee_for_chain, util::estimate_transaction_fees, Run,
+    },
     user::auth_guard,
 };
 use ic_cdk::{api::canister_balance, update};
@@ -32,12 +34,11 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError
         .await
         .map_err(HttpError::internal_server_error)?;
 
-    // User fee is gas * (base_fee_per_gas + max_priority_fee_per_gas)
     let user_fee = gas.clone()
         * (fee_estimates.base_fee_per_gas.clone() + fee_estimates.max_priority_fee_per_gas.clone());
-
-    // TODO: Ensure the user fee is at least the minimum fee
-    // get_min_user_fee_for_chain
+    let min_user_fee =
+        get_min_user_fee_for_chain(chain_id).map_err(HttpError::internal_server_error)?;
+    let user_fee = user_fee.max(min_user_fee);
 
     ic_cdk::println!(
         "base_fee_per_gas: {}, max_priority_fee_per_gas: {}, gas: {}",
