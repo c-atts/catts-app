@@ -1,7 +1,6 @@
+import { useActor } from "@/lib/ic/ActorProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { Run } from "catts_engine/declarations/catts_engine.did";
-import { useActor } from "../../ic/ActorProvider";
 
 export const useRegisterRunPayment = () => {
   const { actor } = useActor();

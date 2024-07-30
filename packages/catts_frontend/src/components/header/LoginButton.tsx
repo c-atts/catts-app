@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { isChainIdSupported } from "../../wagmi/is-chain-id-supported";
 import { useAccount, useSwitchChain } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { ETH_DEFAULT_CHAIN_ID } from "../../config";
 import { useState } from "react";
-import { useLogin } from "../../catts/hooks/useLogin";
 import { LoaderCircle } from "lucide-react";
+import { useLogin } from "@/lib/hooks/useLogin";
+import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 
 export default function LoginButton() {
   const { isConnected, chainId } = useAccount();

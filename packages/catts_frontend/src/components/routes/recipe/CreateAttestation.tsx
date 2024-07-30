@@ -1,9 +1,9 @@
+import useRunContext from "@/run/hooks/useRunContext";
 import AttestationUidLink from "../../../components/AttestationUidLink";
 import EthTxLink from "../../../components/EthTxLink";
-import useRunContext from "../../../context/useRunContext";
 import { LoaderCircle } from "lucide-react";
-import { useRunStatus } from "@/catts/hooks/useRunStatus";
-import { RunStatus } from "@/catts/types/run-status.type";
+import { useRunStatus } from "@/run/hooks/useRunStatus";
+import { RunStatus } from "@/run/types/run-status.type";
 
 export function CreateAttestationInner() {
   const { runInProgress, errorMessage } = useRunContext();

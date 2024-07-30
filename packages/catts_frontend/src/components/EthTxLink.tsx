@@ -1,9 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEthereum } from "@fortawesome/free-brands-svg-icons";
-import { shortenEthAddress } from "../eth/utils/shortenEthAddress";
 import { twMerge } from "tailwind-merge";
 
 import { CHAIN_CONFIG } from "../config";
+import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
 
 export default function EthTxLink({
   tx,

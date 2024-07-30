@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { useActor } from "../../ic/ActorProvider";
 import toast from "react-hot-toast";
 import { useNavigate } from "@tanstack/react-router";
-import errorToast from "@/utils/errorToast";
+import { useActor } from "@/lib/ic/ActorProvider";
+import errorToast from "@/lib/util/errorToast";
 function processUrl(url: string) {
   if (url.startsWith("https://github.com")) {
     const u = url.replace(

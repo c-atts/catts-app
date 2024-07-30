@@ -2,9 +2,9 @@ import { useAccount, useEnsName } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 import ConnectDialog from "./ConnectDialog";
-import { shortenEthAddress } from "../../eth/utils/shortenEthAddress";
 import { useState } from "react";
 import { UserDialog } from "./UserDialog";
+import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
 
 export default function EthButton() {
   const { address, isConnected, isConnecting } = useAccount();

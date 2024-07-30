@@ -3,20 +3,19 @@ import { ReactNode, createContext, useState } from "react";
 import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
 import { CHAIN_CONFIG, wagmiConfig } from "../config";
 import { Run } from "catts_engine/declarations/catts_engine.did";
-import { RunContextStateType } from "./run-context-state.type";
-import { RunContextType } from "./run-context.type";
 import { TransactionExecutionError } from "viem";
 import { catts_engine } from "catts_engine/declarations";
 import { isError } from "remeda";
 import { toHex } from "viem/utils";
-import { useCancelRun } from "../catts/hooks/useCancelRun";
-import { useCreateRun } from "../catts/hooks/useCreateRun";
-import { useRegisterRunPayment } from "../catts/hooks/useRegisterRunPayment";
 import { useAccount, useWriteContract } from "wagmi";
-import { wait } from "../utils/wait";
 import { waitForTransactionReceipt } from "@wagmi/core";
-import { getRunStatus } from "@/catts/getRunStatus";
-import { RunStatus } from "@/catts/types/run-status.type";
+import { RunContextType } from "./types/run-context.type";
+import { useCreateRun } from "./hooks/useCreateRun";
+import { useRegisterRunPayment } from "./hooks/useRegisterRunPayment";
+import { RunContextStateType } from "./types/run-context-state.type";
+import { wait } from "@/lib/util/wait";
+import { getRunStatus } from "./getRunStatus";
+import { RunStatus } from "./types/run-status.type";
 
 export const RunContext = createContext<RunContextType | undefined>(undefined);
 
@@ -30,8 +29,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
   const { chainId } = useAccount();
 
   const _useCreateRun = useCreateRun();
-  const _usePayForRun = useWriteContract();
-  const _useCancelRun = useCancelRun();
+  const _useWriteContract = useWriteContract();
   const _useRegisterRunPayment = useRegisterRunPayment();
 
   async function initPayAndCreateAttestation(recipeId: Uint8Array) {
@@ -92,11 +90,12 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       return {
         ...s,
         runInProgress: run,
+        inProgress: true,
       };
     });
 
     try {
-      const transactionHash = await _usePayForRun.writeContractAsync({
+      const transactionHash = await _useWriteContract.writeContractAsync({
         abi: CattsPaymentsAbi,
         address: CHAIN_CONFIG[chainId].paymentContractAddress as `0x${string}`,
         functionName: "payRun",
@@ -175,6 +174,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       return {
         ...s,
         runInProgress: run,
+        inProgress: true,
       };
     });
 
@@ -270,7 +270,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
     setState((s) => {
       return {
         ...s,
-        isSimulationOk: undefined,
         runInProgress: undefined,
         progressMessage: undefined,
         errorMessage: undefined,
@@ -281,19 +280,8 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
   return (
     <RunContext.Provider
       value={{
-        selectedRecipe: state?.selectedRecipe,
-        setSelectedRecipe: (recipe) => {
-          setState((s) => {
-            return { ...s, selectedRecipe: recipe };
-          });
-          resetRun();
-        },
         runInProgress: state?.runInProgress,
         errorMessage: state?.errorMessage,
-        useCreateRun: _useCreateRun,
-        usePayForRun: _usePayForRun,
-        useRegisterRunPayment: _useRegisterRunPayment,
-        useCancelRun: _useCancelRun,
         initPayAndCreateAttestation,
         payAndCreateAttestation,
         createAttestation,

@@ -1,6 +1,6 @@
 import { GQL_QUERY_PROXY_URL } from "@/config";
-import useRunContext from "@/context/useRunContext";
 import { useQuery } from "@tanstack/react-query";
+import { Recipe } from "catts_engine/declarations/catts_engine.did";
 import { randomString } from "remeda";
 
 function parseVariablesTemplate(
@@ -16,23 +16,24 @@ function parseVariablesTemplate(
   );
 }
 
-export function useFetchRecipeQueries(address?: string) {
-  const { selectedRecipe } = useRunContext();
-
+export function useFetchRecipeQueries(
+  recipe: Recipe | undefined,
+  address?: string,
+) {
   const dynamicVariables = {
     user_eth_address: address ?? "",
     user_eth_address_lowercase: (address ?? "").toLowerCase(),
   };
 
   return useQuery({
-    queryKey: ["RecipeRun", selectedRecipe?.name, address],
+    queryKey: ["RecipeRun", recipe?.name, address],
     queryFn: async () => {
-      if (!selectedRecipe?.name || !address || !selectedRecipe.queries[0]) {
+      if (!recipe || !recipe?.name || !address || !recipe.queries[0]) {
         return null;
       }
 
       const aggregatedResponse: any[] = [];
-      for (const query of selectedRecipe.queries) {
+      for (const query of recipe.queries) {
         const queryVariables = parseVariablesTemplate(
           query.variables,
           dynamicVariables,

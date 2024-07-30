@@ -1,6 +1,5 @@
+import { useActor } from "@/lib/ic/ActorProvider";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { useActor } from "../../ic/ActorProvider";
 
 export const useCancelRun = () => {
   const { actor } = useActor();

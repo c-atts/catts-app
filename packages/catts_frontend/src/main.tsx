@@ -3,11 +3,9 @@ import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { canisterId, idlFactory } from "ic_siwe_provider/declarations";
 
-import ActorProvider from "./ic/ActorProvider";
 import AuthGuard from "./AuthGuard.tsx";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { RunContextProvider } from "./context/RunContextProvider.tsx";
 import { SiweIdentityProvider } from "ic-use-siwe-identity";
 import { Toaster } from "react-hot-toast";
 import { WagmiProvider } from "wagmi";
@@ -22,6 +20,7 @@ const queryClient = new QueryClient({
 });
 
 import { routeTree } from "./routeTree.gen";
+import ActorProvider from "./lib/ic/ActorProvider.tsx";
 const router = createRouter({ routeTree });
 declare module "@tanstack/react-router" {
   interface Register {
@@ -39,9 +38,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         >
           <ActorProvider>
             <AuthGuard>
-              <RunContextProvider>
-                <RouterProvider router={router} />
-              </RunContextProvider>
+              <RouterProvider router={router} />
             </AuthGuard>
           </ActorProvider>
         </SiweIdentityProvider>

@@ -1,10 +1,10 @@
 import EthTxLink from "../../../components/EthTxLink";
 import { formatEther } from "viem/utils";
-import useRunContext from "../../../context/useRunContext";
 import { CHAIN_CONFIG } from "../../../config";
 import { LoaderCircle } from "lucide-react";
-import { useRunStatus } from "@/catts/hooks/useRunStatus";
-import { RunStatus } from "@/catts/types/run-status.type";
+import useRunContext from "@/run/hooks/useRunContext";
+import { useRunStatus } from "@/run/hooks/useRunStatus";
+import { RunStatus } from "@/run/types/run-status.type";
 
 export function PayForRunInner() {
   const { runInProgress, errorMessage } = useRunContext();
@@ -44,7 +44,7 @@ export function PayForRunInner() {
 
       {runStatus >= RunStatus.PaymentVerified && (
         <div className="flex justify-between w-full">
-          <div>Run paid</div>
+          <div>Payment confirmed</div>
           <div>✅</div>
         </div>
       )}

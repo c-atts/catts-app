@@ -13,7 +13,7 @@ import { canisterId, idlFactory } from "catts_engine/declarations";
 import { ReactNode } from "react";
 import { _SERVICE } from "catts_engine/declarations/catts_engine.did";
 import { useSiweIdentity } from "ic-use-siwe-identity";
-import errorToast from "@/utils/errorToast";
+import errorToast from "../util/errorToast";
 
 const actorContext = createActorContext<_SERVICE>();
 export const useActor = createUseActorHook<_SERVICE>(actorContext);

@@ -1,8 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 
-import { useEffect } from "react";
-import { useGetRecipeByName } from "../catts/hooks/useGetRecipeBySlug";
-import useRunContext from "../context/useRunContext";
+import { useEffect, useRef } from "react";
 import RecipeBasics from "../components/routes/recipe/RecipeBasics";
 import CreateAttestation from "../components/routes/recipe/CreateAttestation";
 import InitRun from "../components/routes/recipe/InitRun";
@@ -10,21 +8,31 @@ import PayForRun from "../components/routes/recipe/PayForRun";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
 import SimulateRun from "../components/routes/recipe/SimulateRun";
 import { Section } from "@/components/ui/Section";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeBySlug";
+import { RecipeContextProvider } from "@/recipe/RecipeContextProvider";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import { RunContextProvider } from "@/run/RunContextProvider";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
 });
 
-function Index() {
-  const { recipeName } = Route.useParams();
+function IndexInner({ recipeName }: { recipeName: string }) {
   const { data: recipe, isPending } = useGetRecipeByName(recipeName);
-  const { setSelectedRecipe } = useRunContext();
+  const { setRecipe } = useRecipeContext();
+
+  const loadedRecipeName = useRef<string>();
 
   useEffect(() => {
-    if (recipe && "Ok" in recipe) {
-      setSelectedRecipe(recipe.Ok);
+    if (
+      recipe &&
+      "Ok" in recipe &&
+      recipe.Ok.name !== loadedRecipeName.current
+    ) {
+      setRecipe(recipe.Ok);
+      loadedRecipeName.current = recipe.Ok.name;
     }
-  }, [recipe]);
+  }, [recipe, setRecipe]);
 
   if (isPending) {
     return <div>Loading...</div>;
@@ -43,15 +51,27 @@ function Index() {
         </Section>
       </div>
       <div className="flex flex-col gap-5 w-1/3">
-        <Section>
-          <InitRun recipeId={recipe.Ok.id as Uint8Array} />
-          <PayForRun />
-          <CreateAttestation />
-        </Section>
+        <RunContextProvider>
+          <Section>
+            <InitRun />
+            <PayForRun />
+            <CreateAttestation />
+          </Section>
+        </RunContextProvider>
         <Section>
           <SimulateRun />
         </Section>
       </div>
     </div>
+  );
+}
+
+function Index() {
+  const { recipeName } = Route.useParams();
+
+  return (
+    <RecipeContextProvider>
+      <IndexInner recipeName={recipeName} />
+    </RecipeContextProvider>
   );
 }

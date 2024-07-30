@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { useActor } from "../../ic/ActorProvider";
+import { useActor } from "@/lib/ic/ActorProvider";
 
 export const useCreateRun = () => {
   const { actor } = useActor();

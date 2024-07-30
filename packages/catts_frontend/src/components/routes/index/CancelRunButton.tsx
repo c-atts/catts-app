@@ -1,23 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Run } from "catts_engine/declarations/catts_engine.did";
-// import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
-import useRunContext from "../../../context/useRunContext";
+import { useCancelRun } from "@/run/hooks/useCancelRun";
+import { getRunStatus } from "@/run/getRunStatus";
+import { RunStatus } from "@/run/types/run-status.type";
 
 export default function CancelRunButton({ run }: { run: Run }) {
-  const { useCancelRun } = useRunContext();
-  const { mutate: cancelRun, isPending: isCancelPending } = useCancelRun;
+  const { mutate: cancelRun, isPending: isCancelPending } = useCancelRun();
 
-  const paymentStatus = paymentVerifiedStatusToString(run);
+  const runStatus = getRunStatus(run);
 
-  const { useRegisterRunPayment } = useRunContext();
-
-  const isPaymentPending =
-    paymentStatus !== undefined || useRegisterRunPayment.isPending;
+  const isEnabled =
+    runStatus === RunStatus.NotStarted ||
+    runStatus === RunStatus.PaymentPending;
 
   return (
     <Button
-      disabled={isCancelPending || isPaymentPending}
+      disabled={isCancelPending || !isEnabled}
       // icon={isCancelPending ? faCircleNotch : undefined}
       onClick={() => {
         cancelRun(run.id);

@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { canisterId, idlFactory } from "catts_engine/declarations";
 import { _SERVICE } from "catts_engine/declarations/catts_engine.did";
 import { useAccount } from "wagmi";
-import { useGetUserByEthAddress } from "./useGetUserByEthAddress";
 import toast from "react-hot-toast";
+import { useGetUserByEthAddress } from "@/user/hooks/useGetUserByEthAddress";
 
 export const useLogin = () => {
   const { login, isLoggingIn, isPreparingLogin } = useSiweIdentity();

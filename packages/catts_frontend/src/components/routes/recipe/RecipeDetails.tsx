@@ -1,4 +1,4 @@
-import useRunContext from "../../../context/useRunContext";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 
 function formatGraphQLQuery(query: string): string {
   // Normalize spaces and remove unnecessary spaces before and after braces
@@ -36,12 +36,12 @@ function formatGraphQLQuery(query: string): string {
 }
 
 export default function RecipeDetails() {
-  const { selectedRecipe } = useRunContext();
-  if (!selectedRecipe) {
+  const { recipe } = useRecipeContext();
+  if (!recipe) {
     return null;
   }
 
-  const { queries, processor, schema } = selectedRecipe;
+  const { queries, processor, schema } = recipe;
 
   const formattedQueries = queries
     .map((q) => formatGraphQLQuery(q.query))

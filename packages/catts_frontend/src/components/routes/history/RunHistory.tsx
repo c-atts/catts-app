@@ -1,9 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { useListUserRuns } from "../../../catts/hooks/useListUserRuns";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { RunHistoryListItem } from "./RunHistoryListItem";
 import { Section } from "@/components/ui/Section";
+import { useListUserRuns } from "@/run/hooks/useListUserRuns";
 
 export function RunHistoryInner() {
   const { identity } = useSiweIdentity();

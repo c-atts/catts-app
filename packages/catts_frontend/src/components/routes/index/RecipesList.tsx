@@ -1,5 +1,5 @@
+import { useListRecipes } from "@/recipe/hooks/useListRecipes";
 import RecipeListItem from "./RecipeListItem";
-import { useListRecipes } from "../../../catts/hooks/useListRecipes";
 
 export default function RecipesList() {
   const { data, isPending } = useListRecipes();

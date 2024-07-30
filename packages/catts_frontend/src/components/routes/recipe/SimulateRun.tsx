@@ -4,15 +4,15 @@ import { isError } from "remeda";
 import { useAccount } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { SectionTitle } from "@/components/ui/Section";
-import { runProcessor } from "@/catts/runProcessor";
-import { useFetchRecipeQueries } from "@/catts/hooks/useFetchRecipeQueries";
 import { validateProcessorResult, validateSchemaItems } from "catts-sdk";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
-import useRunContext from "@/context/useRunContext";
-import { RunOutput } from "@/catts/types/run-output.type";
-import { isChainIdSupported } from "@/wagmi/is-chain-id-supported";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useFetchRecipeQueries } from "@/recipe/hooks/useFetchRecipeQueries";
+import { RunOutput } from "@/run/types/run-output.type";
+import { runProcessor } from "@/run/runProcessor";
+import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 
 type SimulationStepStatus = "idle" | "pending" | "success" | "error";
 
@@ -101,8 +101,8 @@ function SimulationSteps({
 }
 
 function SimulateRunInner({ address }: { address: string }) {
-  const { data, error: fetchError } = useFetchRecipeQueries(address);
-  const { selectedRecipe } = useRunContext();
+  const { recipe } = useRecipeContext();
+  const { data, error: fetchError } = useFetchRecipeQueries(recipe, address);
   const [processorError, setProcessorError] = useState<string>();
   const [processedData, setProcessedData] = useState<RunOutput>();
   const [validationError, setValidationError] = useState<string>();
@@ -113,7 +113,7 @@ function SimulateRunInner({ address }: { address: string }) {
   });
 
   useEffect(() => {
-    if (!data || !selectedRecipe) return;
+    if (!data || !recipe) return;
     (async () => {
       setSimulationSteps((s) => ({
         ...s,
@@ -126,7 +126,7 @@ function SimulateRunInner({ address }: { address: string }) {
       let _runOutputRaw = "";
       try {
         const { runOutput, runOutputRaw } = await runProcessor({
-          recipe: selectedRecipe,
+          recipe,
           queryData: data,
         });
         setProcessedData(runOutput);
@@ -159,7 +159,7 @@ function SimulateRunInner({ address }: { address: string }) {
         });
         await validateSchemaItems({
           schemaItems,
-          schema: selectedRecipe.schema,
+          schema: recipe.schema,
         });
         setSimulationSteps((s) => ({
           ...s,
@@ -174,7 +174,7 @@ function SimulateRunInner({ address }: { address: string }) {
         }));
       }
     })();
-  }, [data, selectedRecipe]);
+  }, [data, recipe]);
 
   const allStepsCompleted = Object.values(simulationSteps).every(
     (step) => step === "success",
@@ -206,7 +206,7 @@ function SimulateRunInner({ address }: { address: string }) {
 export default function SimulateRun() {
   const { identity } = useSiweIdentity();
   const { address, chainId } = useAccount();
-  const { selectedRecipe } = useRunContext();
+  const { recipe } = useRecipeContext();
 
   const [runSimulation, setRunSimulation] = useState(false);
   const [simulateForAddress, setSimulateForAddress] = useState<string>(
@@ -226,7 +226,7 @@ export default function SimulateRun() {
   const disabled =
     !identity ||
     !isChainIdSupported(chainId) ||
-    !selectedRecipe ||
+    !recipe ||
     !simulateForAddress ||
     runSimulation;
 

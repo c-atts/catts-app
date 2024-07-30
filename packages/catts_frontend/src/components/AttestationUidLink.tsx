@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEthereum } from "@fortawesome/free-brands-svg-icons";
-import { shortenEthAddress } from "../eth/utils/shortenEthAddress";
 import { twMerge } from "tailwind-merge";
-import { getEasConfig } from "../eas/getEasConfig";
+import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
+import { getEasConfig } from "@/lib/eas/getEasConfig";
 
 export default function AttestationUidLink({
   uid,

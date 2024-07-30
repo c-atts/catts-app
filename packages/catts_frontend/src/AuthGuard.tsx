@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 
-import { isChainIdSupported } from "./wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
+import { isChainIdSupported } from "./lib/wagmi/is-chain-id-supported";
 
 type AuthGuardProps = {
   children: React.ReactNode;

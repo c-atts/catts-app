@@ -1,26 +1,26 @@
 import { formatDistance } from "date-fns";
-import useRunContext from "../../../context/useRunContext";
 import { mainnet } from "viem/chains";
 import { useEnsName } from "wagmi";
 import { fromBytes } from "viem";
-import { shortenEthAddress } from "../../../eth/utils/shortenEthAddress";
 import { Badge } from "@/components/ui/badge";
+import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 
 export default function RecipeBasics() {
-  const { selectedRecipe } = useRunContext();
-  const creatorAddress = selectedRecipe
-    ? fromBytes(selectedRecipe.creator as Uint8Array, "hex")
+  const { recipe } = useRecipeContext();
+  const creatorAddress = recipe
+    ? fromBytes(recipe.creator as Uint8Array, "hex")
     : undefined;
   const { data: creatorEnsName } = useEnsName({
     address: creatorAddress,
     chainId: mainnet.id,
   });
 
-  if (!selectedRecipe) {
+  if (!recipe) {
     return null;
   }
 
-  const { name, description, created, publish_state } = selectedRecipe;
+  const { name, description, created, publish_state } = recipe;
 
   const publishBadgeText = Object.keys(publish_state)[0];
   const createdDate = new Date(Number(created / BigInt(1_000_000)));

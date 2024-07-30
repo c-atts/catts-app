@@ -1,6 +1,6 @@
-import { RunContext } from "./RunContextProvider";
-import { RunContextType } from "./run-context.type";
 import { useContext } from "react";
+import { RunContextType } from "../types/run-context.type";
+import { RunContext } from "../RunContextProvider";
 
 export default function useRunContext(): RunContextType {
   const context = useContext(RunContext);

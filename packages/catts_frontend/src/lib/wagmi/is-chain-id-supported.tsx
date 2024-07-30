@@ -1,4 +1,4 @@
-import { allowedChains } from "../config";
+import { allowedChains } from "@/config";
 
 export function isChainIdSupported(id?: number | undefined) {
   if (!id) return false;

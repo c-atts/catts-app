@@ -3,8 +3,8 @@ import { formatDistance } from "date-fns";
 import { fromBytes } from "viem/utils";
 import { mainnet } from "wagmi/chains";
 import { useEnsName } from "wagmi";
-import { shortenEthAddress } from "../../../eth/utils/shortenEthAddress";
 import { Link } from "@tanstack/react-router";
+import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
 
 export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
   const { name, description, created, creator } = recipe;

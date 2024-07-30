@@ -1,6 +1,6 @@
 import { useAccount } from "wagmi";
-import { useActor } from "../../ic/ActorProvider";
 import { useQuery } from "@tanstack/react-query";
+import { useActor } from "@/lib/ic/ActorProvider";
 
 export const useListUserRuns = () => {
   const { actor } = useActor();

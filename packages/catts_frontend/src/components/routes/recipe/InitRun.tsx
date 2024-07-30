@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button";
 import { useAccount } from "wagmi";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { SectionTitle } from "@/components/ui/Section";
-import useRunContext from "@/context/useRunContext";
-import { isChainIdSupported } from "@/wagmi/is-chain-id-supported";
 import { LoaderCircle } from "lucide-react";
-export default function InitRun({ recipeId }: { recipeId: Uint8Array }) {
+import useRunContext from "@/run/hooks/useRunContext";
+import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+export default function InitRun() {
+  const { recipe } = useRecipeContext();
   const { identity } = useSiweIdentity();
   const { chainId } = useAccount();
   const {
@@ -15,8 +17,12 @@ export default function InitRun({ recipeId }: { recipeId: Uint8Array }) {
     errorMessage,
   } = useRunContext();
 
+  if (!recipe) {
+    return null;
+  }
+
   const handleClick = () => {
-    initPayAndCreateAttestation(recipeId);
+    initPayAndCreateAttestation(recipe.id as Uint8Array);
   };
 
   const disabled = !identity || !isChainIdSupported(chainId) || inProgress;

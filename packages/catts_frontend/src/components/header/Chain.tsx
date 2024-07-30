@@ -3,7 +3,6 @@ import { useEffect } from "react";
 
 import toast from "react-hot-toast";
 import { ChainIcon } from "../ChainIcon";
-import { isChainIdSupported } from "../../wagmi/is-chain-id-supported";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { ChevronDown, LoaderCircle } from "lucide-react";
+import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 
 export function Chain() {
   const { chain: connectedChain } = useAccount();

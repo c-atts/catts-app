@@ -3,11 +3,11 @@ import EthTxLink from "../../../components/EthTxLink";
 import { Run } from "catts_engine/declarations/catts_engine.did";
 import { formatDistance } from "date-fns";
 import { formatEther } from "viem";
-import { paymentVerifiedStatusToString } from "../../../catts/paymentVerifiedStatusToString";
-import { useGetRecipeById } from "../../../catts/hooks/useGetRecipeById";
 import CancelRunButton from "../index/CancelRunButton";
 import { CHAIN_CONFIG } from "../../../config";
 import { ChainIcon } from "../../ChainIcon";
+import { useGetRecipeById } from "@/recipe/hooks/useGetRecipeById";
+import { getRunStatusString } from "@/run/getRunStatusString";
 
 export function RunHistoryListItem({ run }: { run: Run }) {
   const { data } = useGetRecipeById(run.recipe_id);
@@ -18,7 +18,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
 
   const recipe = data && "Ok" in data ? data.Ok : undefined;
 
-  const paymentStatus = paymentVerifiedStatusToString(run);
+  const paymentStatus = getRunStatusString(run);
 
   return (
     <li className="flex flex-col">
@@ -62,7 +62,7 @@ export function RunHistoryListItem({ run }: { run: Run }) {
           <div className="flex flex-col gap-2 text-sm text-foreground/50">
             <div className="flex items-center justify-between w-full h-8">
               <div>Payment verified status</div>
-              {paymentVerifiedStatusToString(run)}
+              {getRunStatusString(run)}
             </div>
           </div>
         )}
