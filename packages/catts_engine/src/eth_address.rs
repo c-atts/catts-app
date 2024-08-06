@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -57,11 +59,23 @@ impl EthAddress {
     }
 }
 
+impl Display for EthAddress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl From<[u8; 20]> for EthAddress {
     fn from(address_bytes: [u8; 20]) -> Self {
         let hex_str = hex::encode(address_bytes);
         let eth_address_str = format!("0x{}", hex_str);
         EthAddress::new(&eth_address_str).expect("Valid length and hex encoding")
+    }
+}
+
+impl From<&str> for EthAddress {
+    fn from(address: &str) -> Self {
+        EthAddress::new(address).expect("Valid length and hex encoding")
     }
 }
 

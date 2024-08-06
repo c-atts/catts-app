@@ -82,7 +82,7 @@ pub async fn estimate_transaction_fees(run: &Run) -> Result<FeeEstimates> {
 }
 
 pub async fn estimate_gas_usage(recipe: &Recipe, run: &Run) -> Result<Nat> {
-    let recipient = EthAddress::from(run.creator);
+    let recipient = EthAddress::from(run.creator.as_str());
     let mut query_response = Vec::new();
 
     for i in 0..recipe.queries.len() {
@@ -113,7 +113,7 @@ pub async fn estimate_gas_usage(recipe: &Recipe, run: &Run) -> Result<Nat> {
     Ok(Nat::from(gas_usage))
 }
 
-pub fn get_min_user_fee_for_chain(chain_id: u64) -> Result<Nat> {
+pub fn get_min_user_fee_for_chain(chain_id: u32) -> Result<Nat> {
     let fee: u64 = match chain_id {
         11155111 => 500000000000000, // Sepolia, 0.0005 ETH
         10 => 50000000000000,        // Optimism, 0.00005 ETH

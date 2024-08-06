@@ -11,7 +11,7 @@ use crate::{
 use ic_cdk::{api::canister_balance, update};
 
 #[update]
-async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError> {
+async fn run_create(recipe_id: RecipeId, chain_id: u32) -> Result<Run, HttpError> {
     let cycles_before = canister_balance();
     let address = auth_guard()?;
     let recipe = recipe::get_by_id(&recipe_id).map_err(HttpError::not_found)?;
@@ -52,7 +52,7 @@ async fn run_create(recipe_id: RecipeId, chain_id: u64) -> Result<Run, HttpError
     run.max_priority_fee_per_gas = Some(fee_estimates.max_priority_fee_per_gas);
     run.user_fee = Some(user_fee);
 
-    let run = run::save(run);
+    let run = run::create(run);
 
     let cycles_after = canister_balance();
     logger::info(

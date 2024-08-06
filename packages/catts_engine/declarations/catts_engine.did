@@ -3,6 +3,18 @@ type CanisterSettingsInput = record {
   siwe_provider_canister : text;
   evm_rpc_canister : text;
 };
+type ChangeLogAction = variant { Delete; Create; Update };
+type ChangeLogItem = record {
+  id : text;
+  action : ChangeLogAction;
+  type_name : ChangeLogTypeName;
+  patch : text;
+};
+type ChangeLogResponse = record {
+  data : vec IndexedChangeLogItem;
+  total_count : nat32;
+};
+type ChangeLogTypeName = variant { Run; Recipe; User };
 type HttpError = record { code : nat16; message : text; details : opt text };
 type HttpHeader = record { value : text; name : text };
 type HttpResponse = record {
@@ -10,13 +22,14 @@ type HttpResponse = record {
   body : blob;
   headers : vec HttpHeader;
 };
+type IndexedChangeLogItem = record { item : ChangeLogItem; index : nat32 };
 type LogItem = record { level : LogLevel; message : text; timestamp : nat64 };
 type LogLevel = variant { Error; Info; Warn; Debug };
 type Recipe = record {
   id : blob;
   resolver : text;
-  created : nat64;
-  creator : blob;
+  created : nat32;
+  creator : text;
   schema : text;
   name : text;
   description : opt text;
@@ -41,16 +54,16 @@ type RecipeDetailsInput = record {
 type RecipePublishState = variant { Draft; Unpublished; Published };
 type RecipeQuery = record { endpoint : text; "query" : text; variables : text };
 type Result = variant { Ok : text; Err : text };
-type Result_1 = variant { Ok : Recipe; Err : HttpError };
-type Result_2 = variant { Ok : vec Recipe; Err : text };
-type Result_3 = variant { Ok : Run; Err : HttpError };
-type Result_4 = variant { Ok : vec Run; Err : HttpError };
+type Result_1 = variant { Ok : ChangeLogResponse; Err : HttpError };
+type Result_2 = variant { Ok : Recipe; Err : HttpError };
+type Result_3 = variant { Ok : vec Recipe; Err : text };
+type Result_4 = variant { Ok : Run; Err : HttpError };
 type Result_5 = variant { Ok : User; Err : HttpError };
 type Run = record {
   id : blob;
   gas : opt nat;
-  created : nat64;
-  creator : blob;
+  created : nat32;
+  creator : text;
   user_fee : opt nat;
   attestation_uid : opt text;
   attestation_transaction_hash : opt text;
@@ -60,7 +73,7 @@ type Run = record {
   payment_block_number : opt nat;
   is_cancelled : bool;
   error : opt text;
-  chain_id : nat64;
+  chain_id : nat32;
   payment_log_index : opt nat;
   payment_transaction_hash : opt text;
 };
@@ -68,17 +81,17 @@ type TransformArgs = record { context : blob; response : HttpResponse };
 type User = record { eth_address : text };
 service : (CanisterSettingsInput) -> {
   canister_eth_address : () -> (Result);
+  change_log : (nat32, opt nat32) -> (Result_1) query;
   logs : () -> (vec LogItem) query;
-  recipe_create : (RecipeDetailsInput, text) -> (Result_1);
-  recipe_get_by_id : (blob) -> (Result_1) query;
-  recipe_get_by_name : (text) -> (Result_1) query;
-  recipe_list : () -> (Result_2) query;
-  recipe_publish : (blob) -> (Result_1);
-  run_cancel : (blob) -> (Result_3);
-  run_create : (blob, nat64) -> (Result_3);
-  run_get : (blob) -> (Result_3) query;
-  run_list_for_user : () -> (Result_4);
-  run_register_payment : (blob, text, nat) -> (Result_3);
+  recipe_create : (RecipeDetailsInput, text) -> (Result_2);
+  recipe_get_by_id : (blob) -> (Result_2) query;
+  recipe_get_by_name : (text) -> (Result_2) query;
+  recipe_list : () -> (Result_3) query;
+  recipe_publish : (blob) -> (Result_2);
+  run_cancel : (blob) -> (Result_4);
+  run_create : (blob, nat32) -> (Result_4);
+  run_get : (blob) -> (Result_4) query;
+  run_register_payment : (blob, text, nat) -> (Result_4);
   transform : (TransformArgs) -> (HttpResponse) query;
   user_create : () -> (Result_5);
   user_get : () -> (Result_5) query;

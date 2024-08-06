@@ -34,8 +34,7 @@ impl TaskExecutor for RegisterPaymentExecutor {
             let args: ProcessRunPaymentArgs = bincode::deserialize(&task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
-            let mut run =
-                run::get_by_id(&args.run_id).map_err(|e| TaskError::Cancel(e.to_string()))?;
+            let mut run = run::get(&args.run_id).map_err(|e| TaskError::Cancel(e.to_string()))?;
 
             let chain_config = chain_config::get(run.chain_id)
                 .map_err(|e| save_error_and_cancel(&args.run_id, e.to_string()))?;
@@ -58,7 +57,7 @@ impl TaskExecutor for RegisterPaymentExecutor {
 
                 logger::info("Payment log entry processed successfully");
 
-                run::save(run);
+                run::update(run).unwrap();
 
                 add_task(
                     0, // Run ASAP
@@ -142,7 +141,7 @@ fn process_log_entry(
                 bail!("Payment run_id does not match the expected run_id");
             }
 
-            let run = match run::get(&event_from_address, &event_run_id) {
+            let run = match run::get(&event_run_id) {
                 Ok(run) => run,
                 Err(_) => {
                     bail!("Found payment for non-existent run");

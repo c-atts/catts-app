@@ -7,6 +7,22 @@ export interface CanisterSettingsInput {
   'siwe_provider_canister' : string,
   'evm_rpc_canister' : string,
 }
+export type ChangeLogAction = { 'Delete' : null } |
+  { 'Create' : null } |
+  { 'Update' : null };
+export interface ChangeLogItem {
+  'id' : string,
+  'action' : ChangeLogAction,
+  'type_name' : ChangeLogTypeName,
+  'patch' : string,
+}
+export interface ChangeLogResponse {
+  'data' : Array<IndexedChangeLogItem>,
+  'total_count' : number,
+}
+export type ChangeLogTypeName = { 'Run' : null } |
+  { 'Recipe' : null } |
+  { 'User' : null };
 export interface HttpError {
   'code' : number,
   'message' : string,
@@ -17,6 +33,10 @@ export interface HttpResponse {
   'status' : bigint,
   'body' : Uint8Array | number[],
   'headers' : Array<HttpHeader>,
+}
+export interface IndexedChangeLogItem {
+  'item' : ChangeLogItem,
+  'index' : number,
 }
 export interface LogItem {
   'level' : LogLevel,
@@ -30,8 +50,8 @@ export type LogLevel = { 'Error' : null } |
 export interface Recipe {
   'id' : Uint8Array | number[],
   'resolver' : string,
-  'created' : bigint,
-  'creator' : Uint8Array | number[],
+  'created' : number,
+  'creator' : string,
   'schema' : string,
   'name' : string,
   'description' : [] | [string],
@@ -63,21 +83,21 @@ export interface RecipeQuery {
 }
 export type Result = { 'Ok' : string } |
   { 'Err' : string };
-export type Result_1 = { 'Ok' : Recipe } |
+export type Result_1 = { 'Ok' : ChangeLogResponse } |
   { 'Err' : HttpError };
-export type Result_2 = { 'Ok' : Array<Recipe> } |
+export type Result_2 = { 'Ok' : Recipe } |
+  { 'Err' : HttpError };
+export type Result_3 = { 'Ok' : Array<Recipe> } |
   { 'Err' : string };
-export type Result_3 = { 'Ok' : Run } |
-  { 'Err' : HttpError };
-export type Result_4 = { 'Ok' : Array<Run> } |
+export type Result_4 = { 'Ok' : Run } |
   { 'Err' : HttpError };
 export type Result_5 = { 'Ok' : User } |
   { 'Err' : HttpError };
 export interface Run {
   'id' : Uint8Array | number[],
   'gas' : [] | [bigint],
-  'created' : bigint,
-  'creator' : Uint8Array | number[],
+  'created' : number,
+  'creator' : string,
   'user_fee' : [] | [bigint],
   'attestation_uid' : [] | [string],
   'attestation_transaction_hash' : [] | [string],
@@ -87,7 +107,7 @@ export interface Run {
   'payment_block_number' : [] | [bigint],
   'is_cancelled' : boolean,
   'error' : [] | [string],
-  'chain_id' : bigint,
+  'chain_id' : number,
   'payment_log_index' : [] | [bigint],
   'payment_transaction_hash' : [] | [string],
 }
@@ -98,19 +118,19 @@ export interface TransformArgs {
 export interface User { 'eth_address' : string }
 export interface _SERVICE {
   'canister_eth_address' : ActorMethod<[], Result>,
+  'change_log' : ActorMethod<[number, [] | [number]], Result_1>,
   'logs' : ActorMethod<[], Array<LogItem>>,
-  'recipe_create' : ActorMethod<[RecipeDetailsInput, string], Result_1>,
-  'recipe_get_by_id' : ActorMethod<[Uint8Array | number[]], Result_1>,
-  'recipe_get_by_name' : ActorMethod<[string], Result_1>,
-  'recipe_list' : ActorMethod<[], Result_2>,
-  'recipe_publish' : ActorMethod<[Uint8Array | number[]], Result_1>,
-  'run_cancel' : ActorMethod<[Uint8Array | number[]], Result_3>,
-  'run_create' : ActorMethod<[Uint8Array | number[], bigint], Result_3>,
-  'run_get' : ActorMethod<[Uint8Array | number[]], Result_3>,
-  'run_list_for_user' : ActorMethod<[], Result_4>,
+  'recipe_create' : ActorMethod<[RecipeDetailsInput, string], Result_2>,
+  'recipe_get_by_id' : ActorMethod<[Uint8Array | number[]], Result_2>,
+  'recipe_get_by_name' : ActorMethod<[string], Result_2>,
+  'recipe_list' : ActorMethod<[], Result_3>,
+  'recipe_publish' : ActorMethod<[Uint8Array | number[]], Result_2>,
+  'run_cancel' : ActorMethod<[Uint8Array | number[]], Result_4>,
+  'run_create' : ActorMethod<[Uint8Array | number[], number], Result_4>,
+  'run_get' : ActorMethod<[Uint8Array | number[]], Result_4>,
   'run_register_payment' : ActorMethod<
     [Uint8Array | number[], string, bigint],
-    Result_3
+    Result_4
   >,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
   'user_create' : ActorMethod<[], Result_5>,

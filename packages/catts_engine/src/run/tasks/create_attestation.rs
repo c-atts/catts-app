@@ -21,7 +21,7 @@ impl TaskExecutor for CreateAttestationExecutor {
             let run_id = run::vec_to_run_id(task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
-            let mut run = run::get_by_id(&run_id)
+            let mut run = run::get(&run_id)
                 .map_err(|_| save_error_and_cancel(&run_id, "Run not found".to_string()))?;
 
             let recipe = recipe::get_by_id(&run.recipe_id)
@@ -44,7 +44,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 save_error_and_cancel(&run_id, "Recipe contains no queries".to_string());
             }
 
-            let recipient = EthAddress::from(run.creator);
+            let recipient = EthAddress::from(run.creator.as_str());
             let mut query_response = Vec::new();
 
             for i in 0..recipe.queries.len() {
@@ -73,7 +73,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                     })?;
 
             run.attestation_transaction_hash = Some(attestation_transaction_hash.clone());
-            run::save(run);
+            run::update(run).unwrap();
 
             add_task(
                 ic_cdk::api::time() + GET_ATTESTATION_UID_FIRST_TIME_INTERVAL,

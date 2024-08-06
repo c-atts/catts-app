@@ -1,7 +1,7 @@
 use super::{ChainConfig, ChainConfigError};
 use crate::CHAIN_CONFIGS;
 
-pub fn get(chain_id: u64) -> Result<ChainConfig, ChainConfigError> {
+pub fn get(chain_id: u32) -> Result<ChainConfig, ChainConfigError> {
     CHAIN_CONFIGS
         .with_borrow(|configs| configs.get(&chain_id))
         .ok_or(ChainConfigError::NotFound)

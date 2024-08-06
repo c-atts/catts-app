@@ -14,8 +14,8 @@ pub enum ChainConfigError {
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct ChainConfig {
-    pub chain_id: u64,
-    pub eth_usd_price: f64,
+    pub chain_id: u32,
+    pub eth_usd_price: String,
     pub rpc_api_endpoint: String,
     pub eas_contract: String,
     pub payment_contract: String,

@@ -29,8 +29,6 @@ use serde_json::Value;
 use std::{collections::HashMap, str::FromStr, sync::Arc};
 use thiserror::Error;
 
-pub type Uid = String;
-
 // Enum to represent possible types for SchemaValue
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -269,7 +267,7 @@ pub async fn create_attestation(
     run: &Run,
     attestation_data: &str,
     recipient: &EthAddress,
-    chain_id: u64,
+    chain_id: u32,
 ) -> Result<String> {
     let attest_request = create_attest_request(recipe, attestation_data, recipient)?;
 

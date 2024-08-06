@@ -11,7 +11,7 @@ fn recipe_publish(recipe_id: RecipeId) -> Result<Recipe, HttpError> {
     let address = auth_guard()?;
     let recipe = recipe::get_by_id(&recipe_id).map_err(HttpError::not_found)?;
 
-    if address.as_byte_array() != recipe.creator {
+    if address.to_string() != recipe.creator {
         return Err(HttpError::unauthorized(
             "You are not the author of this recipe.",
         ));

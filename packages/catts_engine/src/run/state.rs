@@ -1,15 +1,12 @@
-use crate::{
-    eth_address::{EthAddress, EthAddressBytes},
-    recipe::RecipeId,
-    RUNS,
-};
+use super::types::{Run, RunError, RunId};
+use crate::change_log::ChangeLogTypeName;
+use crate::eth_address::EthAddress;
+use crate::{change_log, RUNS};
 use blake2::digest::{Update, VariableOutput};
 use blake2::Blake2bVar;
 use candid::Nat;
 
-use super::types::{Run, RunError, RunId};
-
-pub fn generate_run_id(creator: &EthAddress, created: u64) -> RunId {
+pub fn generate_run_id(creator: &EthAddress, created: u32) -> RunId {
     let mut hasher = Blake2bVar::new(12).unwrap();
     hasher.update(&creator.as_byte_array());
     hasher.update(&created.to_be_bytes());
@@ -18,15 +15,25 @@ pub fn generate_run_id(creator: &EthAddress, created: u64) -> RunId {
     buf
 }
 
-pub fn save(run: Run) -> Run {
+pub fn create(run: Run) -> Run {
     RUNS.with_borrow_mut(|runs| {
-        runs.insert((run.creator, run.id), run.clone());
+        runs.insert(run.id, run.clone());
     });
+    change_log::create(ChangeLogTypeName::Run, run.id, &run).unwrap();
     run
 }
 
-pub fn cancel(address: &EthAddress, run_id: &RunId) -> Result<Run, RunError> {
-    let mut run = get(address, run_id)?;
+pub fn update(run: Run) -> Result<Run, RunError> {
+    let old_run = get(&run.id)?;
+    RUNS.with_borrow_mut(|runs| {
+        runs.insert(run.id, run.clone());
+    });
+    change_log::update(ChangeLogTypeName::Run, run.id, &old_run, &run).unwrap();
+    Ok(run)
+}
+
+pub fn cancel(run_id: &RunId) -> Result<Run, RunError> {
+    let mut run = get(run_id)?;
 
     // Runs can only be cancelled if they are not paid yet
     if run.payment_transaction_hash.is_some() {
@@ -34,43 +41,20 @@ pub fn cancel(address: &EthAddress, run_id: &RunId) -> Result<Run, RunError> {
     }
 
     run.is_cancelled = true;
-    Ok(save(run))
+
+    update(run)
 }
 
-pub fn get(creator: &EthAddress, run_id: &RunId) -> Result<Run, RunError> {
-    RUNS.with_borrow(|runs| {
-        runs.get(&(creator.as_byte_array(), *run_id))
-            .ok_or(RunError::NotFound)
-    })
-}
-
-pub fn get_by_address(address: &EthAddressBytes) -> Vec<Run> {
-    RUNS.with(|runs| {
-        runs.borrow()
-            .range((*address, RecipeId::default())..)
-            .map(|(_, run)| run)
-            .collect()
-    })
-}
-
-pub fn get_by_id(run_id: &RunId) -> Result<Run, RunError> {
-    RUNS.with(|runs| {
-        // Directly iterate through all entries if no direct lookup is possible
-        runs.borrow()
-            .iter()
-            .find(|((_, rid), _)| rid == run_id)
-            .map(|(_, run)| run.clone())
-            .ok_or(RunError::NotFound)
-    })
+pub fn get(run_id: &RunId) -> Result<Run, RunError> {
+    RUNS.with_borrow(|runs| runs.get(run_id).ok_or(RunError::NotFound))
 }
 
 pub fn register_payment(
-    address: &EthAddress,
     run_id: &RunId,
     transaction_hash: &str,
     block_to_process: u128,
 ) -> Result<Run, RunError> {
-    let mut run = get(address, run_id)?;
+    let mut run = get(run_id)?;
 
     if run.payment_transaction_hash.is_some() {
         return Err(RunError::AlreadyPaid);
@@ -79,5 +63,5 @@ pub fn register_payment(
     run.payment_transaction_hash = Some(transaction_hash.to_string());
     run.payment_block_number = Some(Nat::from(block_to_process));
 
-    Ok(save(run))
+    update(run)
 }

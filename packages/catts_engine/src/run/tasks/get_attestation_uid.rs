@@ -19,7 +19,7 @@ impl TaskExecutor for GetAttestationUidExecutor {
             let run_id = run::vec_to_run_id(task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
-            let mut run = run::get_by_id(&run_id)
+            let mut run = run::get(&run_id)
                 .map_err(|_| save_error_and_cancel(&run_id, "Run not found".to_string()))?;
 
             if run.attestation_uid.is_some() {
@@ -59,7 +59,7 @@ impl TaskExecutor for GetAttestationUidExecutor {
             logger::debug("Attestation uid found");
             let uid = receipt.logs[0].data.clone();
             run.attestation_uid = Some(uid);
-            run::save(run);
+            run::update(run).unwrap();
 
             Ok(())
         })

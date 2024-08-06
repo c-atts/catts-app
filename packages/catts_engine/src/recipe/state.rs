@@ -1,4 +1,7 @@
-use crate::{RECIPES, RECIPE_NAME_INDEX};
+use crate::{
+    change_log::{self, ChangeLogTypeName},
+    RECIPES, RECIPE_NAME_INDEX,
+};
 
 use super::{Recipe, RecipeError, RecipeId, RecipePublishState};
 
@@ -39,6 +42,8 @@ pub fn save(recipe: Recipe) -> Result<Recipe, RecipeError> {
     RECIPES.with_borrow_mut(|recipes| {
         recipes.insert(recipe.id, recipe.clone());
     });
+
+    change_log::create(ChangeLogTypeName::Recipe, recipe.id, &recipe).unwrap();
 
     RECIPE_NAME_INDEX.with_borrow_mut(|index| {
         index.insert(recipe.name.clone(), recipe.id);

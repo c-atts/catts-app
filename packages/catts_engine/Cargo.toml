@@ -37,6 +37,7 @@ javy = "2.2.0"
 validator = "0.18.1"
 validator_derive = "0.18.1"
 anyhow = "1.0.86"
+json-patch = "2.0.0"
 
 [build-dependencies]
 ic-cdk-bindgen = "0.1.3"

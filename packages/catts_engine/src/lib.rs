@@ -1,4 +1,5 @@
 mod chain_config;
+mod change_log;
 mod controllers;
 #[allow(
     clippy::too_many_arguments,
@@ -11,15 +12,18 @@ mod eth_address;
 mod evm;
 mod graphql;
 mod http_error;
+mod json;
 mod logger;
 mod recipe;
 mod run;
 mod siwe;
 mod tasks;
+mod time;
 mod user;
 
 use candid::CandidType;
 use chain_config::{init_chain_configs, ChainConfig};
+use change_log::{ChangeLogItem, ChangeLogResponse};
 use eth_address::EthAddressBytes;
 use ethers_core::abi::Contract;
 use http_error::HttpError;
@@ -30,7 +34,7 @@ use ic_cdk::{
 use ic_stable_structures::{
     memory_manager::{MemoryId, MemoryManager, VirtualMemory},
     storable::Blob,
-    DefaultMemoryImpl, StableBTreeMap,
+    DefaultMemoryImpl, Log, StableBTreeMap,
 };
 use lazy_static::lazy_static;
 use logger::LogItem;
@@ -62,6 +66,8 @@ const RECIPE_NAME_INDEX_MEMORY_ID: MemoryId = MemoryId::new(4);
 const RUNS_MEMORY_ID: MemoryId = MemoryId::new(5);
 const TASKS_MEMORY_ID: MemoryId = MemoryId::new(6);
 const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(7);
+const CHANGE_LOG_INDEX_MEMORY_ID: MemoryId = MemoryId::new(8);
+const CHANGE_LOG_DATA_MEMORY_ID: MemoryId = MemoryId::new(9);
 
 #[derive(Serialize, Deserialize, CandidType)]
 struct CanisterSettingsInput {
@@ -88,7 +94,7 @@ thread_local! {
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
     // CONFIG
-    static CHAIN_CONFIGS: RefCell<StableBTreeMap<u64, ChainConfig, Memory>> = RefCell::new(
+    static CHAIN_CONFIGS: RefCell<StableBTreeMap<u32, ChainConfig, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(CHAIN_CONFIGS_MEMORY_ID)),
         )
@@ -123,7 +129,7 @@ thread_local! {
     );
 
     // RUNS
-    static RUNS: RefCell<StableBTreeMap<(EthAddressBytes, RunId), run::Run, Memory>> = RefCell::new(
+    static RUNS: RefCell<StableBTreeMap<RunId, run::Run, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(RUNS_MEMORY_ID)),
         )
@@ -135,6 +141,15 @@ thread_local! {
             MEMORY_MANAGER.with(|m| m.borrow().get(TASKS_MEMORY_ID)),
         )
     );
+
+    // CHANGE LOG
+    static CHANGE_LOG: RefCell<Log<ChangeLogItem, Memory, Memory>> = RefCell::new(
+        Log::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(CHANGE_LOG_INDEX_MEMORY_ID)),
+            MEMORY_MANAGER.with(|m| m.borrow().get(CHANGE_LOG_DATA_MEMORY_ID)),
+        ).expect("Failed to initialize change log.")
+    );
+
 
 }
 

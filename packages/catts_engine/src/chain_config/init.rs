@@ -11,7 +11,7 @@ pub fn init_chain_configs() {
             11155111, // Sepolia
             ChainConfig {
                 chain_id: 11155111,
-                eth_usd_price: 2959.0,
+                eth_usd_price: "0x123".to_string(),
                 rpc_api_endpoint: "https://catts-evm-proxy-2.kristofer-977.workers.dev/eth-sepolia"
                     .to_string(),
                 eas_contract: "0xC2679fBD37d54388Ce493F1DB75320D236e1815e".to_string(),
@@ -27,7 +27,7 @@ pub fn init_chain_configs() {
             10, // Optimism
             ChainConfig {
                 chain_id: 10,
-                eth_usd_price: 2959.0,
+                eth_usd_price: "0x123".to_string(),
                 rpc_api_endpoint: "https://catts-evm-proxy-2.kristofer-977.workers.dev/opt-mainnet"
                     .to_string(),
                 eas_contract: "0x4200000000000000000000000000000000000021".to_string(),
