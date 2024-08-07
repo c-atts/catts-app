@@ -1,14 +1,13 @@
 import { formatDistance } from "date-fns";
 import { mainnet } from "wagmi/chains";
 import { useEnsName } from "wagmi";
-import { Link } from "@tanstack/react-router";
 import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
 import { Database } from "@/lib/supabase/database.types";
 
-type Recipe = Database["public"]["Tables"]["recipe"]["Row"];
+type Run = Database["public"]["Tables"]["run"]["Row"];
 
-export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
-  const { name, description, created, creator } = recipe;
+export default function RunsListItem({ run }: { run: Run }) {
+  const { id, created, creator } = run;
 
   const { data: creatorEnsName } = useEnsName({
     address: creator as `0x${string}`,
@@ -22,16 +21,13 @@ export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
   return (
     <li
       className="border-[1px] bg-card shadow-sm rounded-lg flex flex-col p-10 w-full mb-5"
-      key={name}
+      key={id}
     >
       <div className="flex flex-col gap-3">
-        <Link params={{ recipeName: name }} to={`/recipe/$recipeName`}>
-          <div className="text-2xl font-bold hover:underline  cursor-pointer">
-            {name}
-          </div>
-        </Link>
+        <div className="text-2xl font-bold hover:underline  cursor-pointer">
+          {id}
+        </div>
 
-        <div className="leading-relaxed">{description}</div>
         <div className="text-sm text-zinc-500">
           {creatorEnsName || shortenEthAddress(creator)} created {when}
         </div>

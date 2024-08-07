@@ -21,6 +21,7 @@ const queryClient = new QueryClient({
 
 import { routeTree } from "./routeTree.gen";
 import ActorProvider from "./lib/ic/ActorProvider.tsx";
+import { SupabaseProvider } from "./lib/supabase/SupabaseContext.tsx";
 const router = createRouter({ routeTree });
 declare module "@tanstack/react-router" {
   interface Register {
@@ -32,16 +33,18 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <SiweIdentityProvider<_SERVICE>
-          canisterId={canisterId}
-          idlFactory={idlFactory}
-        >
-          <ActorProvider>
-            <AuthGuard>
-              <RouterProvider router={router} />
-            </AuthGuard>
-          </ActorProvider>
-        </SiweIdentityProvider>
+        <SupabaseProvider>
+          <SiweIdentityProvider<_SERVICE>
+            canisterId={canisterId}
+            idlFactory={idlFactory}
+          >
+            <ActorProvider>
+              <AuthGuard>
+                <RouterProvider router={router} />
+              </AuthGuard>
+            </ActorProvider>
+          </SiweIdentityProvider>
+        </SupabaseProvider>
       </QueryClientProvider>
     </WagmiProvider>
     <Toaster />

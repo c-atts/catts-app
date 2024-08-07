@@ -1,12 +1,14 @@
 import { useSupabase } from "@/lib/supabase/SupabaseContext";
 import { useQuery } from "@tanstack/react-query";
 
-export const useListRecipes = () => {
+export const useListRuns = () => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["recipe_list"],
+    queryKey: ["run_list"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("recipe").select("*");
+      const { data, error } = await supabase
+        .from("run")
+        .select(`id, created, creator , recipe (name)`);
       if (error) throw error;
       return data;
     },

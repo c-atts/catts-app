@@ -12,15 +12,11 @@ export default function RecipesList() {
     return <p>No data</p>;
   }
 
-  if ("Ok" in data) {
-    return (
-      <ul className="w-[1250px]">
-        {data.Ok.map((recipe) => (
-          <RecipeListItem key={recipe.name} recipe={recipe} />
-        ))}
-      </ul>
-    );
-  }
-
-  return <p>Error: {data.Err}</p>;
+  return (
+    <ul>
+      {data.map((recipe) => (
+        <RecipeListItem key={recipe.name} recipe={recipe} />
+      ))}
+    </ul>
+  );
 }

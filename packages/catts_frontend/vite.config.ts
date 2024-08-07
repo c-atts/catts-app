@@ -7,6 +7,14 @@ import path from "path";
 
 dotenv.config({ path: "../../.env" });
 
+if (process.env.DFX_NETWORK === "local") {
+  dotenv.config({ path: ".env.local" });
+}
+
+if (process.env.DFX_NETWORK === "ic") {
+  dotenv.config({ path: ".env.ic" });
+}
+
 const processEnvCanisterIds = Object.fromEntries(
   Object.entries(process.env)
     .filter(([key]) => key.startsWith("CANISTER_ID"))
