@@ -20,6 +20,7 @@ const HistoryLazyImport = createFileRoute('/history')()
 const DashboardLazyImport = createFileRoute('/dashboard')()
 const CreateLazyImport = createFileRoute('/create')()
 const IndexLazyImport = createFileRoute('/')()
+const UserAddressLazyImport = createFileRoute('/user/$address')()
 const RecipeRecipeNameLazyImport = createFileRoute('/recipe/$recipeName')()
 
 // Create/Update Routes
@@ -43,6 +44,11 @@ const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+
+const UserAddressLazyRoute = UserAddressLazyImport.update({
+  path: '/user/$address',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/user.$address.lazy').then((d) => d.Route))
 
 const RecipeRecipeNameLazyRoute = RecipeRecipeNameLazyImport.update({
   path: '/recipe/$recipeName',
@@ -90,6 +96,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipeRecipeNameLazyImport
       parentRoute: typeof rootRoute
     }
+    '/user/$address': {
+      id: '/user/$address'
+      path: '/user/$address'
+      fullPath: '/user/$address'
+      preLoaderRoute: typeof UserAddressLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -101,6 +114,7 @@ export const routeTree = rootRoute.addChildren({
   DashboardLazyRoute,
   HistoryLazyRoute,
   RecipeRecipeNameLazyRoute,
+  UserAddressLazyRoute,
 })
 
 /* prettier-ignore-end */
@@ -115,7 +129,8 @@ export const routeTree = rootRoute.addChildren({
         "/create",
         "/dashboard",
         "/history",
-        "/recipe/$recipeName"
+        "/recipe/$recipeName",
+        "/user/$address"
       ]
     },
     "/": {
@@ -132,6 +147,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/recipe/$recipeName": {
       "filePath": "recipe.$recipeName.lazy.tsx"
+    },
+    "/user/$address": {
+      "filePath": "user.$address.lazy.tsx"
     }
   }
 }
