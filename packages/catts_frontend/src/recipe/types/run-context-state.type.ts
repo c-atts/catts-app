@@ -1,5 +1,5 @@
-import { Recipe } from "catts_engine/declarations/catts_engine.did";
+import { RecipeFull } from "./recipe.types";
 
 export type RecipeContextStateType = {
-  recipe?: Recipe;
+  recipe?: RecipeFull;
 };

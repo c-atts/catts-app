@@ -1,11 +1,18 @@
-import { catts_engine } from "catts_engine/declarations";
 import { useQuery } from "@tanstack/react-query";
+import { useSupabase } from "@/lib/supabase/SupabaseContext";
 
-export const useGetRecipeById = (recipeId: Uint8Array | number[]) => {
+export const useGetRecipeById = (id: string) => {
+  const supabase = useSupabase();
   return useQuery({
-    queryKey: ["recipe", recipeId],
+    queryKey: ["recipe_by_id", id],
     queryFn: async () => {
-      return catts_engine.recipe_get_by_id(recipeId);
+      const { data, error } = await supabase
+        .from("recipe")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data;
     },
   });
 };

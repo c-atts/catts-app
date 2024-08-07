@@ -8,7 +8,7 @@ import PayForRun from "../components/routes/recipe/PayForRun";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
 import SimulateRun from "../components/routes/recipe/SimulateRun";
 import { Section } from "@/components/ui/Section";
-import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeBySlug";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { RecipeContextProvider } from "@/recipe/RecipeContextProvider";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { RunContextProvider } from "@/run/RunContextProvider";
@@ -24,13 +24,9 @@ function IndexInner({ recipeName }: { recipeName: string }) {
   const loadedRecipeName = useRef<string>();
 
   useEffect(() => {
-    if (
-      recipe &&
-      "Ok" in recipe &&
-      recipe.Ok.name !== loadedRecipeName.current
-    ) {
-      setRecipe(recipe.Ok);
-      loadedRecipeName.current = recipe.Ok.name;
+    if (recipe && recipe.name !== loadedRecipeName.current) {
+      setRecipe(recipe);
+      loadedRecipeName.current = recipe.name;
     }
   }, [recipe, setRecipe]);
 

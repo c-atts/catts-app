@@ -3,11 +3,9 @@ import { mainnet } from "wagmi/chains";
 import { useEnsName } from "wagmi";
 import { Link } from "@tanstack/react-router";
 import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
-import { Database } from "@/lib/supabase/database.types";
+import { RecipeBasics } from "@/recipe/types/recipe.types";
 
-type Recipe = Database["public"]["Tables"]["recipe"]["Row"];
-
-export default function RecipeListItem({ recipe }: { recipe: Recipe }) {
+export default function RecipeListItem({ recipe }: { recipe: RecipeBasics }) {
   const { name, description, created, creator } = recipe;
 
   const { data: creatorEnsName } = useEnsName({

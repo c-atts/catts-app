@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useState } from "react";
-import { Recipe } from "catts_engine/declarations/catts_engine.did";
 import { RecipeContextType } from "./types/run-context.type";
 import { RecipeContextStateType } from "./types/run-context-state.type";
+import { RecipeFull } from "./types/recipe.types";
 
 export const RecipeContext = createContext<RecipeContextType | undefined>(
   undefined,
@@ -10,7 +10,7 @@ export const RecipeContext = createContext<RecipeContextType | undefined>(
 export function RecipeContextProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RecipeContextStateType>();
 
-  function setRecipe(recipe: Recipe) {
+  function setRecipe(recipe: RecipeFull) {
     setState((s) => {
       return {
         ...s,
