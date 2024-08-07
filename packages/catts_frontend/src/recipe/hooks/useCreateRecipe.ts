@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useNavigate } from "@tanstack/react-router";
 import { useActor } from "@/lib/ic/ActorProvider";
@@ -16,6 +16,7 @@ function processUrl(url: string) {
 export const useCreateRecipe = () => {
   const { actor } = useActor();
   const navigate = useNavigate({ from: "/create" });
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ url }: { url: string }) => {
       if (!actor) return null;
@@ -39,13 +40,26 @@ export const useCreateRecipe = () => {
           query.variables = JSON.stringify(query.variables);
         }
       }
-      return actor.recipe_create(payload, "README");
+      const result = await actor.recipe_create(payload, "README");
+      if ("Ok" in result) {
+        await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
+        await queryClient.invalidateQueries({
+          queryKey: ["recipe_list"],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["recipe_by_name", result.Ok.name],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["recipe_by_id", result.Ok.id],
+        });
+      }
+      return result;
     },
     onError: (error) => {
       console.error(error);
       errorToast({ error, message: "Could not create recipe" });
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast.success("Recipe created");
       if (data && "Ok" in data) {
         navigate({
