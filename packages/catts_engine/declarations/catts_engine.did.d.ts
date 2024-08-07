@@ -35,7 +35,7 @@ export interface HttpResponse {
   'headers' : Array<HttpHeader>,
 }
 export interface IndexedChangeLogItem {
-  'item' : ChangeLogItem,
+  'data' : ChangeLogItem,
   'index' : number,
 }
 export interface LogItem {

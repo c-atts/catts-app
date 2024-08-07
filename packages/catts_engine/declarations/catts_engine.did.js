@@ -22,7 +22,7 @@ export const idlFactory = ({ IDL }) => {
     'patch' : IDL.Text,
   });
   const IndexedChangeLogItem = IDL.Record({
-    'item' : ChangeLogItem,
+    'data' : ChangeLogItem,
     'index' : IDL.Nat32,
   });
   const ChangeLogResponse = IDL.Record({
