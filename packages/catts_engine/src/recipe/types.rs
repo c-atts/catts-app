@@ -26,6 +26,8 @@ pub enum RecipeError {
     NameInUse,
     #[error("Recipe not found")]
     NotFound,
+    #[error("Internal error")]
+    InternalError,
 }
 
 #[derive(Serialize, Deserialize, CandidType, Clone, PartialEq)]

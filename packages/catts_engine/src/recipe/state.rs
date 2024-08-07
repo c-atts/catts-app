@@ -25,25 +25,35 @@ pub fn list() -> Vec<Recipe> {
 pub fn save(recipe: Recipe) -> Result<Recipe, RecipeError> {
     let saved_recipe_result = get_by_id(&recipe.id);
 
-    match saved_recipe_result {
-        Ok(saved_recipe) => {
-            if saved_recipe.publish_state != RecipePublishState::Draft {
+    let maybe_saved_recipe = match saved_recipe_result {
+        Ok(ref recipe) => {
+            if recipe.publish_state != RecipePublishState::Draft {
                 return Err(RecipeError::NotDraft);
             }
+            Ok(Some(recipe))
         }
         Err(RecipeError::NotFound) => {
             if RECIPE_NAME_INDEX.with_borrow(|index| index.contains_key(&recipe.name)) {
                 return Err(RecipeError::NameInUse);
             }
+            Ok(None)
         }
-        Err(_) => (),
-    }
+        Err(_) => Err(RecipeError::InternalError),
+    }?;
 
     RECIPES.with_borrow_mut(|recipes| {
         recipes.insert(recipe.id, recipe.clone());
     });
 
-    change_log::create(ChangeLogTypeName::Recipe, recipe.id, &recipe).unwrap();
+    match maybe_saved_recipe {
+        Some(saved_recipe) => {
+            change_log::update(ChangeLogTypeName::Recipe, recipe.id, saved_recipe, &recipe)
+                .unwrap();
+        }
+        None => {
+            change_log::create(ChangeLogTypeName::Recipe, recipe.id, &recipe).unwrap();
+        }
+    }
 
     RECIPE_NAME_INDEX.with_borrow_mut(|index| {
         index.insert(recipe.name.clone(), recipe.id);
