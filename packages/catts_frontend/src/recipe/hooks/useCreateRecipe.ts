@@ -22,8 +22,11 @@ export const useCreateRecipe = () => {
       if (!actor) return null;
 
       const processedUrl = processUrl(url);
-      const recipe = await fetch(`${processedUrl}/recipe.json`);
-      const processor = await fetch(`${processedUrl}/processor.js`);
+      const uniqueParam = `t=${new Date().getTime()}`;
+      const recipe = await fetch(`${processedUrl}/recipe.json?${uniqueParam}`);
+      const processor = await fetch(
+        `${processedUrl}/processor.js?${uniqueParam}`,
+      );
 
       if (!recipe.ok || !processor.ok) {
         throw new Error("Failed to load recipe or processor");
@@ -60,8 +63,8 @@ export const useCreateRecipe = () => {
       errorToast({ error, message: "Could not create recipe" });
     },
     onSuccess: async (data) => {
-      toast.success("Recipe created");
       if (data && "Ok" in data) {
+        toast.success("Recipe created");
         navigate({
           to: "/recipe/$recipeName",
           params: { recipeName: data.Ok.name },
