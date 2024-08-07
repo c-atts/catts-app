@@ -4,8 +4,11 @@ import { useCreateRecipe } from "@/recipe/hooks/useCreateRecipe";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoaderCircle } from "lucide-react";
+import { useSiweIdentity } from "ic-use-siwe-identity";
+import Message from "@/components/Message";
 
 export default function CreateForm() {
+  const { identity } = useSiweIdentity();
   const {
     mutate: createRecipe,
     isPending,
@@ -30,6 +33,8 @@ export default function CreateForm() {
     return error.replace(regex, "\n\n");
   };
 
+  const disabled = !identity || isPending;
+
   return (
     <Card>
       <CardHeader>
@@ -37,6 +42,11 @@ export default function CreateForm() {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-5">
+        {!identity ? (
+          <Message type="note">
+            You need to be logged in to create a recipe
+          </Message>
+        ) : null}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -64,7 +74,7 @@ export default function CreateForm() {
                 <>
                   <label htmlFor={field.name}>Recipe URL</label>
                   <Input
-                    disabled={isPending}
+                    disabled={disabled}
                     id={field.name}
                     name={field.name}
                     onBlur={field.handleBlur}
@@ -79,7 +89,7 @@ export default function CreateForm() {
               )}
             </form.Field>
             <div className="flex w-full justify-start">
-              <Button disabled={isPending} type="submit">
+              <Button disabled={disabled} type="submit">
                 {isPending && (
                   <LoaderCircle className="w-5 h-5 animate-spin mr-2" />
                 )}
