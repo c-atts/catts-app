@@ -39,6 +39,7 @@ export const usePublishRecipe = () => {
     onSuccess: async (data) => {
       if (data && "Ok" in data) {
         toast.success("Recipe published");
+        //TODO: This is a hack to reload the page after publishing a recipe
         setTimeout(() => {
           window.location.reload();
         }, 1000);

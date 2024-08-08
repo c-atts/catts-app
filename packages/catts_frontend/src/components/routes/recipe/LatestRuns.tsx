@@ -38,6 +38,7 @@ export default function LatestRuns({ recipeId }: { recipeId: string }) {
         <CardTitle>Latest Runs</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
+        {data.length === 0 && <>This recipe has no runs yet.</>}
         {data.map((run) => (
           <LatestRunItem key={run.id} run={run} />
         ))}
