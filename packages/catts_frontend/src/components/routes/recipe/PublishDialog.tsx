@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { LoaderCircle } from "lucide-react";
 import { usePublishRecipe } from "@/recipe/hooks/usePublishRecipe";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
-import { LoaderCircle } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export default function PublishDialog() {
   const {
@@ -54,7 +54,7 @@ export default function PublishDialog() {
             onClick={() => publishRecipe({ recipeId: recipe?.id })}
           >
             {isPending && (
-              <LoaderCircle className="animate-spin mr-2 w-5 h-5" />
+              <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
             )}
             {isPending ? "Publishing..." : "Publish"}
           </Button>

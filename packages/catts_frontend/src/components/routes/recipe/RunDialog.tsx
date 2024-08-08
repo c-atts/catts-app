@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -9,19 +8,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+
+import { Button } from "@/components/ui/button";
 import { CirclePlay } from "lucide-react";
+import CreateAttestation from "./run-steps/CreateAttestation";
 import InitRun from "./run-steps/InitRun";
 import PayForRun from "./run-steps/PayForRun";
-import CreateAttestation from "./run-steps/CreateAttestation";
 import { hexToBytes } from "viem";
-import useRunContext from "@/run/hooks/useRunContext";
 import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
-import { useSiweIdentity } from "ic-use-siwe-identity";
 import { useAccount } from "wagmi";
+import useCreateRunContext from "@/run/hooks/useCreateRunContext";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import { useSiweIdentity } from "ic-use-siwe-identity";
 
 export default function RunDialog() {
-  const { initPayAndCreateAttestation, inProgress } = useRunContext();
+  const { initPayAndCreateAttestation, inProgress } = useCreateRunContext();
   const { identity } = useSiweIdentity();
   const { chainId } = useAccount();
   const { recipe } = useRecipeContext();
@@ -46,7 +47,7 @@ export default function RunDialog() {
       <DialogTrigger asChild>
         <Button className="w-full" disabled={disabled}>
           Run
-          <CirclePlay className="ml-2 w-5 h-5" />
+          <CirclePlay className="w-5 h-5 ml-2" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

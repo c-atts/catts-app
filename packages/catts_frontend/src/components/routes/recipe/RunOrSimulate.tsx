@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import SimulateDialog from "./SimulateDialog";
+
+import { CreateRunContextProvider } from "@/run/CreateRunContextProvider";
 import RunDialog from "./RunDialog";
-import { RunContextProvider } from "@/run/RunContextProvider";
+import SimulateDialog from "./SimulateDialog";
 
 export default function RunOrSimulate() {
   return (
@@ -12,9 +13,9 @@ export default function RunOrSimulate() {
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <SimulateDialog />
-        <RunContextProvider>
+        <CreateRunContextProvider>
           <RunDialog />
-        </RunContextProvider>
+        </CreateRunContextProvider>
       </CardContent>
     </Card>
   );

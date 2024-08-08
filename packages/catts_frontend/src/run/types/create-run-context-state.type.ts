@@ -1,6 +1,6 @@
 import { Run } from "catts_engine/declarations/catts_engine.did";
 
-export type RunContextStateType = {
+export type CreateRunContextStateType = {
   inProgress: boolean;
   runInProgress?: Run;
   errorMessage?: string;

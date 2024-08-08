@@ -1,31 +1,33 @@
-import { ReactNode, createContext, useState } from "react";
-
-import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
 import { CHAIN_CONFIG, wagmiConfig } from "../config";
-import { Run } from "catts_engine/declarations/catts_engine.did";
-import { TransactionExecutionError } from "viem";
-import { catts_engine } from "catts_engine/declarations";
-import { isError } from "remeda";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { ReactNode, createContext, useState } from "react";
 import { bytesToHex, toHex } from "viem/utils";
 import { useAccount, useWriteContract } from "wagmi";
-import { waitForTransactionReceipt } from "@wagmi/core";
-import { RunContextType } from "./types/run-context.type";
+
+import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
+import { CreateRunContextStateType } from "./types/create-run-context-state.type";
+import { CreateRunContextType } from "./types/create-run-context.type";
+import { Run } from "catts_engine/declarations/catts_engine.did";
+import { RunStatus } from "./types/run-status.type";
+import { TransactionExecutionError } from "viem";
+import { catts_engine } from "catts_engine/declarations";
+import { getRunStatus } from "./getRunStatus";
+import { isError } from "remeda";
 import { useCreateRun } from "./hooks/useCreateRun";
 import { useRegisterRunPayment } from "./hooks/useRegisterRunPayment";
-import { RunContextStateType } from "./types/run-context-state.type";
 import { wait } from "@/lib/util/wait";
-import { getRunStatus } from "./getRunStatus";
-import { RunStatus } from "./types/run-status.type";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { waitForTransactionReceipt } from "@wagmi/core";
 
-export const RunContext = createContext<RunContextType | undefined>(undefined);
+export const CreateRunContext = createContext<CreateRunContextType | undefined>(
+  undefined
+);
 
 const GET_UID_RETRY_LIMIT = 30;
 const GET_UID_RETRY_INTERVAL = 5_000;
 
 async function invalidateAndReindex(
   queryClient: QueryClient,
-  recipeId: Uint8Array,
+  recipeId: Uint8Array
 ) {
   try {
     await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
@@ -40,8 +42,12 @@ async function invalidateAndReindex(
   }
 }
 
-export function RunContextProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<RunContextStateType>({
+export function CreateRunContextProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [state, setState] = useState<CreateRunContextStateType>({
     inProgress: false,
   });
   const { chainId } = useAccount();
@@ -306,7 +312,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <RunContext.Provider
+    <CreateRunContext.Provider
       value={{
         runInProgress: state?.runInProgress,
         errorMessage: state?.errorMessage,
@@ -318,6 +324,6 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </RunContext.Provider>
+    </CreateRunContext.Provider>
   );
 }

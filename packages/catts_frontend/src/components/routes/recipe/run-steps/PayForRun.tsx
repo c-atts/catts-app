@@ -1,13 +1,13 @@
-import { formatEther } from "viem/utils";
-import { LoaderCircle } from "lucide-react";
-import useRunContext from "@/run/hooks/useRunContext";
-import { useRunStatus } from "@/run/hooks/useRunStatus";
-import { RunStatus } from "@/run/types/run-status.type";
-import EthTxLink from "@/components/EthTxLink";
 import { CHAIN_CONFIG } from "@/config";
+import EthTxLink from "@/components/EthTxLink";
+import { LoaderCircle } from "lucide-react";
+import { RunStatus } from "@/run/types/run-status.type";
+import { formatEther } from "viem/utils";
+import useCreateRunContext from "@/run/hooks/useCreateRunContext";
+import { useRunStatus } from "@/run/hooks/useRunStatus";
 
 export function PayForRunInner() {
-  const { runInProgress, errorMessage } = useRunContext();
+  const { runInProgress, errorMessage } = useCreateRunContext();
   const runStatus = useRunStatus(runInProgress);
 
   if (!runInProgress) return null;
@@ -62,12 +62,12 @@ export function PayForRunInner() {
 }
 
 export default function PayForRun() {
-  const { runInProgress } = useRunContext();
+  const { runInProgress } = useCreateRunContext();
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex  bg-primary text-primary-foreground">
+        <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
           2
         </div>
         Pay for run

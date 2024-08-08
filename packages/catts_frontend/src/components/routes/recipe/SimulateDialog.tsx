@@ -1,22 +1,22 @@
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { Eye, LoaderCircle } from "lucide-react";
-import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import SimulateRun from "./SimulateRun";
 import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
-import { Label } from "@/components/ui/label";
 import { useAccount } from "wagmi";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { useSiweIdentity } from "ic-use-siwe-identity";
+import { useState } from "react";
 
 export default function SimulateDialog() {
   const { recipe } = useRecipeContext();
@@ -27,7 +27,7 @@ export default function SimulateDialog() {
   const [runSimulation, setRunSimulation] = useState(false);
   const [done, setDone] = useState(false);
   const [simulateForAddress, setSimulateForAddress] = useState<string>(
-    (address as string) || "",
+    (address as string) || ""
   );
 
   const simulate = async () => {
@@ -58,7 +58,7 @@ export default function SimulateDialog() {
         variant="secondary"
       >
         Simulate
-        <Eye className="ml-2 h-5 w-5" />
+        <Eye className="w-5 h-5 ml-2" />
       </Button>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -95,7 +95,7 @@ export default function SimulateDialog() {
           </Button>
           <Button disabled={disabled} onClick={simulate}>
             {isPending && (
-              <LoaderCircle className="animate-spin mr-2 w-5 h-5" />
+              <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
             )}
             {isPending ? "Simulating..." : "Simulate"}
           </Button>

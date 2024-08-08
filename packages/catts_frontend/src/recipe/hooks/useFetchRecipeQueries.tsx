@@ -1,25 +1,25 @@
-import { GQL_QUERY_PROXY_URL } from "@/config";
-import { useQuery } from "@tanstack/react-query";
-import { Recipe } from "catts_engine/declarations/catts_engine.did";
-import { isArray, randomString } from "remeda";
 import { RecipeFull, recipeQueriesSchema } from "../types/recipe.types";
+
+import { GQL_QUERY_PROXY_URL } from "@/config";
+import { randomString } from "remeda";
+import { useQuery } from "@tanstack/react-query";
 
 function parseVariablesTemplate(
   variablesTemplate: string,
-  dynamicValues: Record<string, string>,
+  dynamicValues: Record<string, string>
 ) {
   if (!variablesTemplate) return {};
   return JSON.parse(
     variablesTemplate.replace(
       /\{(\w+)\}/g,
-      (match, key) => dynamicValues[key] || match,
-    ),
+      (match, key) => dynamicValues[key] || match
+    )
   );
 }
 
 export function useFetchRecipeQueries(
   recipe: RecipeFull | undefined,
-  address?: string,
+  address?: string
 ) {
   const dynamicVariables = {
     user_eth_address: address ?? "",
@@ -34,7 +34,7 @@ export function useFetchRecipeQueries(
       }
 
       const { success, data: recipeQueries } = recipeQueriesSchema.safeParse(
-        recipe.queries,
+        recipe.queries
       );
 
       if (!success) {
@@ -46,19 +46,19 @@ export function useFetchRecipeQueries(
       for (const query of recipeQueries) {
         const queryVariables = parseVariablesTemplate(
           query.variables,
-          dynamicVariables,
+          dynamicVariables
         );
 
         try {
           const queryResponse = await requestQuery(
             query.query,
             queryVariables,
-            query.endpoint,
+            query.endpoint
           );
 
           if (typeof queryResponse !== "object") {
             console.error(
-              `Expected response to be an object, got ${typeof queryResponse}`,
+              `Expected response to be an object, got ${typeof queryResponse}`
             );
             return null;
           }

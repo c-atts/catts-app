@@ -1,9 +1,9 @@
 import { LoaderCircle } from "lucide-react";
-import useRunContext from "@/run/hooks/useRunContext";
+import useCreateRunContext from "@/run/hooks/useCreateRunContext";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 export default function InitRun() {
   const { recipe } = useRecipeContext();
-  const { inProgress, runInProgress, errorMessage } = useRunContext();
+  const { inProgress, runInProgress, errorMessage } = useCreateRunContext();
 
   if (!recipe) {
     return null;
