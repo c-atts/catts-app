@@ -15,6 +15,7 @@ import { RunContextProvider } from "@/run/RunContextProvider";
 import LatestRuns from "@/components/routes/recipe/LatestRuns";
 import { Card, CardContent } from "@/components/ui/card";
 import PublishAndDelete from "@/components/routes/recipe/PublishAndDelete";
+import RunOrSimulate from "@/components/routes/recipe/RunOrSimulate";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
@@ -54,6 +55,7 @@ function IndexInner({ recipeName }: { recipeName: string }) {
       </div>
       <div className="flex flex-col gap-5 w-1/3">
         <LatestRuns recipeId={recipe.id} />
+        <RunOrSimulate />
         <RunContextProvider>
           <Section>
             <InitRun />
@@ -61,9 +63,6 @@ function IndexInner({ recipeName }: { recipeName: string }) {
             <CreateAttestation />
           </Section>
         </RunContextProvider>
-        <Section>
-          <SimulateRun />
-        </Section>
       </div>
     </div>
   );

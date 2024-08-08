@@ -6,6 +6,7 @@ import {
 } from "quickjs-emscripten-core";
 import wasmLocation from "@jitl/quickjs-wasmfile-release-sync/wasm?url";
 import RELEASE_SYNC from "@jitl/quickjs-wasmfile-release-sync";
+import { RecipeFull } from "@/recipe/types/recipe.types";
 
 const quickJSVariant = newVariant(RELEASE_SYNC, {
   wasmLocation,
@@ -15,7 +16,7 @@ export async function runProcessor({
   recipe,
   queryData,
 }: {
-  recipe: Recipe;
+  recipe: RecipeFull;
   queryData: any[];
 }) {
   if (!recipe.schema[0]) {

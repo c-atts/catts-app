@@ -1,7 +1,8 @@
 import { GQL_QUERY_PROXY_URL } from "@/config";
 import { useQuery } from "@tanstack/react-query";
 import { Recipe } from "catts_engine/declarations/catts_engine.did";
-import { randomString } from "remeda";
+import { isArray, randomString } from "remeda";
+import { RecipeFull, recipeQueriesSchema } from "../types/recipe.types";
 
 function parseVariablesTemplate(
   variablesTemplate: string,
@@ -17,7 +18,7 @@ function parseVariablesTemplate(
 }
 
 export function useFetchRecipeQueries(
-  recipe: Recipe | undefined,
+  recipe: RecipeFull | undefined,
   address?: string,
 ) {
   const dynamicVariables = {
@@ -28,12 +29,21 @@ export function useFetchRecipeQueries(
   return useQuery({
     queryKey: ["RecipeRun", recipe?.name, address],
     queryFn: async () => {
-      if (!recipe || !recipe?.name || !address || !recipe.queries[0]) {
+      if (!recipe || !recipe?.name || !address) {
+        return null;
+      }
+
+      const { success, data: recipeQueries } = recipeQueriesSchema.safeParse(
+        recipe.queries,
+      );
+
+      if (!success) {
+        console.error("Invalid recipe queries", recipe.queries);
         return null;
       }
 
       const aggregatedResponse: any[] = [];
-      for (const query of recipe.queries) {
+      for (const query of recipeQueries) {
         const queryVariables = parseVariablesTemplate(
           query.variables,
           dynamicVariables,

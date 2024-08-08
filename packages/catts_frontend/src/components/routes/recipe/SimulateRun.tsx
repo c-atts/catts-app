@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { isError } from "remeda";
-import { useAccount } from "wagmi";
-import { useSiweIdentity } from "ic-use-siwe-identity";
-import { SectionTitle } from "@/components/ui/Section";
 import { validateProcessorResult, validateSchemaItems } from "catts-sdk";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useFetchRecipeQueries } from "@/recipe/hooks/useFetchRecipeQueries";
 import { RunOutput } from "@/run/types/run-output.type";
 import { runProcessor } from "@/run/runProcessor";
-import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 
 type SimulationStepStatus = "idle" | "pending" | "success" | "error";
@@ -100,7 +93,13 @@ function SimulationSteps({
   );
 }
 
-function SimulateRunInner({ address }: { address: string }) {
+export default function SimulateRun({
+  address,
+  onDone,
+}: {
+  address: string;
+  onDone: () => void;
+}) {
   const { recipe } = useRecipeContext();
   const { data, error: fetchError } = useFetchRecipeQueries(recipe, address);
   const [processorError, setProcessorError] = useState<string>();
@@ -173,8 +172,10 @@ function SimulateRunInner({ address }: { address: string }) {
           step3Validating: "error",
         }));
       }
+
+      onDone();
     })();
-  }, [data, recipe]);
+  }, [data, recipe, onDone]);
 
   const allStepsCompleted = Object.values(simulationSteps).every(
     (step) => step === "success",
@@ -199,61 +200,6 @@ function SimulateRunInner({ address }: { address: string }) {
           </pre>
         </>
       )}
-    </>
-  );
-}
-
-export default function SimulateRun() {
-  const { identity } = useSiweIdentity();
-  const { address, chainId } = useAccount();
-  const { recipe } = useRecipeContext();
-
-  const [runSimulation, setRunSimulation] = useState(false);
-  const [simulateForAddress, setSimulateForAddress] = useState<string>(
-    (address as string) || "",
-  );
-
-  const simulate = async () => {
-    setRunSimulation(false);
-    await new Promise((r) => setTimeout(r, 300));
-    setRunSimulation(true);
-  };
-
-  const resetSimulation = () => {
-    setRunSimulation(false);
-  };
-
-  const disabled =
-    !identity ||
-    !isChainIdSupported(chainId) ||
-    !recipe ||
-    !simulateForAddress ||
-    runSimulation;
-
-  return (
-    <>
-      <SectionTitle>Simulate run</SectionTitle>
-      <div>
-        Simulate the running of this recipe to see if it produces any output for
-        selected address. The simulation fetches the attestations specified in
-        the recipe and processes them locally in the browser.
-      </div>
-      <div className="grid w-full max-w-sm items-center gap-1.5">
-        <Label htmlFor="address">Recipient Eth address</Label>
-        <Input
-          name="address"
-          onChange={(e) => setSimulateForAddress(e.target.value)}
-          onFocus={resetSimulation}
-          placeholder="0x..."
-          type="text"
-          value={simulateForAddress}
-        />
-      </div>
-
-      <Button disabled={disabled} onClick={simulate}>
-        Simulate
-      </Button>
-      {runSimulation && <SimulateRunInner address={simulateForAddress} />}
     </>
   );
 }

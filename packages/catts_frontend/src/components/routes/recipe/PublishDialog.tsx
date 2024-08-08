@@ -30,7 +30,7 @@ export default function PublishDialog() {
   }, [isError, isSuccess]);
 
   return (
-    <Dialog open={open}>
+    <Dialog onOpenChange={setOpen} open={open}>
       <Button onClick={() => setOpen(true)}>Publish</Button>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -41,11 +41,14 @@ export default function PublishDialog() {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="justify-end">
-          <DialogClose asChild>
-            <Button disabled={isPending} type="button" variant="secondary">
-              Cancel
-            </Button>
-          </DialogClose>
+          <Button
+            disabled={isPending}
+            onClick={() => setOpen(false)}
+            type="button"
+            variant="secondary"
+          >
+            Cancel
+          </Button>
           <Button
             disabled={isPending}
             onClick={() => publishRecipe({ recipeId: recipe?.id })}
