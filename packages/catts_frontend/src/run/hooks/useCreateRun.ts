@@ -14,7 +14,7 @@ export const useCreateRun = () => {
       chainId: number | undefined;
     }) => {
       if (!actor || !chainId) return null;
-      const result = await actor.run_create(recipeId, BigInt(chainId));
+      const result = await actor.run_create(recipeId, chainId);
       await queryClient.invalidateQueries({ queryKey: ["run_history"] });
       return result;
     },

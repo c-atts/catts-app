@@ -56,6 +56,10 @@ export const useCreateRecipe = () => {
           queryKey: ["recipe_by_id", result.Ok.id],
         });
       }
+      if ("Err" in result) {
+        console.error(result.Err);
+        throw new Error(result.Err.message);
+      }
       return result;
     },
     onError: (error) => {

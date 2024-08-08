@@ -13,6 +13,8 @@ import { RecipeContextProvider } from "@/recipe/RecipeContextProvider";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { RunContextProvider } from "@/run/RunContextProvider";
 import LatestRuns from "@/components/routes/recipe/LatestRuns";
+import { Card, CardContent } from "@/components/ui/card";
+import PublishAndDelete from "@/components/routes/recipe/PublishAndDelete";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
@@ -42,10 +44,13 @@ function IndexInner({ recipeName }: { recipeName: string }) {
   return (
     <div className="flex gap-5">
       <div className="flex flex-col gap-5 w-2/3">
-        <Section>
-          <RecipeBasics />
-          <RecipeDetails />
-        </Section>
+        <Card>
+          <PublishAndDelete />
+          <CardContent>
+            <RecipeBasics />
+            <RecipeDetails />
+          </CardContent>
+        </Card>
       </div>
       <div className="flex flex-col gap-5 w-1/3">
         <LatestRuns recipeId={recipe.id} />
