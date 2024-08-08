@@ -5,6 +5,7 @@ import { RunBasics } from "@/run/types/run.types";
 import { formatDistance } from "date-fns";
 import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
 import { useLatestRecipeRuns } from "@/run/hooks/useLatestRecipeRuns";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 
 function LatestRunItem({ run }: { run: RunBasics }) {
   const { id, chain_id, created } = run;
@@ -25,8 +26,9 @@ function LatestRunItem({ run }: { run: RunBasics }) {
   );
 }
 
-export default function LatestRuns({ recipeId }: { recipeId: string }) {
-  const { data, isPending } = useLatestRecipeRuns({ recipeId });
+export default function LatestRuns() {
+  const { recipe } = useRecipeContext();
+  const { data, isPending } = useLatestRecipeRuns({ recipeId: recipe?.id });
 
   if (isPending || !data) {
     return null;

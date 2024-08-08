@@ -1,11 +1,12 @@
 import { useSupabase } from "@/lib/supabase/SupabaseContext";
 import { useQuery } from "@tanstack/react-query";
 
-export const useLatestRecipeRuns = ({ recipeId }: { recipeId: string }) => {
+export const useLatestRecipeRuns = ({ recipeId }: { recipeId?: string }) => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["runs_recipe_lates", recipeId],
+    queryKey: ["runs_recipe_latest", recipeId],
     queryFn: async () => {
+      if (!recipeId) return null;
       const { data, error } = await supabase
         .from("run")
         .select(`id, created, chain_id`)

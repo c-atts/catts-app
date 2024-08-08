@@ -54,8 +54,8 @@ function IndexInner({ recipeName }: { recipeName: string }) {
         </Card>
       </div>
       <div className="flex flex-col gap-5 w-1/3">
-        <LatestRuns recipeId={recipe.id} />
         <RunOrSimulate />
+        <LatestRuns />
         <RunContextProvider>
           <Section>
             <InitRun />
