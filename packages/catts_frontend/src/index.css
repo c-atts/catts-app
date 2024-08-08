@@ -63,3 +63,12 @@
     @apply text-lg font-semibold;
   }
 }
+
+@layer utilities {
+  .hover-darken {
+    transition: background-color 0.3s ease;
+  }
+  .hover-darken:hover {
+    filter: brightness(0.95);
+  }
+}
