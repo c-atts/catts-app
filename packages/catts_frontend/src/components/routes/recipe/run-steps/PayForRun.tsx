@@ -1,10 +1,10 @@
-import EthTxLink from "../../../components/EthTxLink";
 import { formatEther } from "viem/utils";
-import { CHAIN_CONFIG } from "../../../config";
 import { LoaderCircle } from "lucide-react";
 import useRunContext from "@/run/hooks/useRunContext";
 import { useRunStatus } from "@/run/hooks/useRunStatus";
 import { RunStatus } from "@/run/types/run-status.type";
+import EthTxLink from "@/components/EthTxLink";
+import { CHAIN_CONFIG } from "@/config";
 
 export function PayForRunInner() {
   const { runInProgress, errorMessage } = useRunContext();
@@ -67,7 +67,7 @@ export default function PayForRun() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-zinc-300 text-zinc-800">
+        <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex  bg-primary text-primary-foreground">
           2
         </div>
         Pay for run

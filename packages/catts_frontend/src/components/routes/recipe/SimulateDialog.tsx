@@ -51,7 +51,11 @@ export default function SimulateDialog() {
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <Button className="w-full" onClick={() => setOpen(true)}>
+      <Button
+        className="w-full"
+        onClick={() => setOpen(true)}
+        variant="secondary"
+      >
         Simulate
         <Eye className="ml-2 h-5 w-5" />
       </Button>

@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { RecipeContext } from "../RecipeContextProvider";
-import { RecipeContextType } from "../types/run-context.type";
+import { RecipeContextType } from "../types/recipe-context.type";
 
 export default function useRecipeContext(): RecipeContextType {
   const context = useContext(RecipeContext);

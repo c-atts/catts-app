@@ -6,7 +6,7 @@ import { Run } from "catts_engine/declarations/catts_engine.did";
 import { TransactionExecutionError } from "viem";
 import { catts_engine } from "catts_engine/declarations";
 import { isError } from "remeda";
-import { toHex } from "viem/utils";
+import { bytesToHex, toHex } from "viem/utils";
 import { useAccount, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "@wagmi/core";
 import { RunContextType } from "./types/run-context.type";
@@ -16,17 +16,36 @@ import { RunContextStateType } from "./types/run-context-state.type";
 import { wait } from "@/lib/util/wait";
 import { getRunStatus } from "./getRunStatus";
 import { RunStatus } from "./types/run-status.type";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
 
 export const RunContext = createContext<RunContextType | undefined>(undefined);
 
 const GET_UID_RETRY_LIMIT = 30;
 const GET_UID_RETRY_INTERVAL = 5_000;
 
+async function invalidateAndReindex(
+  queryClient: QueryClient,
+  recipeId: Uint8Array,
+) {
+  try {
+    await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
+    queryClient.invalidateQueries({
+      queryKey: ["runs_recipe_latest", bytesToHex(recipeId)],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["runs_list"],
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 export function RunContextProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<RunContextStateType>({
     inProgress: false,
   });
   const { chainId } = useAccount();
+  const queryClient = useQueryClient();
 
   const _useCreateRun = useCreateRun();
   const _useWriteContract = useWriteContract();
@@ -52,6 +71,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
             setState((s) => {
               return {
                 ...s,
+                inProgress: false,
                 errorMessage: "Error initialising run.",
               };
             });
@@ -64,9 +84,11 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       console.error(e);
+      await invalidateAndReindex(queryClient, recipeId);
       setState((s) => {
         return {
           ...s,
+          inProgress: false,
           errorMessage:
             s.errorMessage ||
             (isError(e) ? e.message : "Error initializing run."),
@@ -118,12 +140,13 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       });
     } catch (e) {
       console.error(e);
+      await invalidateAndReindex(queryClient, run.recipe_id as Uint8Array);
       const err = e as TransactionExecutionError;
       setState((s) => {
         return {
           ...s,
+          inProgress: false,
           errorMessage: err.shortMessage,
-          progressMessage: undefined,
         };
       });
       return;
@@ -158,7 +181,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
         return {
           ...s,
           errorMessage,
-          progressMessage: undefined,
+          inProgress: false,
         };
       });
     }
@@ -187,6 +210,7 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
               return {
                 ...s,
                 errorMessage: "Error registering payment.",
+                inProgress: false,
               };
             });
             throw new Error(res.Ok.error[0]);
@@ -197,9 +221,11 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       console.error(e);
+      await invalidateAndReindex(queryClient, run.recipe_id as Uint8Array);
       setState((s) => {
         return {
           ...s,
+          inProgress: false,
           errorMessage:
             s.errorMessage ||
             (isError(e) ? e.message : "Error registering payment."),
@@ -258,11 +284,13 @@ export function RunContextProvider({ children }: { children: ReactNode }) {
             errorMessage:
               s.errorMessage ||
               (isError(e) ? e.message : "Error creating attestation."),
+            inProgress: false,
           };
         });
-        return;
       }
     }
+
+    await invalidateAndReindex(queryClient, run.recipe_id as Uint8Array);
   }
 
   const resetRun = () => {

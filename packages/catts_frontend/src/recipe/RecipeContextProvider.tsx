@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useState } from "react";
-import { RecipeContextType } from "./types/run-context.type";
-import { RecipeContextStateType } from "./types/run-context-state.type";
+import { RecipeContextType } from "./types/recipe-context.type";
+import { RecipeContextStateType } from "./types/recipe-context-state.type";
 import { RecipeFull } from "./types/recipe.types";
 
 export const RecipeContext = createContext<RecipeContextType | undefined>(

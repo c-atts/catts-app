@@ -1,10 +1,11 @@
+import { Check, LoaderCircle, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
-import { isError } from "remeda";
 import { validateProcessorResult, validateSchemaItems } from "catts-sdk";
-import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
-import { useFetchRecipeQueries } from "@/recipe/hooks/useFetchRecipeQueries";
+
 import { RunOutput } from "@/run/types/run-output.type";
+import { isError } from "remeda";
 import { runProcessor } from "@/run/runProcessor";
+import { useFetchRecipeQueries } from "@/recipe/hooks/useFetchRecipeQueries";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 
 type SimulationStepStatus = "idle" | "pending" | "success" | "error";
@@ -30,7 +31,9 @@ function Status({
     case "pending":
       return (
         <div className="flex items-center gap-2">
-          <LoaderCircle className="w-5 h-5 animate-spin flex-shrink-0" />
+          <div className="items-center justify-center flex-shrink-0 hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
+            <LoaderCircle className="w-4 h-4 animate-spin" />
+          </div>
           {pendingMessage}
         </div>
       );
@@ -38,13 +41,19 @@ function Status({
     case "success":
       return (
         <div className="flex items-center gap-2">
-          <CircleCheck className="w-5 h-5 flex-shrink-0" /> {successMessage}
+          <div className="items-center justify-center flex-shrink-0 hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
+            <Check className="w-4 h-4" />
+          </div>
+          {successMessage}
         </div>
       );
     case "error":
       return (
         <div className="flex items-center gap-2">
-          <CircleAlert className="w-5 h-5 flex-shrink-0" /> {errorMessage}
+          <div className="items-center justify-center flex-shrink-0 hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
+            <TriangleAlert className="w-4 h-4" />
+          </div>
+          {errorMessage}
         </div>
       );
     default:
@@ -64,31 +73,25 @@ function SimulationSteps({
   validationError?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div>
-        <Status
-          errorMessage={fetchError?.toString()}
-          pendingMessage="Fetching recipe data..."
-          stepStatus={steps.step1Fetching}
-          successMessage="Recipe data fetched"
-        />
-      </div>
-      <div>
-        <Status
-          errorMessage={processorError}
-          pendingMessage="Processing data..."
-          stepStatus={steps.step2Processing}
-          successMessage="Data processed"
-        />
-      </div>
-      <div>
-        <Status
-          errorMessage={validationError}
-          pendingMessage="Validating data..."
-          stepStatus={steps.step3Validating}
-          successMessage="Data validated"
-        />
-      </div>
+    <div className="flex flex-col gap-3 my-5">
+      <Status
+        errorMessage={fetchError?.toString()}
+        pendingMessage="Fetching recipe data..."
+        stepStatus={steps.step1Fetching}
+        successMessage="Recipe data fetched"
+      />
+      <Status
+        errorMessage={processorError}
+        pendingMessage="Processing data..."
+        stepStatus={steps.step2Processing}
+        successMessage="Data processed"
+      />
+      <Status
+        errorMessage={validationError}
+        pendingMessage="Validating data..."
+        stepStatus={steps.step3Validating}
+        successMessage="Data validated"
+      />
     </div>
   );
 }
@@ -178,7 +181,7 @@ export default function SimulateRun({
   }, [data, recipe, onDone]);
 
   const allStepsCompleted = Object.values(simulationSteps).every(
-    (step) => step === "success",
+    (step) => step === "success"
   );
 
   return (

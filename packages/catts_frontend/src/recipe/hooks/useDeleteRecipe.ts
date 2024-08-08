@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "@tanstack/react-router";
 import { useActor } from "@/lib/ic/ActorProvider";
 import errorToast from "@/lib/util/errorToast";
-import { hexToBytes } from "viem";
+import { bytesToHex, hexToBytes } from "viem";
 
 export const useDeleteRecipe = () => {
   const { actor } = useActor();
@@ -25,7 +25,7 @@ export const useDeleteRecipe = () => {
           queryKey: ["recipe_by_name", result.Ok.name],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_id", result.Ok.id],
+          queryKey: ["recipe_by_id", bytesToHex(result.Ok.id as Uint8Array)],
         });
       }
       if ("Err" in result) {

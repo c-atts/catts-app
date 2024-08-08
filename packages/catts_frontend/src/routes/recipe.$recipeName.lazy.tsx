@@ -1,17 +1,10 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-
 import { useEffect, useRef } from "react";
 import RecipeBasics from "../components/routes/recipe/RecipeBasics";
-import CreateAttestation from "../components/routes/recipe/CreateAttestation";
-import InitRun from "../components/routes/recipe/InitRun";
-import PayForRun from "../components/routes/recipe/PayForRun";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
-import SimulateRun from "../components/routes/recipe/SimulateRun";
-import { Section } from "@/components/ui/Section";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { RecipeContextProvider } from "@/recipe/RecipeContextProvider";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
-import { RunContextProvider } from "@/run/RunContextProvider";
 import LatestRuns from "@/components/routes/recipe/LatestRuns";
 import { Card, CardContent } from "@/components/ui/card";
 import PublishAndDelete from "@/components/routes/recipe/PublishAndDelete";
@@ -56,13 +49,6 @@ function IndexInner({ recipeName }: { recipeName: string }) {
       <div className="flex flex-col gap-5 w-1/3">
         <RunOrSimulate />
         <LatestRuns />
-        <RunContextProvider>
-          <Section>
-            <InitRun />
-            <PayForRun />
-            <CreateAttestation />
-          </Section>
-        </RunContextProvider>
       </div>
     </div>
   );
