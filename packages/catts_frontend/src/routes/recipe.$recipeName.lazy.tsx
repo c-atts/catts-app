@@ -46,7 +46,7 @@ function IndexInner({ recipeName }: { recipeName: string }) {
       <div className="flex flex-col gap-5 w-2/3">
         <Card>
           <PublishAndDelete />
-          <CardContent>
+          <CardContent className="mt-6 flex flex-col gap-5">
             <RecipeBasics />
             <RecipeDetails />
           </CardContent>

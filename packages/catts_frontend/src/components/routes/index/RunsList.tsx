@@ -12,7 +12,6 @@ export default function RunsList() {
     return <p>No data</p>;
   }
 
-  console.log(data);
   return (
     <ul>
       {data.map((run) => (

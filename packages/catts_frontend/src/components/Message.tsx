@@ -23,8 +23,6 @@ export default function Message({
     }
   }
 
-  console.log(className);
-
   return (
     <div className={cn(colors, "p-4 rounded-md border-[1px]", className)}>
       {children}
