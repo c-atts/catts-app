@@ -2,7 +2,7 @@ use crate::{
     chain_config::{self},
     http_error::HttpError,
     logger,
-    recipe::{self, RecipeId},
+    recipe::{self, RecipeId, RecipePublishState},
     run::{
         self, estimate_gas_usage, get_min_user_fee_for_chain, util::estimate_transaction_fees, Run,
     },
@@ -16,9 +16,9 @@ async fn run_create(recipe_id: RecipeId, chain_id: u32) -> Result<Run, HttpError
     let address = auth_guard()?;
     let recipe = recipe::get_by_id(&recipe_id).map_err(HttpError::not_found)?;
 
-    // if recipe.publish_state != RecipePublishState::Published {
-    //     return Err(HttpError::bad_request("Recipe is not published"));
-    // }
+    if recipe.publish_state != RecipePublishState::Published {
+        return Err(HttpError::bad_request("Recipe is not published"));
+    }
 
     chain_config::get(chain_id).map_err(|_| {
         HttpError::internal_server_error(format!("Chain {} is not supported", chain_id).as_str())
