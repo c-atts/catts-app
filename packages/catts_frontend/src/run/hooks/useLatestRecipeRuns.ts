@@ -1,5 +1,5 @@
-import { useSupabase } from "@/lib/supabase/SupabaseContext";
 import { useQuery } from "@tanstack/react-query";
+import { useSupabase } from "@/lib/supabase/SupabaseContext";
 
 export const useLatestRecipeRuns = ({ recipeId }: { recipeId?: string }) => {
   const supabase = useSupabase();
@@ -9,7 +9,7 @@ export const useLatestRecipeRuns = ({ recipeId }: { recipeId?: string }) => {
       if (!recipeId) return null;
       const { data, error } = await supabase
         .from("run")
-        .select(`id, created, chain_id`)
+        .select(`id, created, creator, chain_id, recipe (name)`)
         .eq("recipe_id", recipeId)
         .order("created", { ascending: false })
         .limit(5);

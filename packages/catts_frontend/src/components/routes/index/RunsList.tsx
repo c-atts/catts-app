@@ -13,10 +13,11 @@ export default function RunsList() {
   }
 
   return (
-    <ul>
+    <div className="flex flex-col gap-5">
+      <h1>Latest runs</h1>
       {data.map((run) => (
         <RunsListItem key={run.id} run={run} />
       ))}
-    </ul>
+    </div>
   );
 }

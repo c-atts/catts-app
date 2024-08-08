@@ -145,7 +145,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      list_popular_recipes: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string;
+          name: string;
+          description: string;
+          creator: string;
+          created: string;
+          nr_of_runs: number;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

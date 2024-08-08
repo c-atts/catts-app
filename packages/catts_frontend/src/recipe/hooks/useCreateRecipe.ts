@@ -11,6 +11,7 @@ function processUrl(url: string) {
     );
     return u.replace("/tree/", "/");
   }
+  return url;
 }
 
 export const useCreateRecipe = () => {
@@ -23,9 +24,22 @@ export const useCreateRecipe = () => {
 
       const processedUrl = processUrl(url);
       const uniqueParam = `t=${new Date().getTime()}`;
-      const recipe = await fetch(`${processedUrl}/recipe.json?${uniqueParam}`);
+      const recipe = await fetch(`${processedUrl}/recipe.json?${uniqueParam}`, {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache",
+          Pragma: "no-cache",
+        },
+      });
       const processor = await fetch(
         `${processedUrl}/processor.js?${uniqueParam}`,
+        {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        },
       );
 
       if (!recipe.ok || !processor.ok) {

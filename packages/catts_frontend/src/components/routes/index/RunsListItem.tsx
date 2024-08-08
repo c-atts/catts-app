@@ -2,12 +2,13 @@ import { formatDistance } from "date-fns";
 import { mainnet } from "wagmi/chains";
 import { useEnsName } from "wagmi";
 import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
-import { Database } from "@/lib/supabase/database.types";
+import { RunBasics } from "@/run/types/run.types";
+import { ChainIcon } from "@/components/ChainIcon";
+import ListCard from "@/components/ListCard";
+import { Link } from "@tanstack/react-router";
 
-type Run = Database["public"]["Tables"]["run"]["Row"];
-
-export default function RunsListItem({ run }: { run: Run }) {
-  const { id, created, creator } = run;
+export default function RunsListItem({ run }: { run: RunBasics }) {
+  const { created, creator, chain_id, recipe } = run;
 
   const { data: creatorEnsName } = useEnsName({
     address: creator as `0x${string}`,
@@ -19,19 +20,18 @@ export default function RunsListItem({ run }: { run: Run }) {
   });
 
   return (
-    <li
-      className="border-[1px] bg-card shadow-sm rounded-lg flex flex-col p-10 w-full mb-5"
-      key={id}
-    >
-      <div className="flex flex-col gap-3">
-        <div className="text-2xl font-bold hover:underline  cursor-pointer">
-          {id}
+    <Link params={{ runId: run.id }} to={"/run/$runId"}>
+      <ListCard className="text-sm hover-darken" key={run.id}>
+        <div className="flex w-full gap-2">
+          <ChainIcon chainId={chain_id} className="w-8 h-8" />
+          <div className="flex flex-col">
+            <h2>{recipe?.name}</h2>
+            <div className="text-foreground/50">
+              {creatorEnsName || shortenEthAddress(creator)} • {when}
+            </div>
+          </div>
         </div>
-
-        <div className="text-sm text-zinc-500">
-          {creatorEnsName || shortenEthAddress(creator)} created {when}
-        </div>
-      </div>
-    </li>
+      </ListCard>
+    </Link>
   );
 }

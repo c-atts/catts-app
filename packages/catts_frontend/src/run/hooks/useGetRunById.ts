@@ -1,14 +1,16 @@
-import { useSupabase } from "@/lib/supabase/SupabaseContext";
 import { useQuery } from "@tanstack/react-query";
+import { useSupabase } from "@/lib/supabase/SupabaseContext";
 
-export const useListRuns = () => {
+export const useGetRunById = (id: string) => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["runs_list"],
+    queryKey: ["run_by_id", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("run")
-        .select(`id, created, creator, chain_id, recipe (name)`);
+        .select("*")
+        .eq("id", id)
+        .single();
       if (error) throw error;
       return data;
     },

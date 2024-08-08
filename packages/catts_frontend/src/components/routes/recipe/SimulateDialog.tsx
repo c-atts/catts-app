@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { Eye, LoaderCircle } from "lucide-react";
 import { useState } from "react";
-import SimulateRun, { SimulateRunInner } from "./SimulateRun";
+import SimulateRun from "./SimulateRun";
 import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 import { Label } from "@/components/ui/label";
 import { useAccount } from "wagmi";
@@ -53,6 +53,7 @@ export default function SimulateDialog() {
     <Dialog onOpenChange={setOpen} open={open}>
       <Button
         className="w-full"
+        disabled={disabled}
         onClick={() => setOpen(true)}
         variant="secondary"
       >
