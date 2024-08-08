@@ -1,4 +1,3 @@
-import { Recipe } from "catts_engine/declarations/catts_engine.did";
 import { RunOutput } from "./types/run-output.type";
 import {
   newQuickJSWASMModuleFromVariant,
