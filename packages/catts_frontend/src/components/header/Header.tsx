@@ -34,8 +34,9 @@ export default function Header() {
           C–ATTS
         </div>
       </div>
+
       <div className="flex w-full justify-end pb-10">
-        <Link to="/create">
+        <Link disabled={!identity} to="/create">
           <Button disabled={!identity}>
             <Plus className="w-4 h-4 mr-2" />
             Create Recipe
