@@ -57,7 +57,7 @@
     @apply bg-background text-foreground;
   }
   h1 {
-    @apply text-2xl font-semibold;
+    @apply text-2xl font-semibold leading-none tracking-tight;
   }
   h2 {
     @apply text-lg font-semibold;
