@@ -1,3 +1,4 @@
+import { CHAIN_CONFIG } from "@/config";
 import Ethereum from "/ethereum_icon.svg";
 import Optimism from "/optimism.svg";
 
@@ -8,11 +9,21 @@ const CHAIN_IMAGES: { [key: string]: string } = {
 
 export function ChainIcon({
   chainName,
+  chainId,
   className,
 }: {
-  chainName: string;
+  chainName?: string;
+  chainId?: number;
   className?: string;
 }) {
+  if (chainId) {
+    chainName = CHAIN_CONFIG[chainId]?.name;
+  }
+
+  if (!chainName) {
+    return null;
+  }
+
   return (
     <div className={`flex items-center w-full gap-2 md:w-auto`}>
       <img

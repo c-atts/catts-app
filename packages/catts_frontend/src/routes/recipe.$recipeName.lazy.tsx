@@ -12,6 +12,7 @@ import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { RecipeContextProvider } from "@/recipe/RecipeContextProvider";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { RunContextProvider } from "@/run/RunContextProvider";
+import LatestRuns from "@/components/routes/recipe/LatestRuns";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
@@ -47,6 +48,7 @@ function IndexInner({ recipeName }: { recipeName: string }) {
         </Section>
       </div>
       <div className="flex flex-col gap-5 w-1/3">
+        <LatestRuns recipeId={recipe.id} />
         <RunContextProvider>
           <Section>
             <InitRun />

@@ -6,6 +6,7 @@ import { LoaderCircle } from "lucide-react";
 import useRunContext from "@/run/hooks/useRunContext";
 import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import { hexToBytes } from "viem";
 export default function InitRun() {
   const { recipe } = useRecipeContext();
   const { identity } = useSiweIdentity();
@@ -22,7 +23,8 @@ export default function InitRun() {
   }
 
   const handleClick = () => {
-    initPayAndCreateAttestation(recipe.id as Uint8Array);
+    const id = hexToBytes(recipe.id as `0x${string}`);
+    initPayAndCreateAttestation(id);
   };
 
   const disabled = !identity || !isChainIdSupported(chainId) || inProgress;
