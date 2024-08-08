@@ -84,6 +84,7 @@ service : (CanisterSettingsInput) -> {
   change_log : (nat32, opt nat32) -> (Result_1) query;
   logs : () -> (vec LogItem) query;
   recipe_create : (RecipeDetailsInput, text) -> (Result_2);
+  recipe_delete : (blob) -> (Result_2);
   recipe_get_by_id : (blob) -> (Result_2) query;
   recipe_get_by_name : (text) -> (Result_2) query;
   recipe_list : () -> (Result_3) query;

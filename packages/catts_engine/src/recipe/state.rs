@@ -68,6 +68,18 @@ pub fn publish(recipe_id: &RecipeId) -> Result<Recipe, RecipeError> {
     save(recipe)
 }
 
+pub fn delete(recipe_id: &RecipeId) -> Result<Recipe, RecipeError> {
+    let recipe = get_by_id(recipe_id)?;
+    RECIPES.with_borrow_mut(|recipes| {
+        recipes.remove(recipe_id);
+    });
+    RECIPE_NAME_INDEX.with_borrow_mut(|index| {
+        index.remove(&recipe.name);
+    });
+    change_log::delete(ChangeLogTypeName::Recipe, recipe.id).unwrap();
+    Ok(recipe)
+}
+
 // fn create_receipes_dir_if_not_exists() {
 //     if !Path::new("recipes").exists() {
 //         fs::create_dir("recipes").unwrap();

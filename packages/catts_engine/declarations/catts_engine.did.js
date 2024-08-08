@@ -124,6 +124,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'logs' : IDL.Func([], [IDL.Vec(LogItem)], ['query']),
     'recipe_create' : IDL.Func([RecipeDetailsInput, IDL.Text], [Result_2], []),
+    'recipe_delete' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_2], []),
     'recipe_get_by_id' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_2], ['query']),
     'recipe_get_by_name' : IDL.Func([IDL.Text], [Result_2], ['query']),
     'recipe_list' : IDL.Func([], [Result_3], ['query']),

@@ -24,10 +24,10 @@ pub fn update<T: ToJsonValue>(
     })
 }
 
-// pub fn delete(type_name: TypeName, id: &[u8; 12]) -> Result<u64> {
-//     CHANGE_LOG.with_borrow_mut(|logs| {
-//         let change_log_item = ChangeLogItem::delete(type_name, id);
-//         logs.append(&change_log_item)
-//             .map_err(|err| anyhow!(format!("Failed to append to change log: {:?}", err)))
-//     })
-// }
+pub fn delete(type_name: ChangeLogTypeName, id: [u8; 12]) -> Result<u64> {
+    CHANGE_LOG.with_borrow_mut(|logs| {
+        let change_log_item = ChangeLogItem::delete(type_name, id);
+        logs.append(&change_log_item)
+            .map_err(|err| anyhow!(format!("Failed to append to change log: {:?}", err)))
+    })
+}

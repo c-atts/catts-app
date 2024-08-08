@@ -78,12 +78,12 @@ impl ChangeLogItem {
         }
     }
 
-    // pub fn delete(type_name: TypeName, id: &[u8; 12]) -> Self {
-    //     Self {
-    //         type_name,
-    //         action: ChangeLogAction::Delete,
-    //         id: *id,
-    //         patch: serde_json::to_string(&serde_json::Value::Null).unwrap(),
-    //     }
-    // }
+    pub fn delete(type_name: ChangeLogTypeName, id: [u8; 12]) -> Self {
+        Self {
+            type_name,
+            action: ChangeLogAction::Delete,
+            id: bytes_to_hex_string(&id).to_string(),
+            patch: serde_json::to_string(&serde_json::Value::Null).unwrap(),
+        }
+    }
 }

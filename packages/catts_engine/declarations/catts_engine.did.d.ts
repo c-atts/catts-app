@@ -121,6 +121,7 @@ export interface _SERVICE {
   'change_log' : ActorMethod<[number, [] | [number]], Result_1>,
   'logs' : ActorMethod<[], Array<LogItem>>,
   'recipe_create' : ActorMethod<[RecipeDetailsInput, string], Result_2>,
+  'recipe_delete' : ActorMethod<[Uint8Array | number[]], Result_2>,
   'recipe_get_by_id' : ActorMethod<[Uint8Array | number[]], Result_2>,
   'recipe_get_by_name' : ActorMethod<[string], Result_2>,
   'recipe_list' : ActorMethod<[], Result_3>,
