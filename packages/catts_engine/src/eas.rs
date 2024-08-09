@@ -15,7 +15,7 @@ use blake2::{
 use ethers_core::{
     abi::{encode, encode_packed, ethereum_types::H160, Address, Token},
     types::U256,
-    utils::keccak256,
+    utils::{hex, keccak256},
 };
 use ic_cdk::api::{
     call::RejectionCode,

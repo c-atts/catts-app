@@ -17,7 +17,8 @@ use ethers_core::{
         ethereum_types::{Address, U256},
         Contract, Token,
     },
-    utils::keccak256,
+    k256::{self, elliptic_curve::sec1::ToEncodedPoint, PublicKey},
+    utils::{hex, keccak256},
 };
 use ic_cdk::api::{
     call::{call_with_payment128, CallResult, RejectionCode},
@@ -25,7 +26,6 @@ use ic_cdk::api::{
         ecdsa_public_key, sign_with_ecdsa, EcdsaPublicKeyArgument, SignWithEcdsaArgument,
     },
 };
-use k256::{elliptic_curve::sec1::ToEncodedPoint, PublicKey};
 use serde_bytes::ByteBuf;
 use serde_json::json;
 use std::{cell::RefCell, str::FromStr};

@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use ethers_core::utils::hex;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
