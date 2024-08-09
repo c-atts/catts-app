@@ -72,6 +72,6 @@
     filter: brightness(0.95);
   }
   .classic-link {
-    @apply text-secondary-foreground underline hover:text-secondary-foreground/50;
+    @apply text-secondary-foreground underline font-medium;
   }
 }

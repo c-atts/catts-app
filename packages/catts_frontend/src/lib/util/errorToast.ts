@@ -1,9 +1,6 @@
 import toast from "react-hot-toast";
 import { z } from "zod";
-
-const errorWithMessage = z.object({
-  message: z.string(),
-});
+import { errorWithMessage } from "../types/catts-error";
 
 const errorSchema = z.object({
   response: z.object({

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export interface CattsErrorInterface {
   code: number;
   message: string;
@@ -15,3 +17,9 @@ export class CattsError extends Error implements CattsErrorInterface {
     this.details = details;
   }
 }
+
+export const errorWithMessage = z.object({
+  message: z.string(),
+});
+
+export type ErrorWithMessage = z.infer<typeof errorWithMessage>;
