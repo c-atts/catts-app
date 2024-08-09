@@ -17,8 +17,13 @@ export default function LoginButton() {
   const handleClick = async () => {
     if (!isChainIdSupported(chainId)) {
       setIsSwitchingChain(true);
-      await switchChainAsync({ chainId: ETH_DEFAULT_CHAIN_ID });
-      setIsSwitchingChain(false);
+      try {
+        await switchChainAsync({ chainId: ETH_DEFAULT_CHAIN_ID });
+      } catch (e) {
+        return;
+      } finally {
+        setIsSwitchingChain(false);
+      }
     }
     login();
   };

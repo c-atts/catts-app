@@ -29,8 +29,7 @@ export function ChainIcon({
       <img
         alt={chainName}
         className={className}
-        src={CHAIN_IMAGES[chainName]}
-        style={{ imageRendering: "pixelated" }}
+        src={CHAIN_IMAGES[chainName] || Ethereum}
       />
     </div>
   );
