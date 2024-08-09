@@ -27,7 +27,7 @@ export default function SimulateDialog() {
   const { address, chainId } = useAccount();
   const { startSimulation, resetSimulation, isSimulating } =
     useSimulateRunContext();
-  const [simulateForAddress, setSimulateForAddress] = useState<string>(
+  const [simulateAddress, setSimulateAddress] = useState<string>(
     (address as string) || "",
   );
 
@@ -35,7 +35,7 @@ export default function SimulateDialog() {
     !identity ||
     !isChainIdSupported(chainId) ||
     !recipe ||
-    !simulateForAddress ||
+    !simulateAddress ||
     isSimulating;
 
   return (
@@ -59,11 +59,11 @@ export default function SimulateDialog() {
           <Input
             autoComplete="off"
             name="address"
-            onChange={(e) => setSimulateForAddress(e.target.value)}
+            onChange={(e) => setSimulateAddress(e.target.value)}
             onFocus={resetSimulation}
             placeholder="0x..."
             type="text"
-            value={simulateForAddress}
+            value={simulateAddress}
           />
         </div>
         <SimulateRun />
@@ -73,7 +73,7 @@ export default function SimulateDialog() {
           </DialogClose>
           <Button
             disabled={disabled}
-            onClick={() => startSimulation(simulateForAddress)}
+            onClick={() => startSimulation(simulateAddress)}
           >
             {isSimulating && (
               <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
