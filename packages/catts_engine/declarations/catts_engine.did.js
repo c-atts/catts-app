@@ -83,7 +83,8 @@ export const idlFactory = ({ IDL }) => {
     'revokable' : IDL.Bool,
   });
   const Result_2 = IDL.Variant({ 'Ok' : Recipe, 'Err' : HttpError });
-  const Result_3 = IDL.Variant({ 'Ok' : IDL.Vec(Recipe), 'Err' : IDL.Text });
+  const Result_3 = IDL.Variant({ 'Ok' : IDL.Text, 'Err' : HttpError });
+  const Result_4 = IDL.Variant({ 'Ok' : IDL.Vec(Recipe), 'Err' : IDL.Text });
   const Run = IDL.Record({
     'id' : IDL.Vec(IDL.Nat8),
     'gas' : IDL.Opt(IDL.Nat),
@@ -102,7 +103,7 @@ export const idlFactory = ({ IDL }) => {
     'payment_log_index' : IDL.Opt(IDL.Nat),
     'payment_transaction_hash' : IDL.Opt(IDL.Text),
   });
-  const Result_4 = IDL.Variant({ 'Ok' : Run, 'Err' : HttpError });
+  const Result_5 = IDL.Variant({ 'Ok' : Run, 'Err' : HttpError });
   const HttpHeader = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
   const HttpResponse = IDL.Record({
     'status' : IDL.Nat,
@@ -114,7 +115,7 @@ export const idlFactory = ({ IDL }) => {
     'response' : HttpResponse,
   });
   const User = IDL.Record({ 'eth_address' : IDL.Text });
-  const Result_5 = IDL.Variant({ 'Ok' : User, 'Err' : HttpError });
+  const Result_6 = IDL.Variant({ 'Ok' : User, 'Err' : HttpError });
   return IDL.Service({
     'canister_eth_address' : IDL.Func([], [Result], []),
     'change_log' : IDL.Func(
@@ -127,23 +128,29 @@ export const idlFactory = ({ IDL }) => {
     'recipe_delete' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_2], []),
     'recipe_get_by_id' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_2], ['query']),
     'recipe_get_by_name' : IDL.Func([IDL.Text], [Result_2], ['query']),
-    'recipe_list' : IDL.Func([], [Result_3], ['query']),
+    'recipe_get_readme_by_id' : IDL.Func(
+        [IDL.Vec(IDL.Nat8)],
+        [Result_3],
+        ['query'],
+      ),
+    'recipe_get_readme_by_name' : IDL.Func([IDL.Text], [Result_3], ['query']),
+    'recipe_list' : IDL.Func([], [Result_4], ['query']),
     'recipe_publish' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_2], []),
-    'run_cancel' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_4], []),
-    'run_create' : IDL.Func([IDL.Vec(IDL.Nat8), IDL.Nat32], [Result_4], []),
-    'run_get' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_4], ['query']),
+    'run_cancel' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_5], []),
+    'run_create' : IDL.Func([IDL.Vec(IDL.Nat8), IDL.Nat32], [Result_5], []),
+    'run_get' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_5], ['query']),
     'run_register_payment' : IDL.Func(
         [IDL.Vec(IDL.Nat8), IDL.Text, IDL.Nat],
-        [Result_4],
+        [Result_5],
         [],
       ),
     'transform' : IDL.Func([TransformArgs], [HttpResponse], ['query']),
-    'user_create' : IDL.Func([], [Result_5], []),
-    'user_get' : IDL.Func([], [Result_5], ['query']),
-    'user_get_by_eth_address' : IDL.Func([IDL.Text], [Result_5], ['query']),
+    'user_create' : IDL.Func([], [Result_6], []),
+    'user_get' : IDL.Func([], [Result_6], ['query']),
+    'user_get_by_eth_address' : IDL.Func([IDL.Text], [Result_6], ['query']),
     'user_get_by_principal' : IDL.Func(
         [IDL.Vec(IDL.Nat8)],
-        [Result_5],
+        [Result_6],
         ['query'],
       ),
   });

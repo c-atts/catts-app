@@ -1,3 +1,5 @@
+use std::{fs, path::Path};
+
 use crate::{
     change_log::{self, ChangeLogTypeName},
     RECIPES, RECIPE_NAME_INDEX,
@@ -80,12 +82,17 @@ pub fn delete(recipe_id: &RecipeId) -> Result<Recipe, RecipeError> {
     Ok(recipe)
 }
 
-// fn create_receipes_dir_if_not_exists() {
-//     if !Path::new("recipes").exists() {
-//         fs::create_dir("recipes").unwrap();
-//     }
-// }
+pub fn write_readme(recipe_name: &str, contents: &str) -> Result<(), RecipeError> {
+    fs::create_dir_all("recipes").map_err(|_| RecipeError::InternalError)?;
+    fs::write(format!("recipes/{}/README.md", recipe_name), contents)
+        .map_err(|_| RecipeError::InternalError)?;
+    Ok(())
+}
 
-// fn write_readme(slug: &str, contents: &str) {
-//     fs::write(format!("recipes/{}/README.md", slug), contents).unwrap();
-// }
+pub fn read_readme(recipe_name: &str) -> Result<String, RecipeError> {
+    let path = format!("recipes/{}/README.md", recipe_name);
+    if !Path::new(&path).exists() {
+        return Err(RecipeError::NotFound);
+    }
+    fs::read_to_string(path).map_err(|_| RecipeError::InternalError)
+}

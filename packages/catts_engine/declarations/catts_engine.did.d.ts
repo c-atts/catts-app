@@ -87,11 +87,13 @@ export type Result_1 = { 'Ok' : ChangeLogResponse } |
   { 'Err' : HttpError };
 export type Result_2 = { 'Ok' : Recipe } |
   { 'Err' : HttpError };
-export type Result_3 = { 'Ok' : Array<Recipe> } |
-  { 'Err' : string };
-export type Result_4 = { 'Ok' : Run } |
+export type Result_3 = { 'Ok' : string } |
   { 'Err' : HttpError };
-export type Result_5 = { 'Ok' : User } |
+export type Result_4 = { 'Ok' : Array<Recipe> } |
+  { 'Err' : string };
+export type Result_5 = { 'Ok' : Run } |
+  { 'Err' : HttpError };
+export type Result_6 = { 'Ok' : User } |
   { 'Err' : HttpError };
 export interface Run {
   'id' : Uint8Array | number[],
@@ -124,20 +126,22 @@ export interface _SERVICE {
   'recipe_delete' : ActorMethod<[Uint8Array | number[]], Result_2>,
   'recipe_get_by_id' : ActorMethod<[Uint8Array | number[]], Result_2>,
   'recipe_get_by_name' : ActorMethod<[string], Result_2>,
-  'recipe_list' : ActorMethod<[], Result_3>,
+  'recipe_get_readme_by_id' : ActorMethod<[Uint8Array | number[]], Result_3>,
+  'recipe_get_readme_by_name' : ActorMethod<[string], Result_3>,
+  'recipe_list' : ActorMethod<[], Result_4>,
   'recipe_publish' : ActorMethod<[Uint8Array | number[]], Result_2>,
-  'run_cancel' : ActorMethod<[Uint8Array | number[]], Result_4>,
-  'run_create' : ActorMethod<[Uint8Array | number[], number], Result_4>,
-  'run_get' : ActorMethod<[Uint8Array | number[]], Result_4>,
+  'run_cancel' : ActorMethod<[Uint8Array | number[]], Result_5>,
+  'run_create' : ActorMethod<[Uint8Array | number[], number], Result_5>,
+  'run_get' : ActorMethod<[Uint8Array | number[]], Result_5>,
   'run_register_payment' : ActorMethod<
     [Uint8Array | number[], string, bigint],
-    Result_4
+    Result_5
   >,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
-  'user_create' : ActorMethod<[], Result_5>,
-  'user_get' : ActorMethod<[], Result_5>,
-  'user_get_by_eth_address' : ActorMethod<[string], Result_5>,
-  'user_get_by_principal' : ActorMethod<[Uint8Array | number[]], Result_5>,
+  'user_create' : ActorMethod<[], Result_6>,
+  'user_get' : ActorMethod<[], Result_6>,
+  'user_get_by_eth_address' : ActorMethod<[string], Result_6>,
+  'user_get_by_principal' : ActorMethod<[Uint8Array | number[]], Result_6>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

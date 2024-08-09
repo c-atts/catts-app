@@ -7,8 +7,11 @@ use crate::{
 };
 
 #[update]
-pub fn recipe_create(details: RecipeDetailsInput, _readme: String) -> Result<Recipe, HttpError> {
+pub fn recipe_create(details: RecipeDetailsInput, readme: String) -> Result<Recipe, HttpError> {
     let address = auth_guard()?;
     let recipe = Recipe::new(&details, &address).map_err(HttpError::bad_request)?;
-    recipe::save(recipe).map_err(HttpError::conflict)
+    let recipe = recipe::save(recipe).map_err(HttpError::conflict)?;
+    recipe::write_readme(&recipe.name, &readme)
+        .map_err(|_| HttpError::internal_server_error("Couldn't save README file."))?;
+    Ok(recipe)
 }
