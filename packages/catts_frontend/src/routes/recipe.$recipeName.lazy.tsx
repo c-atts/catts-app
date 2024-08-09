@@ -1,6 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
-import RecipeBasics from "../components/routes/recipe/RecipeBasics";
+import RecipeReadme from "../components/routes/recipe/RecipeReadme";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { RecipeContextProvider } from "@/recipe/RecipeContextProvider";
@@ -9,6 +9,7 @@ import LatestRuns from "@/components/routes/recipe/LatestRuns";
 import { Card, CardContent } from "@/components/ui/card";
 import PublishAndDelete from "@/components/routes/recipe/PublishAndDelete";
 import RunOrSimulate from "@/components/routes/recipe/RunOrSimulate";
+import BasicFacts from "@/components/routes/recipe/BasicFacts";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
@@ -40,13 +41,14 @@ function IndexInner({ recipeName }: { recipeName: string }) {
       <div className="flex flex-col gap-5 w-2/3">
         <Card>
           <PublishAndDelete />
-          <CardContent className="mt-6 flex flex-col gap-5">
-            <RecipeBasics />
+          <CardContent className="mt-6 flex flex-col gap-12">
+            <RecipeReadme />
             <RecipeDetails />
           </CardContent>
         </Card>
       </div>
       <div className="flex flex-col gap-5 w-1/3">
+        <BasicFacts />
         <RunOrSimulate />
         <LatestRuns />
       </div>

@@ -14,6 +14,18 @@ function processUrl(url: string) {
   return url;
 }
 
+async function fetchFile(url: string, file: string) {
+  const uniqueParam = `t=${new Date().getTime()}`;
+  return fetch(`${url}/${file}?${uniqueParam}`);
+  // return fetch(`${url}/${file}?${uniqueParam}`, {
+  //   cache: "no-store",
+  //   headers: {
+  //     "Cache-Control": "no-cache",
+  //     Pragma: "no-cache",
+  //   },
+  // });
+}
+
 export const useCreateRecipe = () => {
   const { actor } = useActor();
   const navigate = useNavigate({ from: "/create" });
@@ -23,31 +35,24 @@ export const useCreateRecipe = () => {
       if (!actor) return null;
 
       const processedUrl = processUrl(url);
-      const uniqueParam = `t=${new Date().getTime()}`;
-      const recipe = await fetch(`${processedUrl}/recipe.json?${uniqueParam}`, {
-        cache: "no-store",
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-        },
-      });
-      const processor = await fetch(
-        `${processedUrl}/processor.js?${uniqueParam}`,
-        {
-          cache: "no-store",
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-          },
-        },
-      );
+      const recipeResponse = await fetchFile(processedUrl, "recipe.json");
+      const processorResponse = await fetchFile(processedUrl, "processor.js");
+      const readmeResponse = await fetchFile(processedUrl, "README.md");
 
-      if (!recipe.ok || !processor.ok) {
-        throw new Error("Failed to load recipe or processor");
+      if (!recipeResponse.ok) {
+        throw new Error("Could not fetch recipe.json");
+      }
+      if (!processorResponse.ok) {
+        throw new Error("Could not fetch processor.js");
+      }
+      if (!readmeResponse.ok) {
+        throw new Error("Could not fetch README.md");
       }
 
-      const payload = await recipe.json();
-      const processorJs = await processor.text();
+      const payload = await recipeResponse.json();
+      const processorJs = await processorResponse.text();
+      const readme = await readmeResponse.text();
+
       payload.processor = processorJs;
       payload.display_name = payload.display_name ? [payload.display_name] : [];
       payload.description = payload.description ? [payload.description] : [];
@@ -57,24 +62,24 @@ export const useCreateRecipe = () => {
           query.variables = JSON.stringify(query.variables);
         }
       }
-      const result = await actor.recipe_create(payload, "README");
-      if ("Ok" in result) {
+      const createResult = await actor.recipe_create(payload, readme);
+      if ("Ok" in createResult) {
         await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
         await queryClient.invalidateQueries({
           queryKey: ["recipe_list"],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_name", result.Ok.name],
+          queryKey: ["recipe_by_name", createResult.Ok.name],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_id", result.Ok.id],
+          queryKey: ["recipe_by_id", createResult.Ok.id],
         });
       }
-      if ("Err" in result) {
-        console.error(result.Err);
-        throw new Error(result.Err.message);
+      if ("Err" in createResult) {
+        console.error(createResult.Err);
+        throw new Error(createResult.Err.message);
       }
-      return result;
+      return createResult;
     },
     onError: (error) => {
       console.error(error);

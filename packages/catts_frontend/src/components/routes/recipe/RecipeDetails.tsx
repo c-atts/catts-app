@@ -43,10 +43,6 @@ export default function RecipeDetails() {
 
   const { queries, processor, schema } = recipe;
 
-  const formattedQueries = queries
-    .map((q) => formatGraphQLQuery(q.query))
-    .join("\n");
-
   const formattedQueryVariables = JSON.stringify(
     queries.map((q) => JSON.parse(q.variables)),
     null,
@@ -54,29 +50,32 @@ export default function RecipeDetails() {
   );
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-3">
-        <h2>Queries</h2>
-        <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
-          {formattedQueries}
-        </pre>
-        <h2>Query variables</h2>
-        <pre className="w-full p-3 overflow-x-auto text-sm border  bg-muted/50">
-          {formattedQueryVariables}
-        </pre>
-        <h2>Query settings</h2>
-        <h2>Processor</h2>
-        <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
-          {processor
-            .split("\n")
-            .map((line) => line.trim())
-            .join("\n")}
-        </pre>
-        <h2>Output Schema</h2>
-        <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
-          {JSON.stringify(schema, null, 2)}
-        </pre>
-      </div>
+    <div className="prose max-w-none">
+      <h2>Output Schema</h2>
+      <pre className="w-full p-3 overflow-x-auto text-sm border  text-card-foreground bg-muted/50">
+        {JSON.stringify(schema, null, 2)}
+      </pre>
+      <h2>Queries</h2>
+      {queries &&
+        queries.map((q, index) => (
+          <div key={index}>
+            <h3>#{index + 1}</h3>
+            <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
+              {q.endpoint}
+            </pre>
+            <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
+              {formatGraphQLQuery(q.query)}
+            </pre>
+          </div>
+        ))}
+      <h2>Query variables</h2>
+      <pre className="w-full p-3 overflow-x-auto text-sm border text-card-foreground bg-muted/50">
+        {formattedQueryVariables}
+      </pre>
+      <h2>Processor</h2>
+      <pre className="w-full p-3 overflow-x-auto text-sm border text-card-foreground bg-muted/50">
+        {processor}
+      </pre>
     </div>
   );
 }
