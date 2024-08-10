@@ -28,15 +28,13 @@ function IndexInner() {
 
   return (
     <div className="flex gap-5">
-      <div className="flex flex-col gap-5 w-2/3">
-        <Card>
-          <PublishAndDelete />
-          <CardContent className="mt-6 flex flex-col gap-12">
-            <RecipeReadme />
-            <RecipeDetails />
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="w-3/4">
+        <PublishAndDelete />
+        <CardContent className="mt-6 flex flex-col">
+          <RecipeReadme />
+          <RecipeDetails />
+        </CardContent>
+      </Card>
       <div className="flex flex-col gap-5 w-1/3">
         <BasicFacts />
         <RunOrSimulate />

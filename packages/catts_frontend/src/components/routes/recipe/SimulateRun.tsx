@@ -1,4 +1,4 @@
-import { Check, LoaderCircle, TriangleAlert } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
 import { SimulationStepStatus } from "@/run/types/simulate-run-context-state.type";

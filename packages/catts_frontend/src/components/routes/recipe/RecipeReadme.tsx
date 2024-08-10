@@ -16,7 +16,7 @@ export default function RecipeReadme() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       <div className="flex justify-between w-full">
         <UserLink address={recipe.creator} />
         <Badge className="bg-secondary">{recipe.publish_state}</Badge>
