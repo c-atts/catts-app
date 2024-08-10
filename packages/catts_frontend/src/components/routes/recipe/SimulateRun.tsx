@@ -17,30 +17,25 @@ function Status({
   switch (stepStatus) {
     case "pending":
       return (
-        <div className="flex items-center gap-2">
-          <div className="items-center justify-center flex-shrink-0 hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
-            <LoaderCircle className="w-4 h-4 animate-spin" />
+        <div className="flex justify-between w-full pl-10">
+          <div>{pendingMessage}</div>
+          <div>
+            <LoaderCircle className="w-5 h-5 animate-spin" />
           </div>
-          {pendingMessage}
         </div>
       );
-
     case "success":
       return (
-        <div className="flex items-center gap-2">
-          <div className="items-center justify-center flex-shrink-0 hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
-            <Check className="w-4 h-4" />
-          </div>
-          {successMessage}
+        <div className="flex justify-between w-full pl-10">
+          <div>{successMessage}</div>
+          <div>✅</div>
         </div>
       );
     case "error":
       return (
-        <div className="flex items-center gap-2">
-          <div className="items-center justify-center flex-shrink-0 hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
-            <TriangleAlert className="w-4 h-4" />
-          </div>
-          {errorMessage}
+        <div className="flex justify-between w-full pl-10">
+          <div>Error: {errorMessage}</div>
+          <div>🔴</div>
         </div>
       );
     default:
@@ -58,33 +53,59 @@ export default function SimulateRun() {
   } = useSimulateRunContext();
 
   return (
-    <>
-      <Status
-        pendingMessage="Fetching recipe data..."
-        stepStatus={step1Fetching}
-        successMessage="Recipe data fetched"
-      />
-      <Status
-        pendingMessage="Processing data..."
-        stepStatus={step2Processing}
-        successMessage="Data processed"
-      />
-      <Status
-        pendingMessage="Validating data..."
-        stepStatus={step3Validating}
-        successMessage="Data validated"
-      />
-      {allStepsCompleted && (
-        <>
-          <p>
-            Simulation was successful. The recipe would generate the following
-            attestation:
-          </p>
-          <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
-            {JSON.stringify(runOutput, null, 2)}
-          </pre>
-        </>
-      )}
-    </>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
+            1
+          </div>
+          Fetch recipe data
+        </div>
+        <Status
+          pendingMessage="Fetching recipe data..."
+          stepStatus={step1Fetching}
+          successMessage="Recipe data fetched"
+        />
+      </div>
+      <div>
+        <div className="flex items-center gap-2">
+          <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
+            2
+          </div>
+          Process data
+        </div>
+        <Status
+          pendingMessage="Processing data..."
+          stepStatus={step2Processing}
+          successMessage="Data processed"
+        />
+      </div>
+      <div>
+        <div className="flex items-center gap-2">
+          <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
+            3
+          </div>
+          Validate data
+        </div>
+        <Status
+          pendingMessage="Validating data..."
+          stepStatus={step3Validating}
+          successMessage="Data validated"
+        />
+      </div>
+      <div>
+        {allStepsCompleted && (
+          <>
+            <p>
+              Simulation was successful. The recipe would generate the following
+              attestation:
+            </p>
+            <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
+              {JSON.stringify(runOutput, null, 2)}
+            </pre>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

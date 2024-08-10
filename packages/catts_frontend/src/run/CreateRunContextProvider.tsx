@@ -19,7 +19,7 @@ import { wait } from "@/lib/util/wait";
 import { waitForTransactionReceipt } from "@wagmi/core";
 
 export const CreateRunContext = createContext<CreateRunContextType | undefined>(
-  undefined
+  undefined,
 );
 
 const GET_UID_RETRY_LIMIT = 30;
@@ -27,7 +27,7 @@ const GET_UID_RETRY_INTERVAL = 5_000;
 
 async function invalidateAndReindex(
   queryClient: QueryClient,
-  recipeId: Uint8Array
+  recipeId: Uint8Array,
 ) {
   try {
     await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
@@ -49,6 +49,7 @@ export function CreateRunContextProvider({
 }) {
   const [state, setState] = useState<CreateRunContextStateType>({
     inProgress: false,
+    runCreated: false,
   });
   const { chainId } = useAccount();
   const queryClient = useQueryClient();
@@ -78,11 +79,17 @@ export function CreateRunContextProvider({
               return {
                 ...s,
                 inProgress: false,
-                errorMessage: "Error initialising run.",
+                errorMessage: "Error creating run.",
               };
             });
             throw new Error(res.Ok.error[0]);
           }
+          setState((s) => {
+            return {
+              ...s,
+              runCreated: true,
+            };
+          });
           await payAndCreateAttestation(res.Ok);
         } else {
           throw new Error(res.Err.message);
@@ -96,8 +103,7 @@ export function CreateRunContextProvider({
           ...s,
           inProgress: false,
           errorMessage:
-            s.errorMessage ||
-            (isError(e) ? e.message : "Error initializing run."),
+            s.errorMessage || (isError(e) ? e.message : "Error creating run."),
         };
       });
     }
@@ -301,26 +307,20 @@ export function CreateRunContextProvider({
 
   const resetRun = () => {
     _useCreateRun.reset();
-    setState((s) => {
-      return {
-        ...s,
-        runInProgress: undefined,
-        progressMessage: undefined,
-        errorMessage: undefined,
-      };
+    setState({
+      inProgress: false,
+      runCreated: false,
     });
   };
 
   return (
     <CreateRunContext.Provider
       value={{
-        runInProgress: state?.runInProgress,
-        errorMessage: state?.errorMessage,
+        ...state,
         initPayAndCreateAttestation,
         payAndCreateAttestation,
         createAttestation,
         resetRun,
-        inProgress: state.inProgress,
       }}
     >
       {children}

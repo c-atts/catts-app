@@ -61,6 +61,13 @@ export function PayForRunInner() {
   );
 }
 
+function cutSomeDecimals(input: string, decimals: number) {
+  const originalDecimals = input.split(".")[1] || "";
+  const formattedNumber = Number(input).toFixed(decimals);
+  const shouldAddEllipsis = originalDecimals.length > decimals;
+  return shouldAddEllipsis ? `${formattedNumber}…` : formattedNumber;
+}
+
 export default function PayForRun() {
   const { runInProgress } = useCreateRunContext();
 
@@ -68,7 +75,7 @@ export default function PayForRun() {
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
-          2
+          3
         </div>
         Pay for run
       </div>
@@ -77,7 +84,10 @@ export default function PayForRun() {
           <div className="flex justify-between w-full">
             <div className="text-sm text-foreground/50">Transaction fee</div>
             <div className="text-sm text-foreground/50">
-              {formatEther(runInProgress.user_fee[0] as bigint)}{" "}
+              {cutSomeDecimals(
+                formatEther(runInProgress.user_fee[0] as bigint),
+                8,
+              )}{" "}
               {CHAIN_CONFIG[Number(runInProgress?.chain_id)].nativeTokenName}
             </div>
           </div>

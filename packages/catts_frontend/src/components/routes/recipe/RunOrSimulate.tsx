@@ -1,4 +1,10 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import { CreateRunContextProvider } from "@/run/CreateRunContextProvider";
 import RunDialog from "./RunDialog";
@@ -9,8 +15,11 @@ export default function RunOrSimulate() {
   return (
     <Card>
       <CardHeader>
-        Run this recipe to create an attestation or simulate it to see the
-        result without creating.
+        <CardTitle>Create attestation</CardTitle>
+        <CardDescription>
+          Run this recipe to create an attestation or simulate it to see the
+          result without creating.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
         <SimulateRunContextProvider>

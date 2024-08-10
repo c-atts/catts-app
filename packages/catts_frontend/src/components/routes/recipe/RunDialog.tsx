@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CirclePlay } from "lucide-react";
 import CreateAttestation from "./run-steps/CreateAttestation";
-import InitRun from "./run-steps/InitRun";
+import CreateRun from "./run-steps/CreateRun";
 import PayForRun from "./run-steps/PayForRun";
 import { hexToBytes } from "viem";
 import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
@@ -20,7 +20,7 @@ import { useAccount } from "wagmi";
 import useCreateRunContext from "@/run/hooks/useCreateRunContext";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { useSiweIdentity } from "ic-use-siwe-identity";
-import SimulateRun from "./SimulateRun";
+import SimulateRun from "./run-steps/SimulateRun";
 import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
@@ -29,14 +29,14 @@ export default function RunDialog() {
   const { chainId, address } = useAccount();
   const { recipeName } = useRecipeContext();
   const { data: recipe } = useGetRecipeByName(recipeName);
-  const { startSimulation } = useSimulateRunContext();
-  const { initPayAndCreateAttestation, inProgress } = useCreateRunContext();
-
-  if (!recipe || !address || !identity) {
-    return null;
-  }
+  const { startSimulation, resetSimulation } = useSimulateRunContext();
+  const { initPayAndCreateAttestation, inProgress, resetRun } =
+    useCreateRunContext();
 
   const handleClick = async () => {
+    if (!address || !recipe) {
+      return;
+    }
     if (!(await startSimulation(address))) {
       return;
     }
@@ -48,10 +48,18 @@ export default function RunDialog() {
     !identity ||
     !isChainIdSupported(chainId) ||
     inProgress ||
-    recipe.publish_state !== "Published";
+    recipe?.publish_state !== "Published";
+
+  function onOpenChange(open: boolean) {
+    if (!open) {
+      resetSimulation();
+      resetRun();
+    }
+    return open;
+  }
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button className="w-full" disabled={disabled}>
           Run
@@ -68,7 +76,7 @@ export default function RunDialog() {
         </DialogHeader>
         <div className="flex flex-col gap-5">
           <SimulateRun />
-          <InitRun />
+          <CreateRun />
           <PayForRun />
           <CreateAttestation />
         </div>

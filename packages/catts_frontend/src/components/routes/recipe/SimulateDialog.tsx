@@ -9,6 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Eye, LoaderCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,25 +17,25 @@ import { Label } from "@/components/ui/label";
 import SimulateRun from "./SimulateRun";
 import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
-import useRecipeContext from "@/recipe/hooks/useRecipeContext";
-import { useSiweIdentity } from "ic-use-siwe-identity";
-import { useState } from "react";
-import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
+import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
 
 export default function SimulateDialog() {
   const { recipeName } = useRecipeContext();
   const { data: recipe } = useGetRecipeByName(recipeName);
-  const { identity } = useSiweIdentity();
   const { address, chainId } = useAccount();
   const { startSimulation, resetSimulation, isSimulating } =
     useSimulateRunContext();
   const [simulateAddress, setSimulateAddress] = useState<string>(
-    (address as string) || "",
+    (address as string) || ""
   );
 
+  // Update simulate address when account address changes
+  useEffect(() => setSimulateAddress(address as string), [address]);
+
   const disabled =
-    !identity ||
+    !address ||
     !isChainIdSupported(chainId) ||
     !recipe ||
     !simulateAddress ||
