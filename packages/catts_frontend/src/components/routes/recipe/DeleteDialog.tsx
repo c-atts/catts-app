@@ -10,12 +10,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useDeleteRecipe } from "@/recipe/hooks/useDeleteRecipe";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { LoaderCircle } from "lucide-react";
 
 export default function DeleteDialog() {
   const { mutate: deleteRecipe, isPending } = useDeleteRecipe();
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
 
   return (
     <Dialog>

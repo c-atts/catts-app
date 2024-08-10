@@ -6,6 +6,7 @@ import { formatDistance } from "date-fns";
 import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
 import { useLatestRecipeRuns } from "@/run/hooks/useLatestRecipeRuns";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 function LatestRunItem({ run }: { run: RunBasics }) {
   const { id, chain_id, created } = run;
@@ -27,7 +28,8 @@ function LatestRunItem({ run }: { run: RunBasics }) {
 }
 
 export default function LatestRuns() {
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
   const { data, isPending } = useLatestRecipeRuns({ recipeId: recipe?.id });
 
   if (isPending || !data) {

@@ -1,3 +1,4 @@
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 
 function formatGraphQLQuery(query: string): string {
@@ -36,7 +37,8 @@ function formatGraphQLQuery(query: string): string {
 }
 
 export default function RecipeDetails() {
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
   if (!recipe) {
     return null;
   }

@@ -1,5 +1,4 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
 import RecipeReadme from "../components/routes/recipe/RecipeReadme";
 import RecipeDetails from "../components/routes/recipe/RecipeDetails";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
@@ -15,18 +14,9 @@ export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
 });
 
-function IndexInner({ recipeName }: { recipeName: string }) {
+function IndexInner() {
+  const { recipeName } = useRecipeContext();
   const { data: recipe, isPending } = useGetRecipeByName(recipeName);
-  const { setRecipe } = useRecipeContext();
-
-  const loadedRecipeName = useRef<string>();
-
-  useEffect(() => {
-    if (recipe && recipe.name !== loadedRecipeName.current) {
-      setRecipe(recipe);
-      loadedRecipeName.current = recipe.name;
-    }
-  }, [recipe, setRecipe]);
 
   if (isPending) {
     return <div>Loading...</div>;
@@ -60,8 +50,8 @@ function Index() {
   const { recipeName } = Route.useParams();
 
   return (
-    <RecipeContextProvider>
-      <IndexInner recipeName={recipeName} />
+    <RecipeContextProvider recipeName={recipeName}>
+      <IndexInner />
     </RecipeContextProvider>
   );
 }

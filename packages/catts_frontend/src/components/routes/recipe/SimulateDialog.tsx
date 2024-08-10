@@ -20,9 +20,11 @@ import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import { useState } from "react";
 import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 export default function SimulateDialog() {
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
   const { identity } = useSiweIdentity();
   const { address, chainId } = useAccount();
   const { startSimulation, resetSimulation, isSimulating } =
@@ -54,7 +56,7 @@ export default function SimulateDialog() {
             simulation is run in a sandbox environment in the browser.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid w-full max-w-sm items-center gap-1.5">
+        <div className="flex flex-col w-full gap-1.5">
           <Label htmlFor="address">Recipient Eth address</Label>
           <Input
             autoComplete="off"

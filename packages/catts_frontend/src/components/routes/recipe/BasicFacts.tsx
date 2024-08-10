@@ -3,9 +3,11 @@ import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import Keywords from "./Keywords";
 import CopyButton from "@/components/CopyButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 export default function BasicFacts() {
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
 
   if (!recipe) {
     return null;

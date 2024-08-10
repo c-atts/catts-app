@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";
 import { usePublishRecipe } from "@/recipe/hooks/usePublishRecipe";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 export default function PublishDialog() {
   const {
@@ -20,7 +21,8 @@ export default function PublishDialog() {
     isSuccess,
     isError,
   } = usePublishRecipe();
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {

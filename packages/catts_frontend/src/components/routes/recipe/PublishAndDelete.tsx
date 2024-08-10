@@ -3,9 +3,11 @@ import PublishDialog from "./PublishDialog";
 import { useAccount } from "wagmi";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { useSiweIdentity } from "ic-use-siwe-identity";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 export default function PublishAndDelete() {
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
   const { address } = useAccount();
   const { identity } = useSiweIdentity();
 

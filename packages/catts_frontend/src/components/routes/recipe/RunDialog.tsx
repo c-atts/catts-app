@@ -20,18 +20,26 @@ import { useAccount } from "wagmi";
 import useCreateRunContext from "@/run/hooks/useCreateRunContext";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { useSiweIdentity } from "ic-use-siwe-identity";
+import SimulateRun from "./SimulateRun";
+import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 export default function RunDialog() {
-  const { initPayAndCreateAttestation, inProgress } = useCreateRunContext();
   const { identity } = useSiweIdentity();
-  const { chainId } = useAccount();
-  const { recipe } = useRecipeContext();
+  const { chainId, address } = useAccount();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
+  const { startSimulation } = useSimulateRunContext();
+  const { initPayAndCreateAttestation, inProgress } = useCreateRunContext();
 
-  if (!recipe) {
+  if (!recipe || !address || !identity) {
     return null;
   }
 
-  const handleClick = () => {
+  const handleClick = async () => {
+    if (!(await startSimulation(address))) {
+      return;
+    }
     const id = hexToBytes(recipe.id as `0x${string}`);
     initPayAndCreateAttestation(id);
   };
@@ -58,7 +66,8 @@ export default function RunDialog() {
             connected address if the recipe run is successful.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-5 my-5">
+        <div className="flex flex-col gap-5">
+          <SimulateRun />
           <InitRun />
           <PayForRun />
           <CreateAttestation />

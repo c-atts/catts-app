@@ -4,9 +4,11 @@ import UserLink from "@/components/UserLink";
 import remarkGfm from "remark-gfm";
 import { useGetRecipeReadmeByName } from "@/recipe/hooks/useGetRecipeReadmeByName";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 export default function RecipeReadme() {
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
   const { data: readme } = useGetRecipeReadmeByName(recipe?.name);
 
   if (!recipe) {

@@ -7,6 +7,7 @@ import { validateProcessorResult, validateSchemaItems } from "catts-sdk";
 import { RunOutput } from "./types/run-output.type";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { errorWithMessage } from "@/lib/types/catts-error";
+import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 
 export const SimulateRunContext = createContext<
   SimulateRunContextType | undefined
@@ -24,8 +25,8 @@ export function SimulateRunContextProvider({
     errorMessage: undefined,
     runOutput: undefined,
   });
-
-  const { recipe } = useRecipeContext();
+  const { recipeName } = useRecipeContext();
+  const { data: recipe } = useGetRecipeByName(recipeName);
 
   async function resetSimulation() {
     setState({
@@ -37,10 +38,8 @@ export function SimulateRunContextProvider({
     });
   }
 
-  async function startSimulation(
-    address: string,
-  ): Promise<RunOutput | undefined> {
-    if (!recipe) return;
+  async function startSimulation(address: string): Promise<boolean> {
+    if (!recipe) return false;
 
     setState((prevState) => ({
       ...prevState,
@@ -56,7 +55,7 @@ export function SimulateRunContextProvider({
         new Error("Recipe queries didn't return any data"),
         "step1Fetching",
       );
-      return;
+      return false;
     }
 
     await delay(500);
@@ -76,7 +75,7 @@ export function SimulateRunContextProvider({
       runOutput = result.runOutput;
     } catch (e) {
       handleError(e, "step2Processing");
-      return;
+      return false;
     }
 
     await delay(500);
@@ -95,6 +94,7 @@ export function SimulateRunContextProvider({
       await validateSchemaItems({ schemaItems, schema: recipe.schema });
     } catch (e) {
       handleError(e, "step3Validating", "Couldn't validate output");
+      return false;
     }
 
     await delay(500);
@@ -104,7 +104,7 @@ export function SimulateRunContextProvider({
       step3Validating: "success",
     }));
 
-    return runOutput;
+    return true;
   }
 
   function handleError(

@@ -1,29 +1,21 @@
-import { ReactNode, createContext, useState } from "react";
+import { ReactNode, createContext } from "react";
 import { RecipeContextType } from "./types/recipe-context.type";
-import { RecipeContextStateType } from "./types/recipe-context-state.type";
-import { RecipeFull } from "./types/recipe.types";
 
 export const RecipeContext = createContext<RecipeContextType | undefined>(
   undefined,
 );
 
-export function RecipeContextProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<RecipeContextStateType>();
-
-  function setRecipe(recipe: RecipeFull) {
-    setState((s) => {
-      return {
-        ...s,
-        recipe,
-      };
-    });
-  }
-
+export function RecipeContextProvider({
+  children,
+  recipeName,
+}: {
+  children: ReactNode;
+  recipeName: string;
+}) {
   return (
     <RecipeContext.Provider
       value={{
-        recipe: state?.recipe,
-        setRecipe,
+        recipeName,
       }}
     >
       {children}

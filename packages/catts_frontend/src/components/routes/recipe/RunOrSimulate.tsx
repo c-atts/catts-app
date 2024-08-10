@@ -15,10 +15,10 @@ export default function RunOrSimulate() {
       <CardContent className="flex flex-col gap-2">
         <SimulateRunContextProvider>
           <SimulateDialog />
+          <CreateRunContextProvider>
+            <RunDialog />
+          </CreateRunContextProvider>
         </SimulateRunContextProvider>
-        <CreateRunContextProvider>
-          <RunDialog />
-        </CreateRunContextProvider>
       </CardContent>
     </Card>
   );
