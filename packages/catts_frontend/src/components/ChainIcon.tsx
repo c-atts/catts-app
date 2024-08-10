@@ -25,12 +25,10 @@ export function ChainIcon({
   }
 
   return (
-    <div className={`flex items-center w-full gap-2 md:w-auto`}>
-      <img
-        alt={chainName}
-        className={className}
-        src={CHAIN_IMAGES[chainName] || Ethereum}
-      />
-    </div>
+    <img
+      alt={chainName}
+      className={className}
+      src={CHAIN_IMAGES[chainName] || Ethereum}
+    />
   );
 }

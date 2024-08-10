@@ -9,7 +9,7 @@ export const useGetRunById = (id?: string) => {
       if (!id) return null;
       const { data, error } = await supabase
         .from("run")
-        .select("*")
+        .select("*, recipe (name)")
         .eq("id", id)
         .single();
       if (error) throw error;
