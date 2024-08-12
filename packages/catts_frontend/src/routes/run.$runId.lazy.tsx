@@ -1,6 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import { RunContextProvider } from "@/run/RunContextProvider";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import RunDetails from "@/components/routes/run/RunDetails";
 import AttestationDetails from "@/components/routes/run/AttestationDetails";
 
@@ -19,7 +19,12 @@ function Index() {
           <AttestationDetails />
         </div>
         <div className="flex flex-col gap-5 w-1/4">
-          <Card className="w-1/4"></Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>About runs</CardTitle>
+            </CardHeader>
+            <CardContent>A run consists of …</CardContent>
+          </Card>
         </div>
       </div>
     </RunContextProvider>
