@@ -1,8 +1,6 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEthereum } from "@fortawesome/free-brands-svg-icons";
-import { twMerge } from "tailwind-merge";
 import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
-import { getEasConfig } from "@/lib/eas/getEasConfig";
+import { CHAIN_CONFIG } from "@/config";
+import { cn } from "@/lib/utils";
 
 export default function AttestationUidLink({
   uid,
@@ -13,27 +11,17 @@ export default function AttestationUidLink({
   chainId: number;
   className?: string;
 }) {
-  const easConfig = getEasConfig(chainId);
   if (!uid) return null;
-
-  className = twMerge(
-    "text-sm text-cyan-600 border-b-2 border-cyan-600 hover:border-opacity-100  border-opacity-0",
-    className,
-  );
-
+  const attestationUidUrl = `${CHAIN_CONFIG[chainId].easExplorerUrl}/attestation/view/${uid}`;
+  className = cn("classical-link", className);
   return (
     <a
-      className="no-underline"
-      href={`${easConfig?.explorerUrl}/attestation/view/${uid}`}
+      className={className}
+      href={attestationUidUrl}
       rel="noreferrer"
       target="_blank"
     >
-      <div className={className}>
-        <div className="flex items-center justify-center w-full gap-2 whitespace-nowrap">
-          <FontAwesomeIcon className="w-3 h-3" icon={faEthereum} />
-          {shortenEthAddress(uid)}
-        </div>
-      </div>
+      {shortenEthAddress(uid)}
     </a>
   );
 }
