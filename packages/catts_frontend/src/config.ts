@@ -15,6 +15,9 @@ type ChainConfig = {
   paymentContractAddress: string;
   nativeTokenName: string;
   blockExplorerUrl: string;
+  easContractAddress: string;
+  easRegistryAddress: string;
+  easExplorerUrl: string;
 };
 
 export const CHAIN_CONFIG: { [key: string]: ChainConfig } = {
@@ -23,12 +26,18 @@ export const CHAIN_CONFIG: { [key: string]: ChainConfig } = {
     paymentContractAddress: "0x15a9a0f3bf24f9ff438f18f83ecc8b7cb2e15f9a",
     nativeTokenName: "ETH",
     blockExplorerUrl: "https://optimistic.etherscan.io",
+    easContractAddress: "0x4200000000000000000000000000000000000021",
+    easRegistryAddress: "0x4200000000000000000000000000000000000020",
+    easExplorerUrl: "https://optimism.easscan.org",
   },
   [sepolia.id]: {
     name: "Sepolia",
     paymentContractAddress: "0xe498539Cad0E4325b88d6F6a1B89af7e4C8dF404",
     nativeTokenName: "SepoliaETH",
     blockExplorerUrl: "https://sepolia.etherscan.io",
+    easContractAddress: "0xC2679fBD37d54388Ce493F1DB75320D236e1815e",
+    easRegistryAddress: "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0",
+    easExplorerUrl: "https://sepolia.easscan.org",
   },
 };
 
@@ -55,40 +64,6 @@ export const wagmiConfig = createConfig({
 
 // C–ATTS attestations can only be created on allowed chains
 export const allowedChains: number[] = [optimism.id, sepolia.id];
-
-// Ethererum Attestation Service (EAS)
-
-type EasConfig = {
-  id: number;
-  address: string;
-  registryAddress: string;
-  explorerUrl: string;
-  graphqlUrl: string;
-};
-
-export const EAS_CONFIG: EasConfig[] = [
-  {
-    id: 11155111, // Ethereum Sepolia
-    address: "0xC2679fBD37d54388Ce493F1DB75320D236e1815e",
-    registryAddress: "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0",
-    explorerUrl: "https://sepolia.easscan.org",
-    graphqlUrl: "https://sepolia.easscan.org/graphql",
-  },
-  {
-    id: 10, // Optimism
-    address: "0x4200000000000000000000000000000000000021",
-    registryAddress: "0x4200000000000000000000000000000000000020",
-    explorerUrl: "https://optimism.easscan.org",
-    graphqlUrl: "https://optimism.easscan.org/graphql",
-  },
-  {
-    id: 8453, // Base
-    address: "0x4200000000000000000000000000000000000021",
-    registryAddress: "0x4200000000000000000000000000000000000020",
-    explorerUrl: "https://base.easscan.org",
-    graphqlUrl: "https://base.easscan.org/graphql",
-  },
-];
 
 // The Graph
 

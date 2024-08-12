@@ -9,6 +9,7 @@ import { ChainIcon } from "@/components/ChainIcon";
 import { CHAIN_CONFIG } from "@/config";
 import { CircleAlert, TriangleAlert } from "lucide-react";
 import { formatEther, hexToBigInt } from "viem";
+import { formatNumber } from "@/lib/util/number";
 
 export default function RunDetails() {
   const { runId } = useRunContext();
@@ -37,6 +38,13 @@ export default function RunDetails() {
   });
 
   const chainName = CHAIN_CONFIG[chain_id]?.name;
+
+  const formattedGas = formatNumber(hexToBigInt(gas as `0x${string}`));
+  const formattedUserFee = formatNumber(
+    Number.parseFloat(formatEther(hexToBigInt(user_fee as `0x${string}`))),
+  );
+  const nativeTokenName = CHAIN_CONFIG[chain_id]?.nativeTokenName;
+  const paymentUrl = `${CHAIN_CONFIG[chain_id]?.blockExplorerUrl}/tx/${payment_transaction_hash}`;
 
   return (
     <Card>
@@ -84,26 +92,31 @@ export default function RunDetails() {
             </div>
             <div className="flex w-full">
               <div className="w-1/4 text-foreground/50">Gas:</div>
-              <div className="w-3/4 ml-2">
-                {hexToBigInt(gas as `0x${string}`).toString()}{" "}
-              </div>
+              <div className="w-3/4 ml-2">{formattedGas}</div>
             </div>
             <div className="flex w-full">
               <div className="w-1/4 text-foreground/50">User fee:</div>
               <div className="w-3/4 ml-2">
-                {formatEther(hexToBigInt(user_fee as `0x${string}`))}{" "}
+                {formattedUserFee} {nativeTokenName}
               </div>
             </div>
             <div className="flex w-full">
               <div className="w-1/4 text-foreground/50">Payment tx:</div>
               <div className="w-3/4 ml-2">
                 {payment_transaction_hash ? (
-                  <Link
-                    className="classic-link"
-                    to={`/tx/${payment_transaction_hash}`}
-                  >
-                    {payment_transaction_hash}
-                  </Link>
+                  <>
+                    <Link
+                      className="classic-link"
+                      target="_blank"
+                      to={paymentUrl}
+                    >
+                      {payment_transaction_hash}
+                    </Link>
+                    <CopyButton
+                      className="ml-1"
+                      value={payment_transaction_hash}
+                    />
+                  </>
                 ) : (
                   "This run has not been paid yet."
                 )}
