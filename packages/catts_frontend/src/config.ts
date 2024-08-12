@@ -18,6 +18,7 @@ type ChainConfig = {
   easContractAddress: string;
   easRegistryAddress: string;
   easExplorerUrl: string;
+  easGraphQLUrl: string;
 };
 
 export const CHAIN_CONFIG: { [key: string]: ChainConfig } = {
@@ -29,6 +30,7 @@ export const CHAIN_CONFIG: { [key: string]: ChainConfig } = {
     easContractAddress: "0x4200000000000000000000000000000000000021",
     easRegistryAddress: "0x4200000000000000000000000000000000000020",
     easExplorerUrl: "https://optimism.easscan.org",
+    easGraphQLUrl: "https://optimism.easscan.org/graphql",
   },
   [sepolia.id]: {
     name: "Sepolia",
@@ -38,6 +40,7 @@ export const CHAIN_CONFIG: { [key: string]: ChainConfig } = {
     easContractAddress: "0xC2679fBD37d54388Ce493F1DB75320D236e1815e",
     easRegistryAddress: "0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0",
     easExplorerUrl: "https://sepolia.easscan.org",
+    easGraphQLUrl: "https://sepolia.easscan.org/graphql",
   },
 };
 
