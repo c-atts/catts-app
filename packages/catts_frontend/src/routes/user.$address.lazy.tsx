@@ -7,7 +7,7 @@ import { shortenEthAddress } from "@/lib/eth/utils/shortenEthAddress";
 import CopyButton from "@/components/CopyButton";
 import { useListRunsByUser } from "@/run/hooks/useListRunsByUser";
 import RunsListItem from "@/components/RunsListItem";
-import { CircleUserRoundIcon, UserIcon } from "lucide-react";
+import { CircleUserRoundIcon } from "lucide-react";
 import Message from "@/components/Message";
 
 export const Route = createLazyFileRoute("/user/$address")({
@@ -23,7 +23,7 @@ function EnsAvatar({ ensName }: { ensName: string }) {
 }
 
 function Index() {
-  const { address } = Route.useParams();
+  const address = Route.useParams().address.toLowerCase() as `0x${string}`;
   const { data: recipes } = useListRecipesByUser(address);
   const { data: runs } = useListRunsByUser(address);
 
