@@ -1,5 +1,6 @@
-import RecipeListItem from "./RecipeListItem";
+import RecipeListItem from "@/components/RecipeListItem";
 import { useListPopularRecipes } from "@/recipe/hooks/useListPopularRecipes";
+import { Link } from "@tanstack/react-router";
 
 export default function RecipesPopularList() {
   const { data, isPending } = useListPopularRecipes();
@@ -18,6 +19,9 @@ export default function RecipesPopularList() {
       {data.map((recipe) => (
         <RecipeListItem key={recipe.name} recipe={recipe} />
       ))}
+      <Link className="classic-link" search={{ page: 1 }} to="/recipes">
+        View all recipes
+      </Link>
     </div>
   );
 }

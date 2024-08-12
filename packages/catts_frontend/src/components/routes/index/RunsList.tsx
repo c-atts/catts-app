@@ -1,15 +1,12 @@
 import RunsListItem from "@/components/RunsListItem";
 import { useListRuns } from "@/run/hooks/useListRuns";
+import { Link } from "@tanstack/react-router";
 
 export default function RunsList() {
-  const { data, isPending } = useListRuns({ page: 1, limit: 10 });
-
-  if (isPending) {
-    return <p>Loading...</p>;
-  }
+  const { data } = useListRuns({ page: 1, limit: 10 });
 
   if (!data) {
-    return <p>No data</p>;
+    return null;
   }
 
   return (
@@ -18,6 +15,9 @@ export default function RunsList() {
       {data.map((run) => (
         <RunsListItem key={run.id} run={run} />
       ))}
+      <Link className="classic-link" search={{ page: 1 }} to="/runs">
+        View all runs
+      </Link>
     </div>
   );
 }

@@ -1,15 +1,12 @@
+import { Link } from "@tanstack/react-router";
 import { useListRecipes } from "@/recipe/hooks/useListRecipes";
-import RecipeListItem from "./RecipeListItem";
+import RecipeListItem from "@/components/RecipeListItem";
 
 export default function RecipesList() {
-  const { data, isPending } = useListRecipes();
-
-  if (isPending) {
-    return <p>Loading...</p>;
-  }
+  const { data } = useListRecipes({ page: 1, limit: 10 });
 
   if (!data) {
-    return <p>No data</p>;
+    return null;
   }
 
   return (
@@ -18,6 +15,9 @@ export default function RecipesList() {
       {data.map((recipe) => (
         <RecipeListItem key={recipe.name} recipe={recipe} />
       ))}
+      <Link className="classic-link" search={{ page: 1 }} to="/recipes">
+        View all recipes
+      </Link>
     </div>
   );
 }

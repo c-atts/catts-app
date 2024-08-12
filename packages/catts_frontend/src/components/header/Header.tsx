@@ -21,7 +21,9 @@ export default function Header() {
               C–ATTS
             </div>
           </Link>
-          <Link to="/">Recipes</Link>
+          <Link search={{ page: 1 }} to="/recipes">
+            Recipes
+          </Link>
           <Link search={{ page: 1 }} to="/runs">
             Runs
           </Link>
