@@ -10,7 +10,7 @@ import { Plus } from "lucide-react";
 
 export default function Header() {
   const { identity } = useSiweIdentity();
-  const { chain, isConnected } = useAccount();
+  const { chain, isConnected, address } = useAccount();
 
   return (
     <div className="flex flex-col gap-10 w-full pb-14">
@@ -22,12 +22,21 @@ export default function Header() {
             </div>
           </Link>
           <Link search={{ page: 1 }} to="/recipes">
-            Recipes
+            <Button variant="ghost">Recipes</Button>
           </Link>
           <Link search={{ page: 1 }} to="/runs">
-            Runs
+            <Button variant="ghost">Runs</Button>
           </Link>
-          <div>My Dashboard</div>
+          {address && (
+            <Link params={{ address }} to="/user/$address">
+              <Button variant="ghost">My Dashboard</Button>
+            </Link>
+          )}
+          {!address && (
+            <Button disabled variant="ghost">
+              My Dashboard
+            </Button>
+          )}
           <Link disabled={!identity} to="/create">
             <Button disabled={!identity}>
               <Plus className="w-4 h-4 mr-2" />
