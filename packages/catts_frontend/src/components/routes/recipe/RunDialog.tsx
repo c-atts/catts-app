@@ -51,10 +51,8 @@ export default function RunDialog() {
     recipe?.publish_state !== "Published";
 
   function onOpenChange(open: boolean) {
-    if (!open) {
-      resetSimulation();
-      resetRun();
-    }
+    resetSimulation();
+    resetRun();
     return open;
   }
 
