@@ -6,9 +6,17 @@ import { RunBasics } from "@/run/types/run.types";
 import { ChainIcon } from "@/components/ChainIcon";
 import ListCard from "@/components/ListCard";
 import { Link } from "@tanstack/react-router";
+import { TriangleAlert } from "lucide-react";
 
 export default function RunsListItem({ run }: { run: RunBasics }) {
-  const { created, creator, chain_id, recipe } = run;
+  const {
+    created,
+    creator,
+    chain_id,
+    recipe,
+    error,
+    attestation_transaction_hash,
+  } = run;
 
   const { data: creatorEnsName } = useEnsName({
     address: creator as `0x${string}`,
@@ -29,6 +37,12 @@ export default function RunsListItem({ run }: { run: RunBasics }) {
             <div className="text-foreground/50">
               {creatorEnsName || shortenEthAddress(creator)} • {when}
             </div>
+          </div>
+          <div className="flex-grow" />
+          <div>
+            {(error || !attestation_transaction_hash) && (
+              <TriangleAlert className="w-4 h-4" />
+            )}
           </div>
         </div>
       </ListCard>

@@ -7,6 +7,9 @@ export type RunBasics = {
   created: string;
   creator: string;
   chain_id: number;
+  error: string | null;
+  attestation_uid: string | null;
+  attestation_transaction_hash: string | null;
   recipe: {
     name: string;
   } | null;

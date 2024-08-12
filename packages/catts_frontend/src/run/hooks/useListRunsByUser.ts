@@ -8,7 +8,9 @@ export const useListRunsByUser = (address: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("run")
-        .select(`id, created, creator, chain_id, recipe (name)`)
+        .select(
+          `id, created, creator, chain_id, error, attestation_uid, attestation_transaction_hash, recipe (name)`,
+        )
         .order("created", { ascending: false })
         .eq("creator", address);
       if (error) throw error;

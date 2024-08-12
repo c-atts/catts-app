@@ -20,7 +20,7 @@ export default function RecipesPopularList() {
         <RecipeListItemNrOfRuns key={recipe.name} recipe={recipe} />
       ))}
       <Link className="classic-link" search={{ page: 1 }} to="/popular">
-        View all recipes
+        View all popular
       </Link>
     </div>
   );
