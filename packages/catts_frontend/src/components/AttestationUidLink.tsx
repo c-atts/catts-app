@@ -13,7 +13,7 @@ export default function AttestationUidLink({
 }) {
   if (!uid) return null;
   const attestationUidUrl = `${CHAIN_CONFIG[chainId].easExplorerUrl}/attestation/view/${uid}`;
-  className = cn("classical-link", className);
+  className = cn("classic-link", className);
   return (
     <a
       className={className}

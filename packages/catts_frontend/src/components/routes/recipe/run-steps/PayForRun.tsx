@@ -28,6 +28,7 @@ export function PayForRunInner() {
           <div className="text-sm text-foreground/50">Payment tx</div>
           <EthTxLink
             chainId={Number(runInProgress.chain_id)}
+            className="text-sm"
             tx={runInProgress.payment_transaction_hash[0]}
           />
         </div>

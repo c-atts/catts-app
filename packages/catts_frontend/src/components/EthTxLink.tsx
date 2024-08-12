@@ -13,7 +13,7 @@ export default function EthTxLink({
 }) {
   if (!tx) return null;
   const txUrl = `${CHAIN_CONFIG[chainId]?.blockExplorerUrl}/tx/${tx}`;
-  className = cn("classic-url", className);
+  className = cn("classic-link", className);
 
   return (
     <a className={className} href={txUrl} rel="noreferrer" target="_blank">

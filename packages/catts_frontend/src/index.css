@@ -60,7 +60,12 @@
     @apply text-2xl font-semibold leading-none tracking-tight;
   }
   h2 {
-    @apply text-lg font-semibold;
+    @apply text-xl font-semibold leading-none tracking-tight;
+  }
+  h3 {
+    @apply text-lg font-semibold leading-none tracking-tight;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
   }
 }
 
