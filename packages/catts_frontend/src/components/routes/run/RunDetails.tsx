@@ -51,7 +51,9 @@ export default function RunDetails() {
       <CardContent className="flex flex-col gap-5 mt-6">
         <div className="flex flex-col gap-5">
           <UserLink address={creator} />
-          <h1>Run details</h1>
+          <h3 className="text-2xl font-semibold leading-none tracking-tight mt-0 mb-0">
+            Run details
+          </h3>
           <div className="flex flex-col w-full gap-3 text-sm">
             <div className="flex w-full">
               <div className="w-1/4 text-foreground/50 flex items-center">

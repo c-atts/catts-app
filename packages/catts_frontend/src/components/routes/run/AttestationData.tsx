@@ -30,7 +30,7 @@ export default function AttestationData({
 
   const schemaItems = schema.split(",");
   return (
-    <div>
+    <div className="mt-5">
       <h3>Attestation Data</h3>
       <div className="flex flex-col w-full gap-3">
         {schemaItems.map((item, index) => (

@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import AttestationData from "./AttestationData";
 import { CHAIN_CONFIG } from "@/config";
@@ -34,67 +34,68 @@ export default function AttestationDetails() {
 
   return (
     <Card>
-      <CardContent className="flex flex-col gap-5 mt-6">
-        <div className="flex flex-col gap-5">
-          <h1>Attestation details</h1>
-          <div className="flex flex-col w-full gap-3 text-sm">
-            {!attestation_transaction_hash && !attestation_uid && (
-              <div className="flex items-center">
-                <CircleAlert className="w-4 h-4 mr-1" />
-                No attestation has been created for this run.
+      <CardHeader>
+        <CardTitle>Attestation details</CardTitle>
+      </CardHeader>
+
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex flex-col w-full gap-3 text-sm">
+          {!attestation_transaction_hash && !attestation_uid && (
+            <div className="flex items-center">
+              <CircleAlert className="w-4 h-4 mr-1" />
+              No attestation has been created for this run.
+            </div>
+          )}
+          {attestation_transaction_hash && (
+            <div className="flex w-full">
+              <div className="flex items-center w-1/4 text-foreground/50">
+                Attestation transaction:
               </div>
-            )}
-            {attestation_transaction_hash && (
-              <div className="flex w-full">
-                <div className="flex items-center w-1/4 text-foreground/50">
-                  Attestation transaction:
-                </div>
-                <div className="flex items-center w-3/4 ml-2">
-                  <Link
-                    className="classic-link"
-                    target="_blank"
-                    to={attestationTransactionUrl}
-                  >
-                    {attestation_transaction_hash}
-                  </Link>
-                  <CopyButton
-                    className="ml-1"
-                    value={attestation_transaction_hash}
-                  />
-                </div>
+              <div className="flex items-center w-3/4 ml-2">
+                <Link
+                  className="classic-link"
+                  target="_blank"
+                  to={attestationTransactionUrl}
+                >
+                  {attestation_transaction_hash}
+                </Link>
+                <CopyButton
+                  className="ml-1"
+                  value={attestation_transaction_hash}
+                />
               </div>
-            )}
-            {attestation_uid && (
-              <div className="flex w-full">
-                <div className="flex items-center w-1/4 text-foreground/50">
-                  Attestation UID:
-                </div>
-                <div className="flex items-center w-3/4 ml-2">
-                  <Link
-                    className="classic-link"
-                    target="_blank"
-                    to={attestationUidUrl}
-                  >
-                    {attestation_uid}
-                  </Link>
-                  <CopyButton className="ml-1" value={attestation_uid} />
-                </div>
+            </div>
+          )}
+          {attestation_uid && (
+            <div className="flex w-full">
+              <div className="flex items-center w-1/4 text-foreground/50">
+                Attestation UID:
               </div>
-            )}
-            {schema && (
-              <div className="flex w-full">
-                <div className="flex items-center w-1/4 text-foreground/50">
-                  Schema:
-                </div>
-                <div className="flex items-center w-3/4 ml-2">
-                  <SchemaBadges schema={schema} />
-                </div>
+              <div className="flex items-center w-3/4 ml-2">
+                <Link
+                  className="classic-link"
+                  target="_blank"
+                  to={attestationUidUrl}
+                >
+                  {attestation_uid}
+                </Link>
+                <CopyButton className="ml-1" value={attestation_uid} />
               </div>
-            )}
-            {decodedData && (
-              <AttestationData data={decodedData} schema={schema} />
-            )}
-          </div>
+            </div>
+          )}
+          {schema && (
+            <div className="flex w-full">
+              <div className="flex items-center w-1/4 text-foreground/50">
+                Schema:
+              </div>
+              <div className="flex items-center w-3/4 ml-2">
+                <SchemaBadges schema={schema} />
+              </div>
+            </div>
+          )}
+          {decodedData && (
+            <AttestationData data={decodedData} schema={schema} />
+          )}
         </div>
       </CardContent>
     </Card>

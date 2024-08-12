@@ -5,7 +5,7 @@ function SchemaBadge({ schemaItem }: { schemaItem: string }) {
   const name = schemaItem.split(" ")[1];
 
   return (
-    <Badge className="mr-1">
+    <Badge className="mr-1 bg-secondary">
       {name}: {type}
     </Badge>
   );

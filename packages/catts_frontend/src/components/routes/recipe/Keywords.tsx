@@ -8,7 +8,7 @@ export default function Keywords({ keywords }: { keywords: string[] | null }) {
   return (
     <div>
       {keywords.map((keyword) => (
-        <Badge className="mr-1 mt-1" key={keyword}>
+        <Badge className="mr-1 mt-1 bg-secondary" key={keyword}>
           {keyword}
         </Badge>
       ))}

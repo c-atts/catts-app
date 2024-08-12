@@ -1,7 +1,13 @@
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import Keywords from "./Keywords";
 import CopyButton from "@/components/CopyButton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { formatDistance } from "date-fns";
 
@@ -33,10 +39,9 @@ export default function BasicFacts() {
     <Card>
       <CardHeader>
         <CardTitle>{display_name || name}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <div className="leading-relaxed">{description}</div>
-
         <div className="flex flex-col w-full gap-2 text-sm">
           <div className="flex w-full">
             <div className="w-1/4 text-foreground/50 flex items-center">
