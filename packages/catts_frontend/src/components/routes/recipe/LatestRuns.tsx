@@ -30,9 +30,9 @@ function LatestRunItem({ run }: { run: RunBasics }) {
         key={run.id}
       >
         <ChainIcon chainId={chain_id} className="w-8 h-8" />
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1">
           <div>{creatorEnsName || shortenEthAddress(run.creator)}</div>
-          <div>{when}</div>
+          <div className="text-foreground/50">{when}</div>
         </div>
       </div>
     </Link>

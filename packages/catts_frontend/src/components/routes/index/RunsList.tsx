@@ -1,4 +1,4 @@
-import RunsListItem from "./RunsListItem";
+import RunsListItem from "@/components/RunsListItem";
 import { useListRuns } from "@/run/hooks/useListRuns";
 
 export default function RunsList() {

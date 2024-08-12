@@ -24,8 +24,8 @@ export default function RunsListItem({ run }: { run: RunBasics }) {
       <ListCard className="text-sm hover-darken" key={run.id}>
         <div className="flex w-full gap-3 items-center">
           <ChainIcon chainId={chain_id} className="w-8 h-8" />
-          <div className="flex flex-col">
-            <h2>{recipe?.name}</h2>
+          <div className="flex flex-col gap-1">
+            <h2 className="my-0">{recipe?.name}</h2>
             <div className="text-foreground/50">
               {creatorEnsName || shortenEthAddress(creator)} • {when}
             </div>

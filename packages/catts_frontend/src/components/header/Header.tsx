@@ -13,7 +13,7 @@ export default function Header() {
   const { chain, isConnected } = useAccount();
 
   return (
-    <div className="flex flex-col gap-10 w-full">
+    <div className="flex flex-col gap-10 w-full pb-14">
       <div className="flex flex-col justify-between gap-10 pt-10 md:flex-row md:items-center">
         <div className="flex gap-5 items-baseline">
           <Link to="/">
@@ -22,7 +22,16 @@ export default function Header() {
             </div>
           </Link>
           <Link to="/">Recipes</Link>
+          <Link search={{ page: 1 }} to="/runs">
+            Runs
+          </Link>
           <div>My Dashboard</div>
+          <Link disabled={!identity} to="/create">
+            <Button disabled={!identity}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Recipe
+            </Button>
+          </Link>
         </div>
         <div className="flex flex-col items-center justify-center gap-5 text-sm md:text-base md:flex-row">
           {!isConnected && <ConnectButton />}
@@ -30,18 +39,6 @@ export default function Header() {
           {isConnected && <Chain />}
           <EthButton />
         </div>
-        <div className="block text-xl font-bold text-center md:hidden">
-          C–ATTS
-        </div>
-      </div>
-
-      <div className="flex w-full justify-end pb-10">
-        <Link disabled={!identity} to="/create">
-          <Button disabled={!identity}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Recipe
-          </Button>
-        </Link>
       </div>
     </div>
   );
