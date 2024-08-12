@@ -22,7 +22,7 @@ export default function RunsListItem({ run }: { run: RunBasics }) {
   return (
     <Link params={{ runId: run.id }} to={"/run/$runId"}>
       <ListCard className="text-sm hover-darken" key={run.id}>
-        <div className="flex w-full gap-2">
+        <div className="flex w-full gap-3 items-center">
           <ChainIcon chainId={chain_id} className="w-8 h-8" />
           <div className="flex flex-col">
             <h2>{recipe?.name}</h2>

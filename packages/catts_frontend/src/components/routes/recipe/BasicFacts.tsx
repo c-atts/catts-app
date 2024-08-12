@@ -1,9 +1,9 @@
-import { formatDistance } from "date-fns";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import Keywords from "./Keywords";
 import CopyButton from "@/components/CopyButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
+import { formatDistance } from "date-fns";
 
 export default function BasicFacts() {
   const { recipeName } = useRecipeContext();

@@ -2,7 +2,7 @@ import RunsListItem from "./RunsListItem";
 import { useListRuns } from "@/run/hooks/useListRuns";
 
 export default function RunsList() {
-  const { data, isPending } = useListRuns();
+  const { data, isPending } = useListRuns({ page: 1, limit: 10 });
 
   if (isPending) {
     return <p>Loading...</p>;
