@@ -146,7 +146,10 @@ export type Database = {
     };
     Functions: {
       list_popular_recipes: {
-        Args: Record<PropertyKey, never>;
+        Args: {
+          page: number;
+          pagesize: number;
+        };
         Returns: {
           id: string;
           name: string;
