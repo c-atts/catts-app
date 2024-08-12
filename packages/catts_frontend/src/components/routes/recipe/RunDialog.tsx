@@ -30,7 +30,7 @@ export default function RunDialog() {
   const { recipeName } = useRecipeContext();
   const { data: recipe } = useGetRecipeByName(recipeName);
   const { startSimulation, resetSimulation } = useSimulateRunContext();
-  const { initPayAndCreateAttestation, inProgress, resetRun } =
+  const { initPayAndCreateAttestation, inProgress, resetRun, runCreated } =
     useCreateRunContext();
 
   const handleClick = async () => {
@@ -80,14 +80,27 @@ export default function RunDialog() {
         </div>
 
         <DialogFooter className="justify-end">
-          <DialogClose asChild>
-            <Button disabled={disabled} type="button" variant="secondary">
-              Cancel
-            </Button>
-          </DialogClose>
-          <Button className="mb-4" disabled={disabled} onClick={handleClick}>
-            {inProgress ? "Running …" : "Run"}
-          </Button>
+          {(inProgress || !runCreated) && (
+            <>
+              <DialogClose asChild>
+                <Button disabled={disabled} type="button" variant="secondary">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button
+                className="mb-4"
+                disabled={disabled}
+                onClick={handleClick}
+              >
+                {inProgress ? "Running …" : "Run"}
+              </Button>
+            </>
+          )}
+          {!inProgress && runCreated && (
+            <DialogClose asChild>
+              <Button>Close</Button>
+            </DialogClose>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

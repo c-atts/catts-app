@@ -24,7 +24,7 @@ export function CreateAttestationInner() {
 
       {runStatus >= RunStatus.AttestationCreated && (
         <div className="flex justify-between w-full">
-          <div className="text-sm text-foreground/50">Attesttation tx</div>
+          <div className="text-sm text-foreground/50">Attestation tx</div>
           <div className="text-sm text-foreground/50">
             <EthTxLink
               chainId={Number(runInProgress.chain_id)}

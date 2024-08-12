@@ -296,12 +296,17 @@ export function CreateRunContextProvider({
             errorMessage:
               s.errorMessage ||
               (isError(e) ? e.message : "Error creating attestation."),
-            inProgress: false,
           };
         });
       }
     }
 
+    setState((s) => {
+      return {
+        ...s,
+        inProgress: false,
+      };
+    });
     await invalidateAndReindex(queryClient, run.recipe_id as Uint8Array);
   }
 
