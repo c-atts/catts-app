@@ -1,4 +1,4 @@
-import { useEas } from "./useEas";
+import { CHAIN_CONFIG } from "@/config";
 import { useQuery } from "@tanstack/react-query";
 
 export function useAttestation({
@@ -8,13 +8,40 @@ export function useAttestation({
   chainId?: number;
   uid?: string | null;
 }) {
-  const eas = useEas(chainId);
-
   return useQuery({
-    queryKey: ["attestation", uid],
+    queryKey: ["attestation", chainId, uid],
     queryFn: async () => {
-      if (!eas || !uid) return null;
-      return await eas.getAttestation(uid);
+      if (!chainId || !uid) return null;
+
+      const operationName = "AttestationQuery";
+
+      const query = `query AttestationQuery($where: AttestationWhereUniqueInput!) {
+        attestation(where: $where) {
+          data
+        }
+      }`;
+
+      const variables = {
+        where: {
+          id: uid,
+        },
+      };
+
+      const response = await fetch(CHAIN_CONFIG[chainId].easGraphQLUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          operationName,
+          query,
+          variables,
+        }),
+      });
+
+      const json = await response.json();
+
+      return json.data.attestation;
     },
   });
 }
