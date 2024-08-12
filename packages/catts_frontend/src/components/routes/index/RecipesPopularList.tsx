@@ -3,14 +3,10 @@ import { useListPopularRecipes } from "@/recipe/hooks/useListPopularRecipes";
 import { Link } from "@tanstack/react-router";
 
 export default function RecipesPopularList() {
-  const { data, isPending } = useListPopularRecipes({ page: 1, limit: 10 });
-
-  if (isPending) {
-    return <p>Loading...</p>;
-  }
+  const { data } = useListPopularRecipes({ page: 1, limit: 10 });
 
   if (!data) {
-    return <p>No data</p>;
+    return null;
   }
 
   return (

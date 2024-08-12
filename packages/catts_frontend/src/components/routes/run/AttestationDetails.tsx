@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import AttestationData from "./AttestationData";
 import { CHAIN_CONFIG } from "@/config";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert, InfoIcon } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { Link } from "@tanstack/react-router";
 import SchemaBadges from "./SchemaBadges";
@@ -40,17 +40,18 @@ export default function AttestationDetails() {
 
       <CardContent className="flex flex-col gap-5">
         <div className="flex flex-col w-full gap-3 text-sm">
-          {!attestation_transaction_hash && !attestation_uid && (
-            <div className="flex items-center">
-              <CircleAlert className="w-4 h-4 mr-1" />
-              No attestation has been created for this run.
+          <div className="flex w-full">
+            <div className="flex items-center w-1/4 text-foreground/50">
+              Attestation transaction:
             </div>
-          )}
-          {attestation_transaction_hash && (
-            <div className="flex w-full">
-              <div className="flex items-center w-1/4 text-foreground/50">
-                Attestation transaction:
+            {!attestation_transaction_hash && (
+              <div className="flex items-center text-blue-800">
+                <InfoIcon className="w-4 h-4 mr-1 inline-block" />
+                No attestation has been created.
               </div>
+            )}
+
+            {attestation_transaction_hash && (
               <div className="flex items-center w-3/4 ml-2">
                 <Link
                   className="classic-link"
@@ -64,8 +65,8 @@ export default function AttestationDetails() {
                   value={attestation_transaction_hash}
                 />
               </div>
-            </div>
-          )}
+            )}
+          </div>
           {attestation_uid && (
             <div className="flex w-full">
               <div className="flex items-center w-1/4 text-foreground/50">

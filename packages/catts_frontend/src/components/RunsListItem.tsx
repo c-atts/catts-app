@@ -6,7 +6,7 @@ import { RunBasics } from "@/run/types/run.types";
 import { ChainIcon } from "@/components/ChainIcon";
 import ListCard from "@/components/ListCard";
 import { Link } from "@tanstack/react-router";
-import { TriangleAlert } from "lucide-react";
+import { InfoIcon, TriangleAlert } from "lucide-react";
 
 export default function RunsListItem({ run }: { run: RunBasics }) {
   const {
@@ -40,8 +40,9 @@ export default function RunsListItem({ run }: { run: RunBasics }) {
           </div>
           <div className="flex-grow" />
           <div>
-            {(error || !attestation_transaction_hash) && (
-              <TriangleAlert className="w-4 h-4" />
+            {error && <TriangleAlert className="w-4 h-4 text-red-500" />}
+            {!error && !attestation_transaction_hash && (
+              <InfoIcon className="w-4 h-4 text-blue-700" />
             )}
           </div>
         </div>

@@ -16,11 +16,7 @@ export const Route = createLazyFileRoute("/recipe/$recipeName")({
 
 function IndexInner() {
   const { recipeName } = useRecipeContext();
-  const { data: recipe, isPending } = useGetRecipeByName(recipeName);
-
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
+  const { data: recipe } = useGetRecipeByName(recipeName);
 
   if (!recipe || "Err" in recipe) {
     return <div>Recipe not found</div>;

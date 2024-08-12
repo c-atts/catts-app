@@ -7,9 +7,10 @@ import UserLink from "@/components/UserLink";
 import { formatDistance } from "date-fns";
 import { ChainIcon } from "@/components/ChainIcon";
 import { CHAIN_CONFIG } from "@/config";
-import { CircleAlert, TriangleAlert } from "lucide-react";
+import { CircleAlert, InfoIcon, TriangleAlert } from "lucide-react";
 import { formatEther, hexToBigInt } from "viem";
 import { formatNumber } from "@/lib/util/number";
+import Message from "@/components/Message";
 
 export default function RunDetails() {
   const { runId } = useRunContext();
@@ -120,7 +121,10 @@ export default function RunDetails() {
                     />
                   </>
                 ) : (
-                  "This run has not been paid yet."
+                  <div className="flex items-center text-blue-800">
+                    <InfoIcon className="w-4 h-4 mr-1 inline-block" />
+                    This run has not been paid yet.
+                  </div>
                 )}
               </div>
             </div>
