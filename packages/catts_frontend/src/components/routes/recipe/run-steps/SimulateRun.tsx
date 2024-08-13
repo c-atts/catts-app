@@ -48,7 +48,7 @@ export default function SimulateRun() {
             </div>
           </div>
         )}
-        {errorMessage && (
+        {simulateValidateStatus === "error" && errorMessage && (
           <div className="flex justify-between w-full pl-10">
             <div>Error: {errorMessage}</div>
             <div>🔴</div>

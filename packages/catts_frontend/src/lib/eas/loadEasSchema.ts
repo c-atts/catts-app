@@ -16,15 +16,10 @@ export async function loadEasSchema({
   signer: JsonRpcSigner;
 }) {
   const chainId = getChainId(wagmiConfig);
-  const schemaUid = getSchemaUID(schema, resolver, false);
-
+  const schemaUid = getSchemaUID(schema + "jkjh", resolver, false);
   const schemaRegistry = new SchemaRegistry(
     CHAIN_CONFIG[chainId].easRegistryAddress,
   );
   schemaRegistry.connect(signer);
-  try {
-    return schemaRegistry.getSchema({ uid: schemaUid });
-  } catch (e) {
-    console.error(e);
-  }
+  return schemaRegistry.getSchema({ uid: schemaUid });
 }

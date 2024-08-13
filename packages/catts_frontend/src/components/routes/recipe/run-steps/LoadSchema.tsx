@@ -1,11 +1,12 @@
 import { LoaderCircle } from "lucide-react";
-import { useSelector } from "@xstate/store/react";
 import { runStateStore } from "@/run/RunStateStore";
+import { useSelector } from "@xstate/store/react";
 export default function LoadSchema() {
-  const loadSchemaStatus = useSelector(
+  const { loadSchemaStatus, errorMessage } = useSelector(
     runStateStore,
-    (state) => state.context.loadSchemaStatus,
+    (state) => state.context
   );
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
@@ -23,9 +24,9 @@ export default function LoadSchema() {
             </div>
           </div>
         )}
-        {loadSchemaStatus === "error" && (
+        {loadSchemaStatus === "error" && errorMessage && (
           <div className="flex justify-between w-full pl-10">
-            <div>Couldn't load schema</div>
+            <div>Error: {errorMessage}</div>
             <div>🔴</div>
           </div>
         )}
