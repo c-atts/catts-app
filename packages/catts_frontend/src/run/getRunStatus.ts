@@ -5,7 +5,6 @@ export function getRunStatus(run: Run | undefined): RunStatus {
   if (!run) {
     return RunStatus.NotStarted;
   }
-
   if (run.attestation_uid.length > 0) {
     return RunStatus.AttestationUidConfirmed;
   }

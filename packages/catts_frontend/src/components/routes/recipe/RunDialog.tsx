@@ -14,34 +14,51 @@ import { CirclePlay } from "lucide-react";
 import CreateAttestation from "./run-steps/CreateAttestation";
 import CreateRun from "./run-steps/CreateRun";
 import PayForRun from "./run-steps/PayForRun";
-import { hexToBytes } from "viem";
 import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
-import useCreateRunContext from "@/run/hooks/useCreateRunContext";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
 import { useSiweIdentity } from "ic-use-siwe-identity";
 import SimulateRun from "./run-steps/SimulateRun";
-import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
+import LoadSchema from "./run-steps/LoadSchema";
+import { useEthersSigner } from "@/lib/ethers/hooks/useEthersSigner";
+import { runStateStore, useIsInProgress } from "@/run/RunStateStore";
+import { useSelector } from "@xstate/store/react";
+import { useActor } from "@/lib/ic/ActorProvider";
+import { startCreateRunFlow } from "@/run/flows/createRunFlow";
+import { startSimulateRunFlow } from "@/run/flows/simulateRunFlow";
+import { loadSchemaFlow } from "@/run/flows/loadSchemaFlow";
 
 export default function RunDialog() {
   const { identity } = useSiweIdentity();
   const { chainId, address } = useAccount();
   const { recipeName } = useRecipeContext();
   const { data: recipe } = useGetRecipeByName(recipeName);
-  const { startSimulation, resetSimulation } = useSimulateRunContext();
-  const { initPayAndCreateAttestation, inProgress, resetRun, runCreated } =
-    useCreateRunContext();
+  const signer = useEthersSigner();
+  const { actor } = useActor();
+  const inProgress = useIsInProgress();
 
-  const handleClick = async () => {
-    if (!address || !recipe) {
+  const { runInProgress } = useSelector(
+    runStateStore,
+    (state) => state.context,
+  );
+
+  const handleRunClick = async () => {
+    if (!address || !recipe || !signer || !actor || !chainId) {
+      return null;
+    }
+
+    if (!(await loadSchemaFlow({ recipe, signer }))) {
       return;
     }
-    if (!(await startSimulation(address))) {
+
+    if (!(await startSimulateRunFlow({ recipe, address }))) {
       return;
     }
-    const id = hexToBytes(recipe.id as `0x${string}`);
-    initPayAndCreateAttestation(id);
+
+    if (!(await startCreateRunFlow({ recipe, actor, chainId }))) {
+      return;
+    }
   };
 
   const disabled =
@@ -51,8 +68,7 @@ export default function RunDialog() {
     recipe?.publish_state !== "Published";
 
   function onOpenChange(open: boolean) {
-    resetSimulation();
-    resetRun();
+    runStateStore.send({ type: "reset" });
     return open;
   }
 
@@ -73,6 +89,7 @@ export default function RunDialog() {
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-5">
+          <LoadSchema />
           <SimulateRun />
           <CreateRun />
           <PayForRun />
@@ -80,7 +97,7 @@ export default function RunDialog() {
         </div>
 
         <DialogFooter className="justify-end">
-          {(inProgress || !runCreated) && (
+          {(inProgress || !runInProgress) && (
             <>
               <DialogClose asChild>
                 <Button disabled={disabled} type="button" variant="secondary">
@@ -90,13 +107,13 @@ export default function RunDialog() {
               <Button
                 className="mb-4"
                 disabled={disabled}
-                onClick={handleClick}
+                onClick={handleRunClick}
               >
                 {inProgress ? "Running …" : "Run"}
               </Button>
             </>
           )}
-          {!inProgress && runCreated && (
+          {!inProgress && runInProgress && (
             <DialogClose asChild>
               <Button>Close</Button>
             </DialogClose>

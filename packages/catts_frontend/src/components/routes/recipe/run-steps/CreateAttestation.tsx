@@ -2,11 +2,21 @@ import AttestationUidLink from "@/components/AttestationUidLink";
 import EthTxLink from "@/components/EthTxLink";
 import { LoaderCircle } from "lucide-react";
 import { RunStatus } from "@/run/types/run-status.type";
-import useCreateRunContext from "@/run/hooks/useCreateRunContext";
 import { useRunStatus } from "@/run/hooks/useRunStatus";
+import { useSelector } from "@xstate/store/react";
+import { runStateStore } from "@/run/RunStateStore";
 
 export function CreateAttestationInner() {
-  const { runInProgress, errorMessage } = useCreateRunContext();
+  const runInProgress = useSelector(
+    runStateStore,
+    (state) => state.context.runInProgress,
+  );
+
+  const errorMessage = useSelector(
+    runStateStore,
+    (state) => state.context.errorMessage,
+  );
+
   const runStatus = useRunStatus(runInProgress);
 
   if (!runInProgress) return null;
@@ -79,7 +89,7 @@ export default function CreateAttestation() {
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
-          4
+          5
         </div>
         Create attestation
       </div>

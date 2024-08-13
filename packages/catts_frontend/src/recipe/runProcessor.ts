@@ -1,4 +1,3 @@
-import { RunOutput } from "./types/run-output.type";
 import {
   newQuickJSWASMModuleFromVariant,
   newVariant,
@@ -6,6 +5,7 @@ import {
 import wasmLocation from "@jitl/quickjs-wasmfile-release-sync/wasm?url";
 import RELEASE_SYNC from "@jitl/quickjs-wasmfile-release-sync";
 import { RecipeFull } from "@/recipe/types/recipe.types";
+import { ProcessorOutput } from "./types/processor-output.type";
 
 const quickJSVariant = newVariant(RELEASE_SYNC, {
   wasmLocation,
@@ -17,7 +17,7 @@ export async function runProcessor({
 }: {
   recipe: RecipeFull;
   queryData: any[];
-}) {
+}): Promise<{ processorOutputRaw: string; processorOutput: ProcessorOutput }> {
   if (!recipe.schema[0]) {
     throw new Error("Recipe schema is empty");
   }
@@ -50,15 +50,17 @@ export async function runProcessor({
       throw error;
     }
 
-    const runOutputRaw = vm.dump(result.value);
+    const processorOutputRaw = vm.dump(result.value);
     result.value.dispose();
 
     // Parse the processed data, make sure it follows the expected schema
-    const runOutput: RunOutput = RunOutput.parse(JSON.parse(runOutputRaw));
+    const processorOutput: ProcessorOutput = ProcessorOutput.parse(
+      JSON.parse(processorOutputRaw),
+    );
 
     return {
-      runOutputRaw,
-      runOutput,
+      processorOutputRaw,
+      processorOutput,
     };
   } finally {
     vm.dispose();

@@ -1,52 +1,37 @@
 import { LoaderCircle } from "lucide-react";
-import useRecipeContext from "@/recipe/hooks/useRecipeContext";
-import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { useSelector } from "@xstate/store/react";
 import { runStateStore } from "@/run/RunStateStore";
-export default function CreateRun() {
-  const { recipeName } = useRecipeContext();
-  const { data: recipe } = useGetRecipeByName(recipeName);
-
-  const createRunStatus = useSelector(
+export default function LoadSchema() {
+  const loadSchemaStatus = useSelector(
     runStateStore,
-    (state) => state.context.createRunStatus,
+    (state) => state.context.loadSchemaStatus,
   );
-
-  const errorMessage = useSelector(
-    runStateStore,
-    (state) => state.context.errorMessage,
-  );
-
-  if (!recipe) {
-    return null;
-  }
-
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
-            3
+            1
           </div>
-          Create run
+          Load schema
         </div>
-        {createRunStatus === "pending" && !errorMessage && (
+        {loadSchemaStatus === "pending" && (
           <div className="flex justify-between w-full pl-10">
-            <div>Creating...</div>
+            <div>Loading schema...</div>
             <div>
               <LoaderCircle className="w-5 h-5 animate-spin" />
             </div>
           </div>
         )}
-        {createRunStatus === "error" && errorMessage && (
+        {loadSchemaStatus === "error" && (
           <div className="flex justify-between w-full pl-10">
-            <div>Error: {errorMessage}</div>
+            <div>Couldn't load schema</div>
             <div>🔴</div>
           </div>
         )}
-        {createRunStatus === "success" && (
+        {loadSchemaStatus === "success" && (
           <div className="flex justify-between w-full pl-10">
-            <div>Run created</div>
+            <div>Schema loaded</div>
             <div>✅</div>
           </div>
         )}

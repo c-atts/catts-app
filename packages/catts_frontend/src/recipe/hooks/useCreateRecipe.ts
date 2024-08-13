@@ -17,13 +17,6 @@ function processUrl(url: string) {
 async function fetchFile(url: string, file: string) {
   const uniqueParam = `t=${new Date().getTime()}`;
   return fetch(`${url}/${file}?${uniqueParam}`);
-  // return fetch(`${url}/${file}?${uniqueParam}`, {
-  //   cache: "no-store",
-  //   headers: {
-  //     "Cache-Control": "no-cache",
-  //     Pragma: "no-cache",
-  //   },
-  // });
 }
 
 export const useCreateRecipe = () => {

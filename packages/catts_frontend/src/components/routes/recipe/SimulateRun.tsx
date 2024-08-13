@@ -1,18 +1,22 @@
 import { LoaderCircle } from "lucide-react";
 
-import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
-import { SimulationStepStatus } from "@/run/types/simulate-run-context-state.type";
+import {
+  runStateStore,
+  RunStepStatus,
+  useIsSimulationCompleted,
+} from "@/run/RunStateStore";
+import { useSelector } from "@xstate/store/react";
 
 function Status({
   stepStatus,
   pendingMessage,
   successMessage,
 }: {
-  stepStatus: SimulationStepStatus;
+  stepStatus: RunStepStatus;
   pendingMessage: string;
   successMessage: string;
 }) {
-  const { errorMessage } = useSimulateRunContext();
+  const { errorMessage } = useSelector(runStateStore, (state) => state.context);
 
   switch (stepStatus) {
     case "pending":
@@ -45,12 +49,13 @@ function Status({
 
 export default function SimulateRun() {
   const {
-    step1Fetching,
-    step2Processing,
-    step3Validating,
-    allStepsCompleted,
-    runOutput,
-  } = useSimulateRunContext();
+    simulateFetchStatus,
+    simulateProcessStatus,
+    simulateValidateStatus,
+    processorOutput: simulationOutput,
+  } = useSelector(runStateStore, (state) => state.context);
+
+  const isSimulationCompleted = useIsSimulationCompleted();
 
   return (
     <div className="flex flex-col gap-5">
@@ -63,7 +68,7 @@ export default function SimulateRun() {
         </div>
         <Status
           pendingMessage="Fetching recipe data..."
-          stepStatus={step1Fetching}
+          stepStatus={simulateFetchStatus}
           successMessage="Recipe data fetched"
         />
       </div>
@@ -76,7 +81,7 @@ export default function SimulateRun() {
         </div>
         <Status
           pendingMessage="Processing data..."
-          stepStatus={step2Processing}
+          stepStatus={simulateProcessStatus}
           successMessage="Data processed"
         />
       </div>
@@ -89,19 +94,19 @@ export default function SimulateRun() {
         </div>
         <Status
           pendingMessage="Validating data..."
-          stepStatus={step3Validating}
+          stepStatus={simulateValidateStatus}
           successMessage="Data validated"
         />
       </div>
       <div>
-        {allStepsCompleted && (
+        {isSimulationCompleted && (
           <>
             <p>
               Simulation was successful. The recipe would generate the following
               attestation:
             </p>
             <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
-              {JSON.stringify(runOutput, null, 2)}
+              {JSON.stringify(simulationOutput, null, 2)}
             </pre>
           </>
         )}

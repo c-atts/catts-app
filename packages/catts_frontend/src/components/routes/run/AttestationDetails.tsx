@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import AttestationData from "./AttestationData";
 import { CHAIN_CONFIG } from "@/config";
-import { CircleAlert, InfoIcon } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
+import { InfoIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import SchemaBadges from "./SchemaBadges";
 import { decodeData } from "@/lib/eas/hooks/decodeData";
@@ -46,7 +46,7 @@ export default function AttestationDetails() {
             </div>
             {!attestation_transaction_hash && (
               <div className="flex items-center text-blue-800">
-                <InfoIcon className="w-4 h-4 mr-1 inline-block" />
+                <InfoIcon className="inline-block w-4 h-4 mr-1" />
                 No attestation has been created.
               </div>
             )}

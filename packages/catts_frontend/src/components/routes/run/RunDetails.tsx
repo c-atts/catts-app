@@ -10,7 +10,6 @@ import { CHAIN_CONFIG } from "@/config";
 import { CircleAlert, InfoIcon, TriangleAlert } from "lucide-react";
 import { formatEther, hexToBigInt } from "viem";
 import { formatNumber } from "@/lib/util/number";
-import Message from "@/components/Message";
 
 export default function RunDetails() {
   const { runId } = useRunContext();

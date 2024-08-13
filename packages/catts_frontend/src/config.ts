@@ -68,6 +68,8 @@ export const wagmiConfig = createConfig({
 // C–ATTS attestations can only be created on allowed chains
 export const allowedChains: number[] = [optimism.id, sepolia.id];
 
+export type AllowedChainIds = 10 | 11155111;
+
 // The Graph
 
 export const GQL_QUERY_PROXY_URL =

@@ -1,26 +1,30 @@
 import { LoaderCircle } from "lucide-react";
-import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
+import { useSelector } from "@xstate/store/react";
+import { runStateStore } from "@/run/RunStateStore";
 
 export default function SimulateRun() {
   const {
-    step1Fetching,
-    step2Processing,
-    step3Validating,
-    allStepsCompleted,
+    simulateFetchStatus,
+    simulateProcessStatus,
+    simulateValidateStatus,
     errorMessage,
-    isSimulating,
-  } = useSimulateRunContext();
+  } = useSelector(runStateStore, (state) => state.context);
+
+  const allStepsCompleted =
+    simulateFetchStatus === "success" &&
+    simulateProcessStatus === "success" &&
+    simulateValidateStatus === "success";
 
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
-            1
+            2
           </div>
           Simulate run
         </div>
-        {isSimulating && step1Fetching === "pending" && !errorMessage && (
+        {simulateFetchStatus === "pending" && !errorMessage && (
           <div className="flex justify-between w-full pl-10">
             <div>Fetching recipe data...</div>
             <div>
@@ -28,7 +32,7 @@ export default function SimulateRun() {
             </div>
           </div>
         )}
-        {isSimulating && step2Processing === "pending" && !errorMessage && (
+        {simulateProcessStatus === "pending" && !errorMessage && (
           <div className="flex justify-between w-full pl-10">
             <div>Processing data...</div>
             <div>
@@ -36,7 +40,7 @@ export default function SimulateRun() {
             </div>
           </div>
         )}
-        {isSimulating && step3Validating === "pending" && !errorMessage && (
+        {simulateValidateStatus === "pending" && !errorMessage && (
           <div className="flex justify-between w-full pl-10">
             <div>Validating data...</div>
             <div>

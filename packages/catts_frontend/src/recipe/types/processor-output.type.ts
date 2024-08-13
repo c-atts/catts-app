@@ -1,7 +1,7 @@
 import { hexToBigInt } from "viem";
 import { z } from "zod";
 
-export const RunOutputDataItem = z
+export const ProcessorOutputDataItem = z
   .object({
     name: z.string(),
     type: z.string(),
@@ -21,7 +21,7 @@ export const RunOutputDataItem = z
     }
     return item;
   });
-type RunOutputDataItem = z.infer<typeof RunOutputDataItem>;
+type ProcessorOutputDataItem = z.infer<typeof ProcessorOutputDataItem>;
 
-export const RunOutput = z.array(RunOutputDataItem);
-export type RunOutput = z.infer<typeof RunOutput>;
+export const ProcessorOutput = z.array(ProcessorOutputDataItem);
+export type ProcessorOutput = z.infer<typeof ProcessorOutput>;

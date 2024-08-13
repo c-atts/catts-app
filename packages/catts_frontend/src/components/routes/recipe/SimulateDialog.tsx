@@ -19,30 +19,43 @@ import { isChainIdSupported } from "@/lib/wagmi/is-chain-id-supported";
 import { useAccount } from "wagmi";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
-import useSimulateRunContext from "@/run/hooks/useSimulateRunContext";
+import { runStateStore, useIsSimulating } from "@/run/RunStateStore";
+import { startSimulateRunFlow } from "@/run/flows/simulateRunFlow";
 
 export default function SimulateDialog() {
   const { recipeName } = useRecipeContext();
   const { data: recipe } = useGetRecipeByName(recipeName);
   const { address, chainId } = useAccount();
-  const { startSimulation, resetSimulation, isSimulating } =
-    useSimulateRunContext();
-  const [simulateAddress, setSimulateAddress] = useState<string>(
-    (address as string) || ""
-  );
+  const [simulateAddress, setSimulateAddress] = useState(address);
+  const isSimulating = useIsSimulating();
 
-  // Update simulate address when account address changes
-  useEffect(() => setSimulateAddress(address as string), [address]);
+  const disabled = !address || !isChainIdSupported(chainId) || !recipe;
 
-  const disabled =
-    !address ||
-    !isChainIdSupported(chainId) ||
-    !recipe ||
-    !simulateAddress ||
-    isSimulating;
+  useEffect(() => {
+    setSimulateAddress(address);
+  }, [address]);
+
+  function simulate() {
+    if (!recipe || !simulateAddress) return;
+    startSimulateRunFlow({ recipe, address: simulateAddress });
+  }
+
+  function resetSimulation() {
+    runStateStore.send({ type: "reset" });
+  }
+
+  function handleOpenChange(open: boolean) {
+    resetSimulation();
+    return open;
+  }
+
+  function handleSimulateClick() {
+    resetSimulation();
+    simulate();
+  }
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="w-full" disabled={disabled} variant="secondary">
           Simulate
@@ -62,7 +75,9 @@ export default function SimulateDialog() {
           <Input
             autoComplete="off"
             name="address"
-            onChange={(e) => setSimulateAddress(e.target.value)}
+            onChange={(e) =>
+              setSimulateAddress(e.target.value as `0x${string}`)
+            }
             onFocus={resetSimulation}
             placeholder="0x..."
             type="text"
@@ -74,10 +89,7 @@ export default function SimulateDialog() {
           <DialogClose asChild>
             <Button variant="secondary">Cancel</Button>
           </DialogClose>
-          <Button
-            disabled={disabled}
-            onClick={() => startSimulation(simulateAddress)}
-          >
+          <Button disabled={disabled} onClick={handleSimulateClick}>
             {isSimulating && (
               <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
             )}
