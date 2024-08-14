@@ -47,6 +47,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </SupabaseProvider>
       </QueryClientProvider>
     </WagmiProvider>
-    <Toaster />
+    <Toaster position="top-center" />
   </React.StrictMode>,
 );
