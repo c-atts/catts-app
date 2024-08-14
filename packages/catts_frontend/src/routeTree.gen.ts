@@ -19,6 +19,7 @@ import { Route as PopularImport } from './routes/popular'
 
 // Create Virtual Routes
 
+const ExplorerLazyImport = createFileRoute('/explorer')()
 const DashboardLazyImport = createFileRoute('/dashboard')()
 const CreateLazyImport = createFileRoute('/create')()
 const IndexLazyImport = createFileRoute('/')()
@@ -27,6 +28,11 @@ const RunRunIdLazyImport = createFileRoute('/run/$runId')()
 const RecipeRecipeNameLazyImport = createFileRoute('/recipe/$recipeName')()
 
 // Create/Update Routes
+
+const ExplorerLazyRoute = ExplorerLazyImport.update({
+  path: '/explorer',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/explorer.lazy').then((d) => d.Route))
 
 const DashboardLazyRoute = DashboardLazyImport.update({
   path: '/dashboard',
@@ -121,6 +127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLazyImport
       parentRoute: typeof rootRoute
     }
+    '/explorer': {
+      id: '/explorer'
+      path: '/explorer'
+      fullPath: '/explorer'
+      preLoaderRoute: typeof ExplorerLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/recipe/$recipeName': {
       id: '/recipe/$recipeName'
       path: '/recipe/$recipeName'
@@ -154,6 +167,7 @@ export const routeTree = rootRoute.addChildren({
   RunsRoute,
   CreateLazyRoute,
   DashboardLazyRoute,
+  ExplorerLazyRoute,
   RecipeRecipeNameLazyRoute,
   RunRunIdLazyRoute,
   UserAddressLazyRoute,
@@ -173,6 +187,7 @@ export const routeTree = rootRoute.addChildren({
         "/runs",
         "/create",
         "/dashboard",
+        "/explorer",
         "/recipe/$recipeName",
         "/run/$runId",
         "/user/$address"
@@ -195,6 +210,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/dashboard": {
       "filePath": "dashboard.lazy.tsx"
+    },
+    "/explorer": {
+      "filePath": "explorer.lazy.tsx"
     },
     "/recipe/$recipeName": {
       "filePath": "recipe.$recipeName.lazy.tsx"

@@ -13,32 +13,44 @@ export default function Header() {
   const { chain, isConnected, address } = useAccount();
 
   return (
-    <div className="flex flex-col gap-10 w-full pb-14">
+    <div className="flex flex-col w-full gap-10 pb-14">
       <div className="flex flex-col justify-between gap-10 pt-10 md:flex-row md:items-center">
-        <div className="flex gap-5 items-center">
+        <div className="flex items-center gap-5">
           <Link to="/">
-            <div className="hidden text-xl font-medium text-center md:block text-theme-400 cursor-pointer">
+            <div className="hidden text-xl font-medium text-center cursor-pointer md:block text-theme-400">
               C–ATTS
             </div>
           </Link>
-          <Link search={{ page: 1 }} to="/recipes">
-            <Button variant="ghost">Recipes</Button>
-          </Link>
-          <Link search={{ page: 1 }} to="/runs">
-            <Button variant="ghost">Runs</Button>
+          <Link
+            className="relative text-sm font-medium transition-all hover:text-muted-foreground"
+            to="/explorer"
+          >
+            Explorer
           </Link>
           {address && (
-            <Link params={{ address }} to="/user/$address">
-              <Button variant="ghost">My Dashboard</Button>
+            <Link
+              className="relative text-sm font-medium transition-all hover:text-muted-foreground"
+              params={{ address }}
+              to="/user/$address"
+            >
+              My Dashboard
             </Link>
           )}
           {!address && (
-            <Button disabled variant="ghost">
+            <div className="relative text-sm font-medium transition-all text-muted-foreground/50">
               My Dashboard
-            </Button>
+            </div>
           )}
+          <a
+            className="relative text-sm font-medium transition-all hover:text-muted-foreground"
+            href="https://docs.catts.run"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Docs
+          </a>
           <Link disabled={!identity} to="/create">
-            <Button disabled={!identity}>
+            <Button className="rounded-full" disabled={!identity} size="sm">
               <Plus className="w-4 h-4 mr-2" />
               Create Recipe
             </Button>
