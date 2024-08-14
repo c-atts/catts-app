@@ -22,10 +22,10 @@ export const useDeleteRecipe = () => {
           queryKey: ["recipes"],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_name", result.Ok.name],
+          queryKey: ["recipe", "by_name", result.Ok.name],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_id", bytesToHex(result.Ok.id as Uint8Array)],
+          queryKey: ["recipe", "by_id", bytesToHex(result.Ok.id as Uint8Array)],
         });
       }
       if ("Err" in result) {

@@ -20,10 +20,10 @@ export const usePublishRecipe = () => {
           queryKey: ["recipes"],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_name", result.Ok.name],
+          queryKey: ["recipe", "by_name", result.Ok.name],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_id", result.Ok.id],
+          queryKey: ["recipe", "by_id", result.Ok.id],
         });
       }
       if ("Err" in result) {

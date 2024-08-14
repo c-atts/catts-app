@@ -62,10 +62,10 @@ export const useCreateRecipe = () => {
           queryKey: ["recipes"],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_name", createResult.Ok.name],
+          queryKey: ["recipe", "by_name", createResult.Ok.name],
         });
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_by_id", createResult.Ok.id],
+          queryKey: ["recipe", "by_id", createResult.Ok.id],
         });
       }
       if ("Err" in createResult) {
@@ -81,6 +81,15 @@ export const useCreateRecipe = () => {
     onSuccess: async (data) => {
       if (data && "Ok" in data) {
         toast.success("Recipe created");
+        queryClient.invalidateQueries({
+          queryKey: ["recipe", "readme", "by_name", data.Ok.name],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["recipe", "by_name", data.Ok.name],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["recipe", "by_id", data.Ok.id],
+        });
         navigate({
           to: "/recipe/$recipeName",
           params: { recipeName: data.Ok.name },

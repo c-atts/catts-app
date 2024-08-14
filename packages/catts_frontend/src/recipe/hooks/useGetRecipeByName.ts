@@ -4,7 +4,7 @@ import { useSupabase } from "@/lib/supabase/SupabaseContext";
 export const useGetRecipeByName = (name: string) => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["recipe_by_name", name],
+    queryKey: ["recipe", "by_name", name],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recipe")
