@@ -14,7 +14,7 @@ export const useListRecipes = ({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recipe")
-        .select("id, name, description, creator, created")
+        .select("id, name, description, creator, created, publish_state")
         .order("created", { ascending: false })
         .range((page - 1) * limit, page * limit - 1);
 

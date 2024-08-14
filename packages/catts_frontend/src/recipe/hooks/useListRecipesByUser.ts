@@ -9,7 +9,7 @@ export const useListRecipesByUser = (address: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recipe")
-        .select("id, name, description, creator, created")
+        .select("id, name, description, creator, created, publish_state")
         .order("created", { ascending: false })
         .eq("creator", address);
       if (error) throw error;
