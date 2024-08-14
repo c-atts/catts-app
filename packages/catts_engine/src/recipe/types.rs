@@ -68,9 +68,6 @@ pub struct Recipe {
     #[validate(length(min = 3, max = 50), custom(function = "validate_recipe_name"))]
     pub name: String,
 
-    #[validate(length(min = 3, max = 50))]
-    pub display_name: Option<String>,
-
     #[validate(length(equal = 42))]
     pub creator: String,
 
@@ -95,8 +92,19 @@ pub struct Recipe {
     #[validate(length(equal = 42))]
     pub resolver: String,
 
+    // Have to be false at the moment, revokable attestations not yet supported
+    #[validate(custom(function = "validate_revokable_false_only"))]
     pub revokable: bool,
     pub publish_state: RecipePublishState,
+}
+
+fn validate_revokable_false_only(value: &bool) -> Result<(), ValidationError> {
+    if *value {
+        return Err(ValidationError::new(
+            "Revokable attestations are not yet supported",
+        ));
+    }
+    Ok(())
 }
 
 /// Only lowercase letters (a-z), digits (0-9), and hyphens (-) are allowed.
@@ -160,9 +168,6 @@ impl ToJsonValue for Recipe {
 
         obj.insert("id".to_string(), bytes_to_hex_string_value(&self.id));
         obj.insert("name".to_string(), json!(self.name));
-        if let Some(ref display_name) = self.display_name {
-            obj.insert("display_name".to_string(), json!(display_name));
-        }
         obj.insert("creator".to_string(), json!(self.creator));
         obj.insert("created".to_string(), json!(self.created));
         if let Some(ref description) = self.description {
@@ -199,7 +204,6 @@ impl Recipe {
         let recipe = Self {
             id: generate_recipe_id(creator, details.name.as_str()),
             name: details.name.clone(),
-            display_name: details.display_name.clone(),
             creator: creator.to_string(),
             created: time(),
             description: details.description.clone(),
@@ -221,7 +225,6 @@ impl Recipe {
 #[derive(Serialize, Deserialize, Debug, CandidType)]
 pub struct RecipeDetailsInput {
     pub name: String,
-    pub display_name: Option<String>,
     pub description: Option<String>,
     pub keywords: Option<Vec<String>>,
     pub queries: Vec<RecipeQuery>,

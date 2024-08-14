@@ -33,7 +33,6 @@ type Recipe = record {
   schema : text;
   name : text;
   description : opt text;
-  display_name : opt text;
   keywords : opt vec text;
   queries : vec RecipeQuery;
   publish_state : RecipePublishState;
@@ -45,7 +44,6 @@ type RecipeDetailsInput = record {
   schema : text;
   name : text;
   description : opt text;
-  display_name : opt text;
   keywords : opt vec text;
   queries : vec RecipeQuery;
   processor : text;

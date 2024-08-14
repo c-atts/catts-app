@@ -65,8 +65,6 @@ pub struct RecipeQuery {
 pub struct Recipe {
     pub id: RecipeId,
     pub name: String,
-    pub display_name: Option<String>,
-    pub creator: EthAddressBytes,
     pub created: u64,
     pub description: Option<String>,
     pub keywords: Option<Vec<String>>,
@@ -82,7 +80,6 @@ pub struct Recipe {
 #[derive(Serialize, Deserialize, Debug, CandidType)]
 pub struct RecipeDetailsInput {
     pub name: String,
-    pub display_name: Option<String>,
     pub description: Option<String>,
     pub keywords: Option<Vec<String>>,
     pub queries: Vec<RecipeQuery>,

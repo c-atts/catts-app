@@ -3,7 +3,6 @@ use crate::types::{RecipeDetailsInput, RecipeQuery};
 pub fn recipe_eu_gtc_passport_clone() -> (RecipeDetailsInput, String) {
     let details = RecipeDetailsInput {
         name: "eu-gtc-passport-clone".to_string(),
-        display_name: None,
         description: None,
         keywords: None,
         queries: vec![RecipeQuery {
