@@ -73,4 +73,4 @@ export type AllowedChainIds = 10 | 11155111;
 // The Graph
 
 export const GQL_QUERY_PROXY_URL =
-  "https://catts-thegraph-query-proxy.kristofer-977.workers.dev";
+  "https://catts-gql-proxy.kristofer-977.workers.dev";
