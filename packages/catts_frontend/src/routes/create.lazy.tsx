@@ -1,19 +1,10 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import CreateForm from "../components/routes/create/CreateForm";
-import { Section } from "@/components/ui/Section";
+import CreateInfoBox from "@/components/routes/create/CreateInfoBox";
 
 export const Route = createLazyFileRoute("/create")({
   component: Index,
 });
-
-function InfoSection() {
-  return (
-    <Section>
-      To create a recipe, paste the URL of a publicly accessible folder
-      containing recipe definitions. .... Link to github repo Link to docs
-    </Section>
-  );
-}
 
 function Index() {
   return (
@@ -22,7 +13,7 @@ function Index() {
         <CreateForm />
       </div>
       <div className="w-1/3">
-        <InfoSection />
+        <CreateInfoBox />
       </div>
     </div>
   );

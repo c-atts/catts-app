@@ -1,11 +1,12 @@
-import { Button } from "@/components/ui/button";
-import { useForm } from "@tanstack/react-form";
-import { useCreateRecipe } from "@/recipe/hooks/useCreateRecipe";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { LoaderCircle } from "lucide-react";
-import { useSiweIdentity } from "ic-use-siwe-identity";
 import Message from "@/components/Message";
+import { useCreateRecipe } from "@/recipe/hooks/useCreateRecipe";
+import { useForm } from "@tanstack/react-form";
+import { useSiweIdentity } from "ic-use-siwe-identity";
 
 export default function CreateForm() {
   const { identity } = useSiweIdentity();
@@ -54,7 +55,7 @@ export default function CreateForm() {
             form.handleSubmit();
           }}
         >
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
             <form.Field
               name="url"
               validators={{
@@ -72,7 +73,12 @@ export default function CreateForm() {
             >
               {(field) => (
                 <>
-                  <label htmlFor={field.name}>Recipe URL</label>
+                  <label
+                    className="text-sm font-medium leading-none"
+                    htmlFor={field.name}
+                  >
+                    Recipe URL
+                  </label>
                   <Input
                     disabled={disabled}
                     id={field.name}
@@ -88,10 +94,10 @@ export default function CreateForm() {
                 </>
               )}
             </form.Field>
-            <div className="flex w-full justify-start">
+            <div className="flex justify-start w-full">
               <Button disabled={disabled} type="submit">
                 {isPending && (
-                  <LoaderCircle className="w-5 h-5 animate-spin mr-2" />
+                  <LoaderCircle className="w-5 h-5 mr-2 animate-spin" />
                 )}
                 {isPending ? "Saving..." : "Save"}
               </Button>
@@ -101,7 +107,7 @@ export default function CreateForm() {
         {createResult && "Err" in createResult && (
           <>
             Error: {createResult.Err.code}, {createResult.Err.message}
-            <pre className="w-full p-3 text-wrap text-sm border bg-muted/50">
+            <pre className="w-full p-3 text-sm border text-wrap bg-muted/50">
               {formatError(createResult.Err.details[0]).trim()}
             </pre>
           </>
