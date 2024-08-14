@@ -21,7 +21,7 @@ export default function RecipeReadme() {
         <UserLink address={recipe.creator} />
         <Badge className="bg-secondary">{recipe.publish_state}</Badge>
       </div>
-      <div className="prose prose- max-w-none">
+      <div className="prose w-full max-w-full">
         <Markdown remarkPlugins={[remarkGfm]}>{readme?.toString()}</Markdown>
       </div>
     </div>

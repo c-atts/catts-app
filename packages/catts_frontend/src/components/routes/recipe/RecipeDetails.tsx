@@ -53,7 +53,7 @@ export default function RecipeDetails() {
     : "";
 
   return (
-    <div className="prose max-w-none">
+    <div className="prose w-full max-w-full">
       <h2>Output Schema</h2>
       <pre className="w-full p-3 overflow-x-auto text-sm border  text-card-foreground bg-muted/50">
         {JSON.stringify(schema, null, 2)}

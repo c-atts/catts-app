@@ -23,8 +23,8 @@ function IndexInner() {
   }
 
   return (
-    <div className="flex gap-5">
-      <Card className="w-3/4">
+    <div className="flex w-full gap-5">
+      <Card className="w-2/3">
         <PublishAndDelete />
         <CardContent className="mt-6 flex flex-col">
           <RecipeReadme />
