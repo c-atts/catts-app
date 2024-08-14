@@ -1,5 +1,6 @@
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import useRecipeContext from "@/recipe/hooks/useRecipeContext";
+import { recipeQueriesSchema } from "@/recipe/types/recipe.types";
 
 function formatGraphQLQuery(query: string): string {
   // Normalize spaces and remove unnecessary spaces before and after braces
@@ -45,11 +46,11 @@ export default function RecipeDetails() {
 
   const { queries, processor, schema } = recipe;
 
-  const formattedQueryVariables = JSON.stringify(
-    queries.map((q) => JSON.parse(q.variables)),
-    null,
-    2,
-  );
+  const { data: parsedQueries } = recipeQueriesSchema.safeParse(queries);
+
+  const formattedQueryVariables = parsedQueries
+    ? parsedQueries.map((q) => JSON.stringify(JSON.parse(q.variables), null, 2))
+    : "";
 
   return (
     <div className="prose max-w-none">
@@ -58,8 +59,8 @@ export default function RecipeDetails() {
         {JSON.stringify(schema, null, 2)}
       </pre>
       <h2>Queries</h2>
-      {queries &&
-        queries.map((q, index) => (
+      {parsedQueries &&
+        parsedQueries.map((q, index) => (
           <div key={index}>
             <h3>#{index + 1}</h3>
             <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">

@@ -17,7 +17,7 @@ export default function Header() {
       <div className="flex flex-col justify-between gap-10 pt-10 md:flex-row md:items-center">
         <div className="flex gap-5 items-center">
           <Link to="/">
-            <div className="hidden text-xl font-bold text-center md:block text-theme-400 cursor-pointer">
+            <div className="hidden text-xl font-medium text-center md:block text-theme-400 cursor-pointer">
               C–ATTS
             </div>
           </Link>
