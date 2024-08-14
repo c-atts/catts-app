@@ -1,15 +1,15 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import Header from "../components/header/Header";
-import GitHubIcon from "../components/GitHubIcon";
+import Footer from "@/components/footer/Footer";
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="flex flex-col items-center w-[1250px] pb-10 m-auto">
-      <Header />
-      <Outlet />
-      <GitHubIcon />
-      {import.meta.env.DEV && <TanStackRouterDevtools />}
+    <div className="w-full flex flex-col min-h-screen">
+      <div className="flex flex-col items-center w-[1250px] pb-10 m-auto flex-grow">
+        <Header />
+        <Outlet />
+      </div>
+      <Footer />
     </div>
   ),
 });
