@@ -10,7 +10,7 @@ export const useListPopularRecipes = ({
 }) => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["recipe_popular_list", page, limit],
+    queryKey: ["recipes", "list", "popular", page, limit],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("list_popular_recipes", {
         page,

@@ -7,6 +7,7 @@ export type RunStepStatus = "idle" | "pending" | "success" | "error";
 
 type RunContext = {
   loadSchemaStatus: RunStepStatus;
+  createSchemaStatus: RunStepStatus;
   simulateFetchStatus: RunStepStatus;
   simulateProcessStatus: RunStepStatus;
   simulateValidateStatus: RunStepStatus;
@@ -20,6 +21,7 @@ type RunContext = {
 
 const initialState: RunContext = {
   loadSchemaStatus: "idle",
+  createSchemaStatus: "idle",
   simulateFetchStatus: "idle",
   simulateProcessStatus: "idle",
   simulateValidateStatus: "idle",
@@ -55,6 +57,10 @@ export const runStateStore = createStore(initialState, {
   setError: (context, event: { step: RunStep; message: string }) => {
     context[event.step] = "error";
     context.errorMessage = event.message;
+    return context;
+  },
+  clearErrorMessage: (context) => {
+    context.errorMessage = undefined;
     return context;
   },
   setRunInProgress: (context, event: { run: Run }) => {

@@ -10,7 +10,7 @@ export const useListRecipes = ({
 }) => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["recipe_list", page, limit],
+    queryKey: ["recipes", "list", page, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recipe")

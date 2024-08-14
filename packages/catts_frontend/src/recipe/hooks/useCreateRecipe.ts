@@ -59,7 +59,7 @@ export const useCreateRecipe = () => {
       if ("Ok" in createResult) {
         await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_list"],
+          queryKey: ["recipes"],
         });
         await queryClient.invalidateQueries({
           queryKey: ["recipe_by_name", createResult.Ok.name],

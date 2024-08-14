@@ -3,10 +3,7 @@ import { runStateStore } from "@/run/RunStateStore";
 import { JsonRpcSigner } from "ethers";
 import { loadEasSchema } from "@/lib/eas/loadEasSchema";
 import { handleError } from "./util/handleError";
-
-async function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { wait } from "@/lib/util/wait";
 
 export async function loadSchemaFlow({
   recipe,

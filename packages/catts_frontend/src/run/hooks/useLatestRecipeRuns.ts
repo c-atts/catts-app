@@ -4,7 +4,7 @@ import { useSupabase } from "@/lib/supabase/SupabaseContext";
 export const useLatestRecipeRuns = ({ recipeId }: { recipeId?: string }) => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["runs_recipe_latest", recipeId],
+    queryKey: ["runs", "latest", "by_recipe", recipeId],
     queryFn: async () => {
       if (!recipeId) return null;
       const { data, error } = await supabase

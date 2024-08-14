@@ -10,7 +10,7 @@ export const useListRuns = ({
 }) => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["runs_list", page, limit],
+    queryKey: ["runs", "list", page, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("run")

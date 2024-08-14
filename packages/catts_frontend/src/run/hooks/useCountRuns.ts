@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 export const useCountRuns = () => {
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["runs_count"],
+    queryKey: ["runs", "count"],
     queryFn: async () => {
       const { count, error } = await supabase
         .from("run")

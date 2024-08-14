@@ -7,14 +7,9 @@ import { useSelector } from "@xstate/store/react";
 import { runStateStore } from "@/run/RunStateStore";
 
 export function CreateAttestationInner() {
-  const runInProgress = useSelector(
+  const { runInProgress, errorMessage, createAttestationStatus } = useSelector(
     runStateStore,
-    (state) => state.context.runInProgress,
-  );
-
-  const errorMessage = useSelector(
-    runStateStore,
-    (state) => state.context.errorMessage,
+    (state) => state.context,
   );
 
   const runStatus = useRunStatus(runInProgress);
@@ -71,15 +66,12 @@ export function CreateAttestationInner() {
         </>
       )}
 
-      {(runStatus === RunStatus.PaymentVerified ||
-        runStatus === RunStatus.AttestationCreated ||
-        runStatus === RunStatus.AttestationUidConfirmed) &&
-        errorMessage && (
-          <div className="flex justify-between w-full">
-            <div>Error: {errorMessage}</div>
-            <div>🔴</div>
-          </div>
-        )}
+      {createAttestationStatus === "error" && errorMessage && (
+        <div className="flex justify-between w-full">
+          <div>Error: {errorMessage}</div>
+          <div>🔴</div>
+        </div>
+      )}
     </>
   );
 }

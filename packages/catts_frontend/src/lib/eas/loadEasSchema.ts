@@ -16,7 +16,7 @@ export async function loadEasSchema({
   signer: JsonRpcSigner;
 }) {
   const chainId = getChainId(wagmiConfig);
-  const schemaUid = getSchemaUID(schema + "jkjh", resolver, false);
+  const schemaUid = getSchemaUID(schema, resolver, false);
   const schemaRegistry = new SchemaRegistry(
     CHAIN_CONFIG[chainId].easRegistryAddress,
   );

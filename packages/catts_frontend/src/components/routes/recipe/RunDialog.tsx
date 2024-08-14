@@ -28,6 +28,9 @@ import { useActor } from "@/lib/ic/ActorProvider";
 import { startCreateRunFlow } from "@/run/flows/createRunFlow";
 import { startSimulateRunFlow } from "@/run/flows/simulateRunFlow";
 import { loadSchemaFlow } from "@/run/flows/loadSchemaFlow";
+import { createSchemaFlow } from "@/run/flows/createSchemaFlow";
+import { triggerReindexing } from "@/lib/supabase/triggerReindexing";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function RunDialog() {
   const { identity } = useSiweIdentity();
@@ -37,29 +40,39 @@ export default function RunDialog() {
   const signer = useEthersSigner();
   const { actor } = useActor();
   const inProgress = useIsInProgress();
+  const queryClient = useQueryClient();
 
   const { runInProgress } = useSelector(
     runStateStore,
     (state) => state.context,
   );
 
-  const handleRunClick = async () => {
+  async function triggerReindexingAndInvaliadate() {
+    await triggerReindexing();
+    queryClient.invalidateQueries({
+      queryKey: ["runs"],
+    });
+  }
+
+  async function handleRunClick() {
     if (!address || !recipe || !signer || !actor || !chainId) {
       return null;
     }
 
     if (!(await loadSchemaFlow({ recipe, signer }))) {
-      return;
+      if (!(await createSchemaFlow())) {
+        return;
+      }
     }
 
     if (!(await startSimulateRunFlow({ recipe, address }))) {
       return;
     }
 
-    if (!(await startCreateRunFlow({ recipe, actor, chainId }))) {
-      return;
-    }
-  };
+    await startCreateRunFlow({ recipe, actor, chainId });
+
+    await triggerReindexingAndInvaliadate();
+  }
 
   const disabled =
     !identity ||
@@ -69,6 +82,7 @@ export default function RunDialog() {
 
   function onOpenChange(open: boolean) {
     runStateStore.send({ type: "reset" });
+    triggerReindexingAndInvaliadate();
     return open;
   }
 

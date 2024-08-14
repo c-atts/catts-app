@@ -191,6 +191,12 @@ export async function startCreateRunFlow({
     status: "pending",
   });
 
+  // Only proceed if the simulation was successful
+  let snapshot = runStateStore.getSnapshot();
+  if (snapshot.context.simulateValidateStatus !== "success") {
+    return false;
+  }
+
   const run = await createRun(
     hexToBytes(recipe.id as `0x{string}`),
     chainId,
@@ -213,6 +219,12 @@ export async function startCreateRunFlow({
       { step: "payStatus", status: "pending" },
     ],
   });
+
+  // Only proceed if the simulation was successful
+  snapshot = runStateStore.getSnapshot();
+  if (snapshot.context.simulateValidateStatus !== "success") {
+    return false;
+  }
 
   const receipt = await payRun(run, chainId);
 

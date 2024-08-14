@@ -19,7 +19,7 @@ export const useDeleteRecipe = () => {
       if ("Ok" in result) {
         await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
         await queryClient.invalidateQueries({
-          queryKey: ["recipe_list"],
+          queryKey: ["recipes"],
         });
         await queryClient.invalidateQueries({
           queryKey: ["recipe_by_name", result.Ok.name],

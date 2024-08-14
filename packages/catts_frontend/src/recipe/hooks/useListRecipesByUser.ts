@@ -5,7 +5,7 @@ export const useListRecipesByUser = (address: string) => {
   const supabase = useSupabase();
   address = address.toLowerCase();
   return useQuery({
-    queryKey: ["recipe_list_by_user", address],
+    queryKey: ["recipes", "list", "by_user", address],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recipe")
