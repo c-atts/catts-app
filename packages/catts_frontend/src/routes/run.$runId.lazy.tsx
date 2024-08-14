@@ -14,16 +14,20 @@ function Index() {
   return (
     <RunContextProvider runId={runId}>
       <div className="flex gap-5 w-full">
-        <div className="flex flex-col gap-5 w-3/4">
+        <div className="flex flex-col gap-5 w-2/3">
           <RunDetails />
           <AttestationDetails />
         </div>
-        <div className="flex flex-col gap-5 w-1/4">
+        <div className="flex flex-col gap-5 w-1/3">
           <Card>
             <CardHeader>
               <CardTitle>About runs</CardTitle>
             </CardHeader>
-            <CardContent>A run consists of …</CardContent>
+            <CardContent className="flex flex-col gap-2">
+              Running a recipe means creating an attestation based on the
+              queries and processing logic in that recipe.
+              <p>A recipe can be run on any chain supported by C–ATTS.</p>
+            </CardContent>
           </Card>
         </div>
       </div>
