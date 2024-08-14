@@ -7,6 +7,7 @@ import Message from "@/components/Message";
 import { useCreateRecipe } from "@/recipe/hooks/useCreateRecipe";
 import { useForm } from "@tanstack/react-form";
 import { useSiweIdentity } from "ic-use-siwe-identity";
+import { cattsErrorResponse } from "@/lib/types/catts-error";
 
 export default function CreateForm() {
   const { identity } = useSiweIdentity();
@@ -25,6 +26,8 @@ export default function CreateForm() {
       createRecipe(value);
     },
   });
+
+  const { data: createError } = cattsErrorResponse.safeParse(createResult);
 
   const formatError = (error?: string) => {
     if (!error) {
@@ -104,11 +107,11 @@ export default function CreateForm() {
             </div>
           </div>
         </form>
-        {createResult && "Err" in createResult && (
+        {createError && (
           <>
-            Error: {createResult.Err.code}, {createResult.Err.message}
+            Error: {createError.Err.code}, {createError.Err.message}
             <pre className="w-full p-3 text-sm border text-wrap bg-muted/50">
-              {formatError(createResult.Err.details[0]).trim()}
+              {formatError(createError.Err.details[0]).trim()}
             </pre>
           </>
         )}
