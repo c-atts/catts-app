@@ -9,7 +9,9 @@ export const useLatestRecipeRuns = ({ recipeId }: { recipeId?: string }) => {
       if (!recipeId) return null;
       const { data, error } = await supabase
         .from("run")
-        .select(`id, created, creator, chain_id, recipe (name)`)
+        .select(
+          `id, created, creator, chain_id, error, attestation_uid, attestation_transaction_hash, recipe (name)`,
+        )
         .eq("recipe_id", recipeId)
         .order("created", { ascending: false })
         .limit(5);
