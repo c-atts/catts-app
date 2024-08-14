@@ -32,7 +32,6 @@ export type Database = {
           created: string;
           creator: string;
           description: string | null;
-          display_name: string | null;
           id: string;
           keywords: string[] | null;
           name: string;
@@ -47,7 +46,6 @@ export type Database = {
           created: string;
           creator: string;
           description?: string | null;
-          display_name?: string | null;
           id: string;
           keywords?: string[] | null;
           name: string;
@@ -62,7 +60,6 @@ export type Database = {
           created?: string;
           creator?: string;
           description?: string | null;
-          display_name?: string | null;
           id?: string;
           keywords?: string[] | null;
           name?: string;

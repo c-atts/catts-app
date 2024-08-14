@@ -19,16 +19,8 @@ export default function BasicFacts() {
     return null;
   }
 
-  const {
-    id,
-    name,
-    display_name,
-    description,
-    created,
-    keywords,
-    resolver,
-    revokable,
-  } = recipe;
+  const { id, name, description, created, keywords, resolver, revokable } =
+    recipe;
 
   const createdDate = new Date(created);
   const when = formatDistance(new Date(createdDate), new Date(), {
@@ -38,7 +30,7 @@ export default function BasicFacts() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{display_name || name}</CardTitle>
+        <CardTitle>{name}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">

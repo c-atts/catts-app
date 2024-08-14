@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "@tanstack/react-router";
 import { useActor } from "@/lib/ic/ActorProvider";
 import errorToast from "@/lib/util/errorToast";
+import { Result_2 } from "catts_engine/declarations/catts_engine.did";
 function processUrl(url: string) {
   if (url.startsWith("https://github.com")) {
     const u = url.replace(
@@ -24,7 +25,7 @@ export const useCreateRecipe = () => {
   const navigate = useNavigate({ from: "/create" });
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ url }: { url: string }) => {
+    mutationFn: async ({ url }: { url: string }): Promise<Result_2 | null> => {
       if (!actor) return null;
 
       const processedUrl = processUrl(url);
@@ -47,7 +48,6 @@ export const useCreateRecipe = () => {
       const readme = await readmeResponse.text();
 
       payload.processor = processorJs;
-      payload.display_name = payload.display_name ? [payload.display_name] : [];
       payload.description = payload.description ? [payload.description] : [];
       payload.keywords = payload.keywords ? [payload.keywords] : [];
       if (Array.isArray(payload.queries)) {
