@@ -41,6 +41,7 @@ export type Database = {
           resolver: string;
           revokable: boolean;
           schema: string;
+          search_vector: unknown | null;
         };
         Insert: {
           created: string;
@@ -55,6 +56,7 @@ export type Database = {
           resolver: string;
           revokable: boolean;
           schema: string;
+          search_vector?: unknown | null;
         };
         Update: {
           created?: string;
@@ -69,6 +71,7 @@ export type Database = {
           resolver?: string;
           revokable?: boolean;
           schema?: string;
+          search_vector?: unknown | null;
         };
         Relationships: [];
       };
@@ -154,6 +157,21 @@ export type Database = {
           creator: string;
           created: string;
           nr_of_runs: number;
+        }[];
+      };
+      search_recipes: {
+        Args: {
+          search_query: string;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          description: string;
+          creator: string;
+          created: string;
+          keywords: string[];
+          publish_state: string;
+          rank: number;
         }[];
       };
     };

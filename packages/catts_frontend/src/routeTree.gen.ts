@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as SearchImport } from './routes/search'
 import { Route as RunsImport } from './routes/runs'
 import { Route as RecipesImport } from './routes/recipes'
 import { Route as PopularImport } from './routes/popular'
@@ -31,6 +32,11 @@ const ExplorerLazyRoute = ExplorerLazyImport.update({
   path: '/explorer',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/explorer.lazy').then((d) => d.Route))
+
+const SearchRoute = SearchImport.update({
+  path: '/search',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const RunsRoute = RunsImport.update({
   path: '/runs',
@@ -101,6 +107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RunsImport
       parentRoute: typeof rootRoute
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchImport
+      parentRoute: typeof rootRoute
+    }
     '/explorer': {
       id: '/explorer'
       path: '/explorer'
@@ -139,6 +152,7 @@ export const routeTree = rootRoute.addChildren({
   PopularRoute,
   RecipesRoute,
   RunsRoute,
+  SearchRoute,
   ExplorerLazyRoute,
   RecipeRecipeNameLazyRoute,
   RunRunIdLazyRoute,
@@ -157,6 +171,7 @@ export const routeTree = rootRoute.addChildren({
         "/popular",
         "/recipes",
         "/runs",
+        "/search",
         "/explorer",
         "/recipe/$recipeName",
         "/run/$runId",
@@ -174,6 +189,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/runs": {
       "filePath": "runs.tsx"
+    },
+    "/search": {
+      "filePath": "search.tsx"
     },
     "/explorer": {
       "filePath": "explorer.lazy.tsx"
