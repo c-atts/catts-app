@@ -55,7 +55,7 @@ const ETH_PAYMENT_EVENT_SIGNATURE: &str =
 
 const TIMER_INTERVAL_EXECUTE_TASKS: u64 = 15; // 15 seconds
 
-const THEGRAPH_QUERY_PROXY_URL: &str = "https://catts-gql-proxy.kristofer-977.workers.dev";
+const GQL_PROXY_URL: &str = "https://catts-gql-proxy.kristofer-977.workers.dev";
 
 const WASI_MEMORY_ID: MemoryId = MemoryId::new(0);
 const USERS_MEMORY_ID: MemoryId = MemoryId::new(1);
@@ -83,8 +83,6 @@ pub struct CanisterSettings {
 }
 
 lazy_static! {
-    static ref ETH_PAYMENT_CONTRACT: Arc<Contract> =
-        Arc::new(include_abi!("../../catts_payments/catts_payments.abi.json"));
     static ref ETH_EAS_CONTRACT: Arc<Contract> = Arc::new(include_abi!("../../eas/eas.abi.json"));
 }
 
@@ -101,7 +99,7 @@ thread_local! {
 
     static CANISTER_SETTINGS: RefCell<CanisterSettings> = RefCell::new(CanisterSettings::default());
 
-    // USER
+    // USERS
     static USERS: RefCell<StableBTreeMap<Blob<29>, User, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(USERS_MEMORY_ID)),

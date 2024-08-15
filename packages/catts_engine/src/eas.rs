@@ -5,7 +5,7 @@ use crate::{
     graphql::insert_dynamic_variables,
     recipe::{Recipe, RecipeQuery},
     run::Run,
-    ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, THEGRAPH_QUERY_PROXY_URL,
+    ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, GQL_PROXY_URL,
 };
 use anyhow::{anyhow, Result};
 use blake2::{
@@ -182,7 +182,7 @@ pub async fn run_query(
     hasher.finalize_variable(&mut cache_key).unwrap();
     let cache_key = hex::encode(cache_key);
 
-    let url = format!("{}/{}", THEGRAPH_QUERY_PROXY_URL, cache_key);
+    let url = format!("{}/{}", GQL_PROXY_URL, cache_key);
     let request = CanisterHttpRequestArgument {
         url,
         method: HttpMethod::GET,
