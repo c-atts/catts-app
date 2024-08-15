@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { useNavigate } from "@tanstack/react-router";
 import { useActor } from "@/lib/ic/ActorProvider";
 import errorToast from "@/lib/util/errorToast";
-import { Result_2 } from "catts_engine/declarations/catts_engine.did";
+import { Recipe, Result_2 } from "catts_engine/declarations/catts_engine.did";
 function processUrl(url: string) {
   if (url.startsWith("https://github.com")) {
     const u = url.replace(
@@ -20,9 +19,12 @@ async function fetchFile(url: string, file: string) {
   return fetch(`${url}/${file}?${uniqueParam}`);
 }
 
-export const useCreateRecipe = () => {
+export const useCreateRecipe = ({
+  onSuccess,
+}: {
+  onSuccess?: (recipe: Recipe) => void;
+}) => {
   const { actor } = useActor();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ url }: { url: string }): Promise<Result_2 | null> => {
@@ -90,10 +92,7 @@ export const useCreateRecipe = () => {
         queryClient.invalidateQueries({
           queryKey: ["recipe", "by_id", data.Ok.id],
         });
-        navigate({
-          to: "/recipe/$recipeName",
-          params: { recipeName: data.Ok.name },
-        });
+        onSuccess && onSuccess(data.Ok);
       }
     },
   });

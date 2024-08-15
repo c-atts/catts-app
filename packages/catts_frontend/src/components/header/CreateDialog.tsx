@@ -15,15 +15,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useState } from "react";
+import { Recipe } from "catts_engine/declarations/catts_engine.did";
+import { useNavigate } from "@tanstack/react-router";
 
 export default function CreateDialog() {
   const { identity } = useSiweIdentity();
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const {
     mutate: createRecipe,
     isPending,
     data: createResult,
     reset,
-  } = useCreateRecipe();
+  } = useCreateRecipe({ onSuccess: onCreateRecipeSuccess });
   const form = useForm({
     defaultValues: {
       url: "",
@@ -33,6 +38,14 @@ export default function CreateDialog() {
       createRecipe(value);
     },
   });
+
+  function onCreateRecipeSuccess(recipe: Recipe) {
+    setOpen(false);
+    navigate({
+      to: "/recipe/$recipeName",
+      params: { recipeName: recipe.name },
+    });
+  }
 
   const { data: createError } = cattsErrorResponse.safeParse(createResult);
 
@@ -47,11 +60,12 @@ export default function CreateDialog() {
   const disabled = !identity || isPending;
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
         <Button
           className="rounded-full hidden lg:flex"
           disabled={!identity}
+          onClick={() => setOpen(true)}
           size="sm"
         >
           <Plus className="w-4 h-4 mr-2" />
