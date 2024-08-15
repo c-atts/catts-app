@@ -28,7 +28,7 @@ function Index() {
   }
 
   return (
-    <div className="w-[1250px] mb-10 bg-radial flex-grow">
+    <div className="w-full xl:w-[1280px] mb-10 bg-radial flex-grow px-5 xl:px-0">
       <h1>Runs</h1>
       <div className="flex flex-col gap-5">
         {runs?.map((run) => <RunsListItem key={run.id} run={run} />)}

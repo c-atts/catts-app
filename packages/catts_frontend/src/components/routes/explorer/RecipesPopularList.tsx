@@ -10,7 +10,7 @@ export default function RecipesPopularList() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 pb-10">
       <h1>Popular recipes </h1>
       {data.map((recipe) => (
         <RecipeListItemNrOfRuns key={recipe.name} recipe={recipe} />

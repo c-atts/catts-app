@@ -10,7 +10,7 @@ export default function RecipesList() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 pb-10">
       <h1>Latest recipes</h1>
       {data.map((recipe) => (
         <RecipeListItem key={recipe.name} recipe={recipe} />

@@ -85,7 +85,7 @@ export default function SimulateDialog() {
           />
         </div>
         <SimulateRun />
-        <DialogFooter className="justify-end">
+        <DialogFooter className="justify-end gap-2">
           <DialogClose asChild>
             <Button variant="secondary">Cancel</Button>
           </DialogClose>

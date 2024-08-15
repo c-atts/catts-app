@@ -49,7 +49,11 @@ export default function CreateDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="rounded-full" disabled={!identity} size="sm">
+        <Button
+          className="rounded-full hidden lg:flex"
+          disabled={!identity}
+          size="sm"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Create Recipe
         </Button>

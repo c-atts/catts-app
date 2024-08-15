@@ -106,9 +106,9 @@ export default function RunDetails() {
               <div className="w-1/4 text-foreground/50">Payment tx:</div>
               <div className="w-3/4 ml-2">
                 {payment_transaction_hash ? (
-                  <>
+                  <div className="flex gap-2 items-center">
                     <Link
-                      className="classic-link"
+                      className="classic-link block truncate"
                       target="_blank"
                       to={paymentUrl}
                     >
@@ -118,7 +118,7 @@ export default function RunDetails() {
                       className="ml-1"
                       value={payment_transaction_hash}
                     />
-                  </>
+                  </div>
                 ) : (
                   <div className="flex items-center text-blue-800">
                     <InfoIcon className="w-4 h-4 mr-1 inline-block" />

@@ -13,12 +13,12 @@ function Index() {
 
   return (
     <RunContextProvider runId={runId}>
-      <div className="flex gap-5 w-[1250px] mb-10">
-        <div className="flex flex-col gap-5 w-2/3">
+      <div className="w-full flex gap-5 xl:w-[1280px] mb-10 px-5 xl:px-0">
+        <div className="flex flex-col gap-5 w-full xl:w-2/3">
           <RunDetails />
           <AttestationDetails />
         </div>
-        <div className="flex flex-col gap-5 w-1/3">
+        <div className="hidden xl:flex flex-col gap-5 w-1/3">
           <Card>
             <CardHeader>
               <CardTitle>About runs</CardTitle>

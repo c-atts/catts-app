@@ -8,7 +8,7 @@ function Index() {
   return (
     <div className="flex flex-col items-center w-full">
       <div className="flex flex-col items-center w-full bg-landing-1">
-        <div className="flex flex-col w-[1250px] py-20">
+        <div className="flex flex-col w-[1280px] py-20">
           <div className="flex flex-col w-full">
             <div className="text-[84px] font-semibold w-[730px] leading-tight pb-[150px] text-accent-foreground/90">
               Attest to Any Onchain Data
@@ -33,7 +33,7 @@ function Index() {
         </div>
       </div>
       <div className="flex flex-col items-center justify-center w-full">
-        <div className="flex flex-col w-[1250px] py-20 items-center">
+        <div className="flex flex-col w-[1280px] py-20 items-center">
           <div className="flex w-full justify-between">
             <div className="flex justify-between w-full">
               <div className="flex flex-col">
@@ -123,7 +123,7 @@ function Index() {
         </div>
       </div>
       <div className="flex flex-col items-center w-full bg-landing-2">
-        <div className="flex flex-col w-[1250px] py-28">
+        <div className="flex flex-col w-[1280px] py-28">
           <div className="flex flex-col w-full">
             <div className="w-full font-semibold leading-tight text-muted-foreground  text-6xl text-center pb-20">
               Discover the power of C–ATTS, start creating composite

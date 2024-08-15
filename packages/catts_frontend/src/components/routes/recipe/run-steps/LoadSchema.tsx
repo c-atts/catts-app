@@ -12,7 +12,7 @@ export default function LoadSchema() {
     <div className="flex flex-col">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <div className="items-center justify-center hidden w-8 h-8 text-xl font-bold rounded-full md:flex bg-primary text-primary-foreground">
+          <div className="items-center justify-center w-8 h-8 text-xl font-bold rounded-full flex bg-primary text-primary-foreground">
             1
           </div>
           Load schema

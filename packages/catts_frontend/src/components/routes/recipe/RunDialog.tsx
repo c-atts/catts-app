@@ -110,7 +110,7 @@ export default function RunDialog() {
           <CreateAttestation />
         </div>
 
-        <DialogFooter className="justify-end">
+        <DialogFooter className="justify-end gap-2">
           {(inProgress || !runInProgress) && (
             <>
               <DialogClose asChild>
@@ -118,11 +118,7 @@ export default function RunDialog() {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button
-                className="mb-4"
-                disabled={disabled}
-                onClick={handleRunClick}
-              >
+              <Button disabled={disabled} onClick={handleRunClick}>
                 {inProgress ? "Running …" : "Run"}
               </Button>
             </>

@@ -54,7 +54,7 @@ export default function AttestationDetails() {
             {attestation_transaction_hash && (
               <div className="flex items-center w-3/4 ml-2">
                 <Link
-                  className="classic-link"
+                  className="classic-link block truncate"
                   target="_blank"
                   to={attestationTransactionUrl}
                 >
@@ -74,7 +74,7 @@ export default function AttestationDetails() {
               </div>
               <div className="flex items-center w-3/4 ml-2">
                 <Link
-                  className="classic-link"
+                  className="classic-link block truncate"
                   target="_blank"
                   to={attestationUidUrl}
                 >

@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <div className="flex w-full p-10 border-t-[1px] justify-between">
+    <div className="flex flex-col md:flex-row w-full p-10 border-t-[1px] justify-between items-center">
       <div className="max-w-2xl text-muted-foreground/60 flex items-center gap-2">
         <img className="w-12" src="/eas.png" />
         <div>
@@ -9,7 +9,7 @@ export default function Footer() {
           verifiable credential.
         </div>
       </div>
-      <div className="flex">
+      <div className="flex w-full md:w-auto justify-center pt-8 md:pt-0 pl-0 md:pl-10">
         <a href="https://twitter.com/c_atts" rel="noreferrer" target="_blank">
           <div className="w-10 h-10 mx-3 text-muted-foreground/60">
             <svg

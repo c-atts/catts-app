@@ -37,7 +37,7 @@ function Index() {
   }
 
   return (
-    <div className="flex flex-col w-[1250px] mb-10 bg-radial flex-grow">
+    <div className="w-full xl:w-[1280px] mb-10 bg-radial flex-grow px-5 xl:px-0">
       <div className="flex items-center mb-14">
         {userEnsName && <EnsAvatar ensName={userEnsName} />}
         {!userEnsName && <CircleUserRoundIcon className="w-20 h-20 mr-3" />}
@@ -51,8 +51,8 @@ function Index() {
           )}
         </div>
       </div>
-      <div className="flex gap-5 w-full">
-        <div className="w-1/2 flex flex-col">
+      <div className="flex flex-col xl:flex-row gap-5 w-full">
+        <div className="w-full xl:w-1/2 flex flex-col">
           <h1>User recipes</h1>
           <div className="flex flex-col gap-5">
             {recipes.map((recipe) => (
@@ -63,7 +63,7 @@ function Index() {
             )}
           </div>
         </div>
-        <div className="w-1/2 flex flex-col">
+        <div className="w-full xl:w-1/2 flex flex-col">
           <h1>User runs</h1>
           <div className="flex flex-col gap-5">
             {runs.map((run) => (
