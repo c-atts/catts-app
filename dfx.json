@@ -31,7 +31,6 @@
       "declarations": {
         "output": "packages/catts_engine/declarations"
       },
-      "dependencies": ["ic_siwe_provider", "evm_rpc"],
       "package": "backend",
       "type": "custom",
       "wasm": "target/wasm32-wasi/release/catts_engine.wasm.gz"
@@ -42,7 +41,6 @@
       "declarations": {
         "output": "packages/catts_frontend/declarations"
       },
-      "dependencies": ["catts_engine", "ic_siwe_provider"],
       "source": ["packages/catts_frontend/dist"],
       "type": "assets"
     }
