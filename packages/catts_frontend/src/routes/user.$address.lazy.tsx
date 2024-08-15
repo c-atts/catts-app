@@ -37,7 +37,7 @@ function Index() {
   }
 
   return (
-    <div className="flex flex-col w-full">
+    <div className="flex flex-col w-[1250px] mb-10 bg-radial flex-grow">
       <div className="flex items-center mb-14">
         {userEnsName && <EnsAvatar ensName={userEnsName} />}
         {!userEnsName && <CircleUserRoundIcon className="w-20 h-20 mr-3" />}

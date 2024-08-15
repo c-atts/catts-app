@@ -27,7 +27,7 @@ function Index() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-[1250px] mb-10 bg-radial flex-grow">
       <h1>Popular recipes</h1>
       <div className="flex flex-col gap-5">
         {recipes?.map((recipe) => (

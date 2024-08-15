@@ -13,7 +13,7 @@ function Index() {
 
   return (
     <RunContextProvider runId={runId}>
-      <div className="flex gap-5 w-full">
+      <div className="flex gap-5 w-[1250px] mb-10">
         <div className="flex flex-col gap-5 w-2/3">
           <RunDetails />
           <AttestationDetails />

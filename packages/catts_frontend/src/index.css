@@ -78,7 +78,7 @@
     filter: brightness(0.95);
   }
   .classic-link {
-    @apply text-secondary-foreground underline font-medium;
+    @apply font-medium underline hover:bg-black/10;
   }
   .prose {
     h1 {
@@ -92,5 +92,29 @@
       margin-top: 0.8em;
       margin-bottom: 0.3em;
     }
+  }
+  .bg-radial {
+    background: rgb(235, 179, 11);
+    background: radial-gradient(
+      circle,
+      rgba(235, 179, 11, 0.48363095238095233) 0%,
+      rgba(248, 245, 237, 1) 52%
+    );
+  }
+  .bg-landing-1 {
+    background: rgb(248, 245, 237);
+    background: linear-gradient(
+      237deg,
+      rgba(248, 245, 237, 1) 39%,
+      rgba(235, 179, 11, 1) 100%
+    );
+  }
+  .bg-landing-2 {
+    background: rgb(220, 192, 189);
+    background: linear-gradient(
+      318deg,
+      rgba(220, 192, 189, 1) 0%,
+      rgba(248, 245, 237, 1) 61%
+    );
   }
 }
