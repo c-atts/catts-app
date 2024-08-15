@@ -15,7 +15,7 @@ export default function RunsList() {
       {data.map((run) => (
         <RunsListItem key={run.id} run={run} />
       ))}
-      <Link className="classic-link" search={{ page: 1 }} to="/runs">
+      <Link className="classic-link max-w-fit" search={{ page: 1 }} to="/runs">
         View all runs
       </Link>
     </div>

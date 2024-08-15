@@ -12,7 +12,7 @@ function Index() {
   return (
     <div className="flex flex-col w-full items-center bg-radial flex-grow">
       <div className="w-full flex flex-col items-center my-20">
-        <h1 className="w-full font-semibold leading-tight text-muted-foreground text-6xl text-center">
+        <h1 className="w-full font-semibold leading-tight text-6xl text-center">
           Explore recipes and runs
         </h1>
         <ExploreSearchBox />

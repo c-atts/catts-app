@@ -15,7 +15,11 @@ export default function RecipesList() {
       {data.map((recipe) => (
         <RecipeListItem key={recipe.name} recipe={recipe} />
       ))}
-      <Link className="classic-link" search={{ page: 1 }} to="/recipes">
+      <Link
+        className="classic-link max-w-fit"
+        search={{ page: 1 }}
+        to="/recipes"
+      >
         View all recipes
       </Link>
     </div>

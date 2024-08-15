@@ -15,7 +15,11 @@ export default function RecipesPopularList() {
       {data.map((recipe) => (
         <RecipeListItemNrOfRuns key={recipe.name} recipe={recipe} />
       ))}
-      <Link className="classic-link" search={{ page: 1 }} to="/popular">
+      <Link
+        className="classic-link max-w-fit"
+        search={{ page: 1 }}
+        to="/popular"
+      >
         View all popular
       </Link>
     </div>
