@@ -22,7 +22,7 @@ async function fetchFile(url: string, file: string) {
 
 export const useCreateRecipe = () => {
   const { actor } = useActor();
-  const navigate = useNavigate({ from: "/create" });
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ url }: { url: string }): Promise<Result_2 | null> => {

@@ -156,6 +156,8 @@ export type Database = {
           description: string;
           creator: string;
           created: string;
+          keywords: string[];
+          publish_state: string;
           nr_of_runs: number;
         }[];
       };

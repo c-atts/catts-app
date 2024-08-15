@@ -74,7 +74,7 @@ export default function CreateDialog() {
               rel="noreferrer"
               target="_blank"
             >
-              <nobr>C–ATTS</nobr> documentation
+              <span className="whitespace-nowrap">C–ATTS</span> documentation
             </a>{" "}
             or the{" "}
             <a
@@ -83,7 +83,8 @@ export default function CreateDialog() {
               rel="noreferrer"
               target="_blank"
             >
-              <nobr>C–ATTS</nobr> recipe repository on GitHub
+              <span className="whitespace-nowrap">C–ATTS</span> recipe
+              repository on GitHub
             </a>
             .
           </p>{" "}

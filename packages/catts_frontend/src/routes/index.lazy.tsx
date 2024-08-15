@@ -31,11 +31,11 @@ function Index() {
               </div>
               <div className="md:w-[300px] xl:w-[450px] text-center text-accent-foreground/90 text-lg xl:text-xl leading-relaxed md:text-right">
                 If you can query the data, you can attest to it!{" "}
-                <nobr>C–ATTS</nobr> lets you to attest to a wide range of
-                onchain data, making it easy to create secure and verifiable
-                credentials. Whether it’s <b>identity</b>, <b>reputation</b>, or{" "}
-                <b>transaction data</b>, you can generate attestations on
-                multiple L1s and L2s.
+                <span className="whitespace-nowrap">C–ATTS</span> lets you to
+                attest to a wide range of onchain data, making it easy to create
+                secure and verifiable credentials. Whether it’s <b>identity</b>,{" "}
+                <b>reputation</b>, or <b>transaction data</b>, you can generate
+                attestations on multiple L1s and L2s.
               </div>
             </div>
           </div>
@@ -177,7 +177,8 @@ function Index() {
         <div className="flex flex-col xl:w-[1280px] py-20 lg:py-28 px-5">
           <div className="flex flex-col w-full">
             <div className="w-full font-semibold leading-tight text-muted-foreground text-5xl md:text-6xl xl:text-7xl text-center pb-20">
-              Discover the power of <nobr>C–ATTS</nobr>, start creating
+              Discover the power of{" "}
+              <span className="whitespace-nowrap">C–ATTS</span>, start creating
               composite attestations today.
             </div>
             <div className="w-full flex justify-center">
