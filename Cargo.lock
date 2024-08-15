@@ -439,9 +439,9 @@ dependencies = [
 
 [[package]]
 name = "candid"
-version = "0.10.9"
+version = "0.10.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7df77a80c72fcd356cf37ff59c812f37ff06dc9a81232b3aff0a308cb5996904"
+checksum = "6c30ee7f886f296b6422c0ff017e89dd4f831521dfdcc76f3f71aae1ce817222"
 dependencies = [
  "anyhow",
  "binread",
@@ -2192,13 +2192,13 @@ dependencies = [
 
 [[package]]
 name = "ic-cdk-timers"
-version = "0.7.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "054727a3a1c486528b96349817d54290ff70df6addf417def456ea708a16f7fb"
+checksum = "61fdca8e1d9ffb65ae68019b342c182009de9dc206fd849db0b0e90ee19f6fa4"
 dependencies = [
  "futures",
- "ic-cdk 0.13.2",
- "ic0 0.21.1",
+ "ic-cdk 0.15.0",
+ "ic0 0.23.0",
  "serde",
  "serde_bytes",
  "slotmap",
@@ -2267,9 +2267,9 @@ dependencies = [
 
 [[package]]
 name = "ic-wasi-polyfill"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1617b3be6bc1a4c854fbd86dc97dea3ff4461f70b5c4e95cf895dbc089dac51b"
+checksum = "dcb0693d039ca70039186dbe8c15a280e3f363431549ea7c25c6cf855280130d"
 dependencies = [
  "function_name",
  "ic-cdk 0.13.2",
@@ -4435,13 +4435,13 @@ dependencies = [
 
 [[package]]
 name = "stable-fs"
-version = "0.3.1"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fefe75766646a3c7de5ec64e646d775cb2f59e736bb703e44a5fd0cfc6e87bc7"
+checksum = "524b5b08bd3249c6ed91c7899606c2d4db812732ac838df418ff695a8603effd"
 dependencies = [
  "bitflags 2.5.0",
  "ciborium",
- "ic-cdk 0.13.2",
+ "ic-cdk 0.15.0",
  "ic-stable-structures",
  "serde",
  "serde_bytes",
