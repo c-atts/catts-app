@@ -15,6 +15,11 @@ export default function SimulateRun() {
     simulateProcessStatus === "success" &&
     simulateValidateStatus === "success";
 
+  const anySimulateError =
+    simulateFetchStatus === "error" ||
+    simulateProcessStatus === "error" ||
+    simulateValidateStatus === "error";
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
@@ -48,7 +53,7 @@ export default function SimulateRun() {
             </div>
           </div>
         )}
-        {simulateValidateStatus === "error" && errorMessage && (
+        {anySimulateError && errorMessage && (
           <div className="flex justify-between w-full pl-10">
             <div>Error: {errorMessage}</div>
             <div>🔴</div>
