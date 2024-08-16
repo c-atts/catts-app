@@ -30,7 +30,7 @@ export function CreateAttestationInner() {
       {runStatus >= RunStatus.AttestationCreated && (
         <div className="flex justify-between w-full">
           <div className="text-sm text-foreground/50">Attestation tx</div>
-          <div className="text-sm text-foreground/50">
+          <div className="text-sm">
             <EthTxLink
               chainId={Number(runInProgress.chain_id)}
               tx={runInProgress?.attestation_transaction_hash[0]}
@@ -52,7 +52,7 @@ export function CreateAttestationInner() {
         <>
           <div className="flex justify-between w-full">
             <div className="text-sm text-foreground/50">Attestation uid</div>
-            <div className="text-sm text-foreground/50">
+            <div className="text-sm ">
               <AttestationUidLink
                 chainId={Number(runInProgress.chain_id)}
                 uid={runInProgress?.attestation_uid[0]}

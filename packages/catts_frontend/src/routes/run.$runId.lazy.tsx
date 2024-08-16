@@ -26,7 +26,10 @@ function Index() {
             <CardContent className="flex flex-col gap-2">
               Running a recipe means creating an attestation based on the
               queries and processing logic in that recipe.
-              <p>A recipe can be run on any chain supported by C–ATTS.</p>
+              <p>
+                A recipe can be run on any chain supported by{" "}
+                <span className="whitespace-nowrap">C–ATTS</span>.
+              </p>
             </CardContent>
           </Card>
         </div>

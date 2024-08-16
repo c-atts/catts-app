@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { formatDistance } from "date-fns";
+import { getSchemaUID } from "@ethereum-attestation-service/eas-sdk";
 
 export default function BasicFacts() {
   const { recipeName } = useRecipeContext();
@@ -19,13 +20,23 @@ export default function BasicFacts() {
     return null;
   }
 
-  const { id, name, description, created, keywords, resolver, revokable } =
-    recipe;
+  const {
+    id,
+    name,
+    description,
+    created,
+    keywords,
+    resolver,
+    revokable,
+    schema,
+  } = recipe;
 
   const createdDate = new Date(created);
   const when = formatDistance(new Date(createdDate), new Date(), {
     addSuffix: true,
   });
+
+  const schemaUid = getSchemaUID(schema, resolver, false);
 
   return (
     <Card>
@@ -40,7 +51,17 @@ export default function BasicFacts() {
               Recipe Id:
             </div>
             <div className="w-3/4 flex items-center ml-2">
-              {id} <CopyButton className="ml-1" value={id} />
+              {id.substring(0, 10)} …{id.slice(-8)}
+              <CopyButton className="ml-1" value={id} />
+            </div>
+          </div>
+          <div className="flex w-full">
+            <div className="w-1/4 text-foreground/50 flex items-center">
+              Schema UID:
+            </div>
+            <div className="w-3/4 flex items-center ml-2">
+              {schemaUid.substring(0, 10)} …{schemaUid.slice(-8)}
+              <CopyButton className="ml-1" value={schemaUid} />
             </div>
           </div>
           <div className="flex w-full">
