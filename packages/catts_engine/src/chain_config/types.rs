@@ -16,7 +16,6 @@ pub enum ChainConfigError {
 pub struct ChainConfig {
     pub chain_id: u32,
     pub eth_usd_price: String,
-    pub rpc_api_endpoint: String,
     pub eas_contract: String,
     pub payment_contract: String,
     pub rpc_services: RpcServices,
