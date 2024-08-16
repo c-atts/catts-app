@@ -19,8 +19,6 @@ export function useCreateSchema({
         return null;
       }
 
-      // await wait(500);
-
       const schemaRegistry = new SchemaRegistry(
         CHAIN_CONFIG[chainId].easRegistryAddress,
         {
@@ -32,8 +30,7 @@ export function useCreateSchema({
       const revocable = false;
 
       const transaction = await schemaRegistry.register({
-        schema:
-          "uint8 chainID,string claimID,bool attestMinterIdentity,string comment",
+        schema,
         resolverAddress,
         revocable,
       });
