@@ -4,7 +4,8 @@ use crate::{
     logger,
     recipe::{self, RecipeId, RecipePublishState},
     run::{
-        self, estimate_gas_usage, get_min_user_fee_for_chain, util::estimate_transaction_fees, Run,
+        self, estimate_gas_usage, get_cyclesfee_for_chain, get_min_gasfee_for_chain,
+        util::estimate_transaction_fees, Run,
     },
     user::auth_guard,
 };
@@ -36,9 +37,15 @@ async fn run_create(recipe_id: RecipeId, chain_id: u32) -> Result<Run, HttpError
 
     let user_fee = gas.clone()
         * (fee_estimates.base_fee_per_gas.clone() + fee_estimates.max_priority_fee_per_gas.clone());
-    let min_user_fee =
-        get_min_user_fee_for_chain(chain_id).map_err(HttpError::internal_server_error)?;
-    let user_fee = user_fee.max(min_user_fee);
+
+    let min_gas_fee =
+        get_min_gasfee_for_chain(chain_id).map_err(HttpError::internal_server_error)?;
+
+    let user_fee = user_fee.max(min_gas_fee);
+
+    let cycles_fee = get_cyclesfee_for_chain(chain_id).map_err(HttpError::internal_server_error)?;
+
+    let user_fee = user_fee + cycles_fee;
 
     ic_cdk::println!(
         "base_fee_per_gas: {}, max_priority_fee_per_gas: {}, gas: {}",
