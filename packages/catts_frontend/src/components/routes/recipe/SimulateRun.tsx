@@ -105,7 +105,7 @@ export default function SimulateRun() {
               Simulation was successful. The recipe would generate the following
               attestation:
             </p>
-            <pre className="w-full p-3 overflow-x-auto text-sm border bg-muted/50">
+            <pre className="w-[400px] p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
               {JSON.stringify(simulationOutput, null, 2)}
             </pre>
           </>

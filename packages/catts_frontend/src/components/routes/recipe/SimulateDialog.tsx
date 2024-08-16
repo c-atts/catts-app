@@ -62,7 +62,7 @@ export default function SimulateDialog() {
           <Eye className="w-5 h-5 ml-2" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[450px] overflow-y-auto max-h-[100vh]">
         <DialogHeader>
           <DialogTitle>Simulate recipe</DialogTitle>
           <DialogDescription>

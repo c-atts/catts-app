@@ -15,7 +15,6 @@ export function useCreateSchema({
   const signer = useEthersSigner();
   return useMutation({
     mutationFn: async () => {
-      console.log("chainId", chainId);
       if (!chainId || !schema || !signer) {
         return null;
       }
