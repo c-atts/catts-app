@@ -37,6 +37,10 @@ function formatGraphQLQuery(query: string): string {
   return indentedLines.join("\n");
 }
 
+function formatVariables(variables: string) {
+  return JSON.stringify(JSON.parse(variables), null, 2);
+}
+
 export default function RecipeDetails() {
   const { recipeName } = useRecipeContext();
   const { data: recipe } = useGetRecipeByName(recipeName);
@@ -47,10 +51,6 @@ export default function RecipeDetails() {
   const { queries, processor, schema } = recipe;
 
   const { data: parsedQueries } = recipeQueriesSchema.safeParse(queries);
-
-  const formattedQueryVariables = parsedQueries
-    ? parsedQueries.map((q) => JSON.stringify(JSON.parse(q.variables), null, 2))
-    : "";
 
   return (
     <div className="prose w-full max-w-full">
@@ -69,12 +69,11 @@ export default function RecipeDetails() {
             <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
               {formatGraphQLQuery(q.query)}
             </pre>
+            <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
+              {formatVariables(q.variables)}
+            </pre>
           </div>
         ))}
-      <h2>Query variables</h2>
-      <pre className="w-full p-3 overflow-x-auto text-sm border text-card-foreground bg-muted/50">
-        {formattedQueryVariables}
-      </pre>
       <h2>Processor</h2>
       <pre className="w-full p-3 overflow-x-auto text-sm border text-card-foreground bg-muted/50">
         {processor}
