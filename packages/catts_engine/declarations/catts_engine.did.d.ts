@@ -75,10 +75,12 @@ export type RecipePublishState = { 'Draft' : null } |
   { 'Unpublished' : null } |
   { 'Published' : null };
 export interface RecipeQuery {
-  'endpoint' : string,
-  'query' : string,
-  'variables' : string,
+  'url' : string,
+  'body' : [] | [RecipeQueryBody],
+  'headers' : [] | [string],
+  'filter' : [] | [string],
 }
+export interface RecipeQueryBody { 'query' : string, 'variables' : string }
 export type Result = { 'Ok' : string } |
   { 'Err' : string };
 export type Result_1 = { 'Ok' : ChangeLogResponse } |

@@ -50,7 +50,13 @@ type RecipeDetailsInput = record {
   revokable : bool;
 };
 type RecipePublishState = variant { Draft; Unpublished; Published };
-type RecipeQuery = record { endpoint : text; "query" : text; variables : text };
+type RecipeQuery = record {
+  url : text;
+  body : opt RecipeQueryBody;
+  headers : opt text;
+  filter : opt text;
+};
+type RecipeQueryBody = record { "query" : text; variables : text };
 type Result = variant { Ok : text; Err : text };
 type Result_1 = variant { Ok : ChangeLogResponse; Err : HttpError };
 type Result_2 = variant { Ok : Recipe; Err : HttpError };
