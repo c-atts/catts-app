@@ -2,10 +2,10 @@ use crate::{
     chain_config::{self, ChainConfig},
     eth_address::EthAddress,
     evm::rpc::{eth_estimate_gas, eth_transaction},
-    graphql::insert_dynamic_variables,
+    graphql::replace_dynamic_variables,
     recipe::{Recipe, RecipeQuery},
     run::Run,
-    ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, GQL_PROXY_URL,
+    ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, QUERY_PROXY_URL,
 };
 use anyhow::{anyhow, Result};
 use blake2::{
@@ -20,13 +20,13 @@ use ethers_core::{
 use ic_cdk::api::{
     call::RejectionCode,
     management_canister::http_request::{
-        http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, TransformContext,
+        http_request, CanisterHttpRequestArgument, HttpMethod, TransformContext,
     },
 };
 use javy::Runtime;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::{collections::HashMap, str::FromStr, sync::Arc};
+use serde_json::{json, Value};
+use std::{str::FromStr, sync::Arc};
 use thiserror::Error;
 
 // Enum to represent possible types for SchemaValue
@@ -131,23 +131,6 @@ pub fn get_schema_uid(
     Ok(keccak256(encoded))
 }
 
-pub fn get_eas_http_headers(recipe_query_url: &str) -> Vec<HttpHeader> {
-    vec![
-        HttpHeader {
-            name: "User-Agent".to_string(),
-            value: "catts/0.0.1".to_string(),
-        },
-        HttpHeader {
-            name: "Content-Type".to_string(),
-            value: "application/json".to_string(),
-        },
-        HttpHeader {
-            name: "x-gql-query-url".to_string(),
-            value: recipe_query_url.to_string(),
-        },
-    ]
-}
-
 #[derive(Error, Debug)]
 pub enum RunEasQueryError {
     #[error("Request failed: {message:?}, code: {rejection_code:?}")]
@@ -157,37 +140,59 @@ pub enum RunEasQueryError {
     },
 }
 
+fn get_body(recipe_query: &RecipeQuery, address: &EthAddress) -> String {
+    let mut query_body = json!({
+        "url": replace_dynamic_variables(&recipe_query.url, address),
+    });
+
+    if let Some(headers) = &recipe_query.headers {
+        if let Value::Object(ref mut map) = query_body {
+            let processed_headers = replace_dynamic_variables(headers, address);
+            map.insert("headers".to_string(), Value::String(processed_headers));
+        }
+    }
+
+    if let Some(filter) = &recipe_query.filter {
+        if let Value::Object(ref mut map) = query_body {
+            let processed_filter = replace_dynamic_variables(filter, address);
+            map.insert("filter".to_string(), Value::String(processed_filter));
+        }
+    }
+
+    if let Some(body) = &recipe_query.body {
+        if let Value::Object(ref mut map) = query_body {
+            let processed_variables = replace_dynamic_variables(&body.variables, address);
+            map.insert(
+                "body".to_string(),
+                json!({
+                    "query": body.query,
+                    "variables": processed_variables,
+                }),
+            );
+        }
+    }
+
+    query_body.to_string()
+}
+
 pub async fn run_query(
     address: &EthAddress,
     recipe_query: &RecipeQuery,
 ) -> Result<String, RunEasQueryError> {
-    let mut dynamic_values: HashMap<String, String> = HashMap::new();
-    dynamic_values.insert("user_eth_address".to_string(), address.as_str().to_string());
-    dynamic_values.insert(
-        "user_eth_address_lowercase".to_string(),
-        address.as_str().to_lowercase(),
-    );
-    let variables = insert_dynamic_variables(&recipe_query.variables, &dynamic_values);
-    let payload = format!(
-        r#"{{"query":"{}","variables":{}}}"#,
-        recipe_query.query, variables
-    );
-    let payload = payload.into_bytes();
-
-    let http_headers = get_eas_http_headers(&recipe_query.endpoint);
+    let body = get_body(recipe_query, address).into_bytes();
 
     let mut hasher = Blake2bVar::new(12).unwrap();
-    hasher.update(&payload);
+    hasher.update(&body);
     let mut cache_key = [0u8; 12];
     hasher.finalize_variable(&mut cache_key).unwrap();
     let cache_key = hex::encode(cache_key);
 
-    let url = format!("{}/{}", GQL_PROXY_URL, cache_key);
+    let url = format!("{}/{}", QUERY_PROXY_URL, cache_key);
     let request = CanisterHttpRequestArgument {
         url,
-        method: HttpMethod::GET,
-        headers: http_headers,
-        body: Some(payload),
+        method: HttpMethod::POST,
+        headers: vec![],
+        body: Some(body),
         max_response_bytes: None,
         transform: Some(TransformContext::from_name(
             "transform".to_string(),

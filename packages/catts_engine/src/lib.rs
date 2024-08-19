@@ -55,7 +55,7 @@ const ETH_PAYMENT_EVENT_SIGNATURE: &str =
 
 const TIMER_INTERVAL_EXECUTE_TASKS: u64 = 15; // 15 seconds
 
-const GQL_PROXY_URL: &str = "https://catts-gql-proxy.kristofer-977.workers.dev";
+const QUERY_PROXY_URL: &str = "https://catts-gql-proxy.kristofer-977.workers.dev";
 
 const WASI_MEMORY_ID: MemoryId = MemoryId::new(0);
 const USERS_MEMORY_ID: MemoryId = MemoryId::new(1);
