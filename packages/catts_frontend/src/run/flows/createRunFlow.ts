@@ -151,7 +151,14 @@ async function createAttestation(
             });
             return false;
           } else {
-            if (getRunStatus(res.Ok) === RunStatus.AttestationUidConfirmed) {
+            const runStatus = getRunStatus(res.Ok);
+            if (runStatus === RunStatus.AttestationCreated) {
+              runStateStore.send({
+                type: "setRunInProgress",
+                run: res.Ok,
+              });
+            }
+            if (runStatus === RunStatus.AttestationUidConfirmed) {
               runStateStore.send({
                 type: "setRunInProgress",
                 run: res.Ok,
