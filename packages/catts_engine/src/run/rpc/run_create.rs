@@ -9,6 +9,7 @@ use crate::{
     },
     user::auth_guard,
 };
+use candid::Nat;
 use ic_cdk::{api::canister_balance, update};
 
 #[update]
@@ -47,16 +48,20 @@ async fn run_create(recipe_id: RecipeId, chain_id: u32) -> Result<Run, HttpError
 
     let user_fee = user_fee + cycles_fee;
 
+    // Add 2% of the base fee to the max priority fee per gas
+    let max_priority_fee_per_gas = fee_estimates.max_priority_fee_per_gas.clone()
+        + (fee_estimates.base_fee_per_gas.clone() * Nat::from(2u32) / Nat::from(100u32));
+
     ic_cdk::println!(
         "base_fee_per_gas: {}, max_priority_fee_per_gas: {}, gas: {}",
         fee_estimates.base_fee_per_gas,
-        fee_estimates.max_priority_fee_per_gas,
+        max_priority_fee_per_gas,
         gas
     );
 
     run.gas = Some(gas);
     run.base_fee_per_gas = Some(fee_estimates.base_fee_per_gas);
-    run.max_priority_fee_per_gas = Some(fee_estimates.max_priority_fee_per_gas);
+    run.max_priority_fee_per_gas = Some(max_priority_fee_per_gas);
     run.user_fee = Some(user_fee);
 
     let run = run::create(run);
