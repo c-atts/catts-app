@@ -58,20 +58,44 @@ export default function RecipeDetails() {
       <pre className="w-full p-3 overflow-x-auto text-sm border  text-card-foreground bg-muted/50">
         {JSON.stringify(schema, null, 2)}
       </pre>
+
       <h2>Queries</h2>
       {parsedQueries &&
         parsedQueries.map((q, index) => (
           <div key={index}>
             <h3>#{index + 1}</h3>
+            <h4>URL</h4>
             <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
-              {q.endpoint}
+              {q.url}
             </pre>
-            <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
-              {formatGraphQLQuery(q.query)}
-            </pre>
-            <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
-              {formatVariables(q.variables)}
-            </pre>
+            {q.headers && (
+              <>
+                <h4>Headers</h4>
+                <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
+                  {q.headers}
+                </pre>
+              </>
+            )}
+            {q.filter && (
+              <>
+                <h4>Filter</h4>
+                <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
+                  {q.filter}
+                </pre>
+              </>
+            )}
+            {q.body && (
+              <>
+                <h4>GraphQL Query</h4>
+                <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
+                  {formatGraphQLQuery(q.body.query)}
+                </pre>
+                <h4>GraphQL Variables</h4>
+                <pre className="w-full p-3 overflow-x-auto text-sm text-card-foreground border bg-muted/50">
+                  {formatVariables(q.body.variables)}
+                </pre>
+              </>
+            )}
           </div>
         ))}
       <h2>Processor</h2>

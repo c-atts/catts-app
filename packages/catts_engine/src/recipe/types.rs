@@ -49,15 +49,26 @@ impl fmt::Display for RecipePublishState {
 }
 
 #[derive(Serialize, Deserialize, Debug, CandidType, Clone, Validate)]
-pub struct RecipeQuery {
-    #[validate(length(min = 1, max = 255))]
-    pub endpoint: String,
-
+pub struct RecipeQueryBody {
     #[validate(length(min = 1, max = 1024))]
     pub query: String,
 
     #[validate(length(min = 1, max = 1024))]
     pub variables: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, CandidType, Clone, Validate)]
+pub struct RecipeQuery {
+    #[validate(length(min = 1, max = 512))]
+    pub url: String,
+
+    #[validate(length(min = 1, max = 1024))]
+    pub headers: Option<String>,
+
+    #[validate(length(min = 1, max = 512))]
+    pub filter: Option<String>,
+
+    pub body: Option<RecipeQueryBody>,
 }
 
 #[derive(Serialize, Deserialize, CandidType, Clone, Validate)]

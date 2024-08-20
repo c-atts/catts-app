@@ -73,7 +73,8 @@ export function PayForRunInner() {
 
 function cutSomeDecimals(input: string, decimals: number) {
   const originalDecimals = input.split(".")[1] || "";
-  const formattedNumber = Number(input).toFixed(decimals);
+  let formattedNumber = Number(input).toFixed(decimals);
+  formattedNumber = formattedNumber.replace(/\.?0+$/, "");
   const shouldAddEllipsis = originalDecimals.length > decimals;
   return shouldAddEllipsis ? `${formattedNumber}…` : formattedNumber;
 }

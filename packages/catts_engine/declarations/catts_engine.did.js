@@ -46,10 +46,15 @@ export const idlFactory = ({ IDL }) => {
     'message' : IDL.Text,
     'timestamp' : IDL.Nat64,
   });
-  const RecipeQuery = IDL.Record({
-    'endpoint' : IDL.Text,
+  const RecipeQueryBody = IDL.Record({
     'query' : IDL.Text,
     'variables' : IDL.Text,
+  });
+  const RecipeQuery = IDL.Record({
+    'url' : IDL.Text,
+    'body' : IDL.Opt(RecipeQueryBody),
+    'headers' : IDL.Opt(IDL.Text),
+    'filter' : IDL.Opt(IDL.Text),
   });
   const RecipeDetailsInput = IDL.Record({
     'resolver' : IDL.Text,

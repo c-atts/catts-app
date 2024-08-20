@@ -100,8 +100,3 @@ export const allowedChains: number[] = [
 ];
 
 export type AllowedChainIds = 10 | 11155111 | 8453 | 42161;
-
-// The Graph
-
-export const GQL_QUERY_PROXY_URL =
-  "https://catts-gql-proxy.kristofer-977.workers.dev";
