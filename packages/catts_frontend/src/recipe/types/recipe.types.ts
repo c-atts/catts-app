@@ -8,10 +8,19 @@ export type RecipeBasics = Pick<
   "id" | "name" | "description" | "creator" | "created" | "publish_state"
 >;
 
+export const recipeQueryBodySchema = z
+  .object({
+    query: z.string(),
+    variables: z.string(),
+  })
+  .optional()
+  .nullable();
+
 export const recipeQuerySchema = z.object({
-  endpoint: z.string(),
-  query: z.string(),
-  variables: z.string(),
+  url: z.string(),
+  headers: z.string().optional().nullable(),
+  filter: z.string().optional().nullable(),
+  body: recipeQueryBodySchema,
 });
 
 export type RecipeQuery = z.infer<typeof recipeQuerySchema>;
