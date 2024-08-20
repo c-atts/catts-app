@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useActor } from "@/lib/ic/ActorProvider";
 import errorToast from "@/lib/util/errorToast";
 import { Recipe, Result_2 } from "catts_engine/declarations/catts_engine.did";
+import { triggerReindexing } from "@/lib/supabase/triggerReindexing";
 function processUrl(url: string) {
   if (url.startsWith("https://github.com")) {
     const u = url.replace(
@@ -65,11 +66,10 @@ export const useCreateRecipe = ({
               ]
             : [];
         }
-        console.log(payload.queries);
       }
       const createResult = await actor.recipe_create(payload, readme);
       if ("Ok" in createResult) {
-        await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
+        await triggerReindexing();
         await queryClient.invalidateQueries({
           queryKey: ["recipes"],
         });

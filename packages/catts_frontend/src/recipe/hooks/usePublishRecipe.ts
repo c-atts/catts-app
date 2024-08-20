@@ -3,6 +3,7 @@ import toast from "react-hot-toast";
 import { useActor } from "@/lib/ic/ActorProvider";
 import errorToast from "@/lib/util/errorToast";
 import { hexToBytes } from "viem";
+import { triggerReindexing } from "@/lib/supabase/triggerReindexing";
 
 export const usePublishRecipe = () => {
   const { actor } = useActor();
@@ -15,7 +16,7 @@ export const usePublishRecipe = () => {
         hexToBytes(recipeId as `0x${string}`),
       );
       if ("Ok" in result) {
-        await fetch(import.meta.env.VITE_SUPABASE_REINDEX_URL);
+        await triggerReindexing();
         await queryClient.invalidateQueries({
           queryKey: ["recipes"],
         });
