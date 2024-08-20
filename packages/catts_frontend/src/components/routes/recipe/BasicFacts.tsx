@@ -11,10 +11,19 @@ import {
 import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { formatDistance } from "date-fns";
 import { getSchemaUID } from "@ethereum-attestation-service/eas-sdk";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function BasicFactsSkeleton() {
+  return <Skeleton className="w-full h-[290px] rounded-lg" />;
+}
 
 export default function BasicFacts() {
   const { recipeName } = useRecipeContext();
-  const { data: recipe } = useGetRecipeByName(recipeName);
+  const { data: recipe, isPending } = useGetRecipeByName(recipeName);
+
+  if (isPending) {
+    return <BasicFactsSkeleton />;
+  }
 
   if (!recipe) {
     return null;

@@ -10,6 +10,7 @@ import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { mainnet } from "viem/chains";
 import { useEnsName } from "wagmi";
 import { Link } from "@tanstack/react-router";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function LatestRunItem({ run }: { run: RunBasics }) {
   const { chain_id, created } = run;
@@ -38,13 +39,20 @@ function LatestRunItem({ run }: { run: RunBasics }) {
     </Link>
   );
 }
+function LatestRunsSkeleton() {
+  return <Skeleton className="w-full h-[290px] rounded-lg" />;
+}
 
 export default function LatestRuns() {
   const { recipeName } = useRecipeContext();
   const { data: recipe } = useGetRecipeByName(recipeName);
   const { data, isPending } = useLatestRecipeRuns({ recipeId: recipe?.id });
 
-  if (isPending || !data) {
+  if (isPending) {
+    return <LatestRunsSkeleton />;
+  }
+
+  if (!data) {
     return null;
   }
 

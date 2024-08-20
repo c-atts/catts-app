@@ -9,18 +9,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import PublishAndDelete from "@/components/routes/recipe/PublishAndDelete";
 import RunOrSimulate from "@/components/routes/recipe/RunOrSimulate";
 import BasicFacts from "@/components/routes/recipe/BasicFacts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
 });
 
+function IndexSkeleton() {
+  return <Skeleton className="w-full h-[600px] rounded-lg" />;
+}
+
 function IndexInner() {
   const { recipeName } = useRecipeContext();
-  const { data: recipe } = useGetRecipeByName(recipeName);
-
-  if (!recipe || "Err" in recipe) {
-    return <div>Recipe not found</div>;
-  }
+  const { isPending } = useGetRecipeByName(recipeName);
 
   return (
     <div className="flex flex-col xl:flex-row w-full xl:w-[1280px] gap-5 mb-10 px-5 xl:px-0">
@@ -28,13 +29,17 @@ function IndexInner() {
         <BasicFacts />
         <RunOrSimulate />
       </div>
-      <Card className="w-full xl:w-2/3">
-        <PublishAndDelete />
-        <CardContent className="mt-6 flex flex-col">
-          <RecipeReadme />
-          <RecipeDetails />
-        </CardContent>
-      </Card>
+      {isPending ? (
+        <IndexSkeleton />
+      ) : (
+        <Card className="w-full xl:w-2/3">
+          <PublishAndDelete />
+          <CardContent className="mt-6 flex flex-col">
+            <RecipeReadme />
+            <RecipeDetails />
+          </CardContent>
+        </Card>
+      )}
       <div className="xl:hidden">
         <LatestRuns />
       </div>
