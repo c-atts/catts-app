@@ -54,8 +54,18 @@ export const useCreateRecipe = ({
       payload.keywords = payload.keywords ? [payload.keywords] : [];
       if (Array.isArray(payload.queries)) {
         for (const query of payload.queries) {
-          query.variables = JSON.stringify(query.variables);
+          query.filter = query.filter ? [query.filter] : [];
+          query.headers = query.headers ? [JSON.stringify(query.headers)] : [];
+          query.body = query.body
+            ? [
+                {
+                  query: query.body.query,
+                  variables: JSON.stringify(query.body.variables),
+                },
+              ]
+            : [];
         }
+        console.log(payload.queries);
       }
       const createResult = await actor.recipe_create(payload, readme);
       if ("Ok" in createResult) {
