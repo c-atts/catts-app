@@ -21,14 +21,20 @@ export async function startSimulateRunFlow({
     status: "pending",
   });
 
-  const queryData = await fetchRecipeQueries(recipe, address);
+  let queryData: any;
+  try {
+    queryData = await fetchRecipeQueries(recipe, address);
 
-  if (!queryData) {
-    handleError(
-      undefined,
-      "simulateFetchStatus",
-      "Recipe queries didn't return any data",
-    );
+    if (!queryData) {
+      handleError(
+        undefined,
+        "simulateFetchStatus",
+        "Recipe queries didn't return any data",
+      );
+      return false;
+    }
+  } catch (e) {
+    handleError(e, "simulateFetchStatus", "Couldn't fetch recipe queries");
     return false;
   }
 

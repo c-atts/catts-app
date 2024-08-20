@@ -1,55 +1,27 @@
-import { GQL_QUERY_PROXY_URL } from "@/config";
 import { randomString } from "remeda";
-import { RecipeFull, recipeQueriesSchema } from "./types/recipe.types";
-
-function parseVariablesTemplate(
-  variablesTemplate: string,
-  dynamicValues: Record<string, string>,
-) {
-  if (!variablesTemplate) return {};
-  return JSON.parse(
-    variablesTemplate.replace(
-      /\{(\w+)\}/g,
-      (match, key) => dynamicValues[key] || match,
-    ),
-  );
-}
+import { RecipeFull } from "./types/recipe.types";
+import { fetchQuery, queriesSchema } from "catts-sdk";
 
 export async function fetchRecipeQueries(
   recipe: RecipeFull | undefined,
   address?: string,
 ) {
-  if (!recipe || !recipe?.name || !address) {
+  if (!recipe || !recipe?.name || !address || !recipe.queries) {
     return null;
   }
 
-  const dynamicVariables = {
-    user_eth_address: address ?? "",
-    user_eth_address_lowercase: (address ?? "").toLowerCase(),
-  };
-
-  const { success, data: recipeQueries } = recipeQueriesSchema.safeParse(
-    recipe.queries,
-  );
-
-  if (!success) {
-    console.error("Invalid recipe queries", recipe.queries);
-    throw new Error("Invalid recipe queries");
-  }
+  const recipeQueries = queriesSchema.parse(recipe.queries);
 
   const aggregatedResponse: any[] = [];
   for (const query of recipeQueries) {
-    const queryVariables = parseVariablesTemplate(
-      query.variables,
-      dynamicVariables,
-    );
-
     try {
-      const queryResponse = await requestQuery(
-        query.query,
-        queryVariables,
-        query.endpoint,
-      );
+      const queryResponse = await fetchQuery({
+        query,
+        cacheKey: randomString(8),
+        placeHolderValues: {
+          userEthAddress: address,
+        },
+      });
 
       if (typeof queryResponse !== "object") {
         throw new Error(
@@ -65,17 +37,4 @@ export async function fetchRecipeQueries(
   }
 
   return aggregatedResponse;
-}
-
-async function requestQuery(query: string, variables: any, queryUrl: string) {
-  const cacheId = randomString(8);
-  const url = `${GQL_QUERY_PROXY_URL}/${cacheId}`;
-  return fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-gql-query-url": queryUrl,
-    },
-    body: JSON.stringify({ query, variables }),
-  }).then((res) => res.json());
 }

@@ -48,7 +48,7 @@
     "@xstate/store": "^2.1.0",
     "catts_engine": "0.0.1",
     "catts_payments": "0.0.1",
-    "catts-sdk": "^0.0.6",
+    "catts-sdk": "^0.0.12",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
