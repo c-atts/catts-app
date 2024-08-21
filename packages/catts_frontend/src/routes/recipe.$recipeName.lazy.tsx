@@ -10,6 +10,7 @@ import PublishAndDelete from "@/components/routes/recipe/PublishAndDelete";
 import RunOrSimulate from "@/components/routes/recipe/RunOrSimulate";
 import BasicFacts from "@/components/routes/recipe/BasicFacts";
 import { Skeleton } from "@/components/ui/skeleton";
+import RevealDetails from "@/components/routes/recipe/RevealDetails";
 
 export const Route = createLazyFileRoute("/recipe/$recipeName")({
   component: Index,
@@ -36,7 +37,9 @@ function IndexInner() {
           <PublishAndDelete />
           <CardContent className="mt-6 flex flex-col">
             <RecipeReadme />
-            <RecipeDetails />
+            <RevealDetails>
+              <RecipeDetails />
+            </RevealDetails>
           </CardContent>
         </Card>
       )}
