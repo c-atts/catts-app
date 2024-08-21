@@ -12,6 +12,8 @@ import { useGetRecipeByName } from "@/recipe/hooks/useGetRecipeByName";
 import { formatDistance } from "date-fns";
 import { getSchemaUID } from "@ethereum-attestation-service/eas-sdk";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAccount } from "wagmi";
+import { CHAIN_CONFIG } from "@/config";
 
 function BasicFactsSkeleton() {
   return <Skeleton className="w-full h-[290px] rounded-lg" />;
@@ -20,6 +22,11 @@ function BasicFactsSkeleton() {
 export default function BasicFacts() {
   const { recipeName } = useRecipeContext();
   const { data: recipe, isPending } = useGetRecipeByName(recipeName);
+  const { chainId } = useAccount();
+
+  const easExplorerUrl = chainId
+    ? CHAIN_CONFIG[chainId]?.easExplorerUrl
+    : undefined;
 
   if (isPending) {
     return <BasicFactsSkeleton />;
@@ -69,7 +76,14 @@ export default function BasicFacts() {
               Schema UID:
             </div>
             <div className="w-3/4 flex items-center ml-2">
-              {schemaUid.substring(0, 10)} …{schemaUid.slice(-8)}
+              <a
+                className="classic-link"
+                href={`${easExplorerUrl}/schema/view/${schemaUid}`}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {schemaUid.substring(0, 10)} …{schemaUid.slice(-8)}
+              </a>
               <CopyButton className="ml-1" value={schemaUid} />
             </div>
           </div>

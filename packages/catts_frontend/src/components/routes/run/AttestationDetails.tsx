@@ -11,6 +11,7 @@ import { useAttestation } from "@/lib/eas/hooks/useAttestation";
 import { useGetRecipeById } from "@/recipe/hooks/useGetRecipeById";
 import { useGetRunById } from "@/run/hooks/useGetRunById";
 import useRunContext from "@/run/hooks/useRunContext";
+import { getSchemaUID } from "@ethereum-attestation-service/eas-sdk";
 
 export default function AttestationDetails() {
   const { runId } = useRunContext();
@@ -26,10 +27,12 @@ export default function AttestationDetails() {
   }
 
   const { chain_id, attestation_transaction_hash, attestation_uid } = run;
-  const { schema } = recipe;
+  const { schema, resolver } = recipe;
 
+  const schemaUid = getSchemaUID(schema, resolver, false);
   const attestationTransactionUrl = `${CHAIN_CONFIG[chain_id].blockExplorerUrl}/tx/${attestation_transaction_hash}`;
   const attestationUidUrl = `${CHAIN_CONFIG[chain_id].easExplorerUrl}/attestation/view/${attestation_uid}`;
+  const schemaUrl = `${CHAIN_CONFIG[chain_id].easExplorerUrl}/schema/view/${schemaUid}`;
   const decodedData = decodeData({ data: attestation?.data, schema });
 
   return (
@@ -81,6 +84,24 @@ export default function AttestationDetails() {
                   {attestation_uid}
                 </Link>
                 <CopyButton className="ml-1" value={attestation_uid} />
+              </div>
+            </div>
+          )}
+          {chain_id && (
+            <div className="flex w-full">
+              <div className="flex items-center w-1/4 text-foreground/50">
+                Schema UID:
+              </div>
+              <div className="flex items-center w-3/4 ml-2">
+                <a
+                  className="classic-link block truncate"
+                  href={schemaUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {schemaUid}
+                </a>
+                <CopyButton className="ml-1" value={schemaUid} />
               </div>
             </div>
           )}
