@@ -80,7 +80,7 @@ export default function CreateDialog() {
           A C–ATTS recipe defines the queries and the processing logic needed to
           create a composite attestation.{" "}
           <p>
-            Recipes are create and tested locally before being uploaded and
+            Recipes are created and tested locally before being uploaded and
             published onchain. For more details, see the{" "}
             <a
               className="classic-link"
