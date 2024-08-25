@@ -12,6 +12,7 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   plugins: ["react-refresh"],
   rules: {
+    "no-unused-vars": ["warn"],
     "react/jsx-sort-props": ["warn"],
     "react/sort-prop-types": ["warn"],
     "react-refresh/only-export-components": [
