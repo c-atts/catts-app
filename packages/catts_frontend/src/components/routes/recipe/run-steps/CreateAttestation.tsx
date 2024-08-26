@@ -9,7 +9,7 @@ import { runStateStore } from "@/run/RunStateStore";
 export function CreateAttestationInner() {
   const { runInProgress, errorMessage, createAttestationStatus } = useSelector(
     runStateStore,
-    (state) => state.context,
+    (state) => state.context
   );
 
   const runStatus = useRunStatus(runInProgress);
@@ -80,7 +80,7 @@ export default function CreateAttestation() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <div className="items-center justify-center w-8 h-8 text-xl font-bold rounded-full flex bg-primary text-primary-foreground">
+        <div className="flex items-center justify-center w-8 h-8 text-xl font-bold rounded-full bg-primary text-primary-foreground">
           5
         </div>
         Create attestation

@@ -1,27 +1,55 @@
+import { AllowedChainIds, CHAIN_CONFIG, wagmiConfig } from "@/config";
+import { TransactionExecutionError, hexToBytes, toHex } from "viem";
+import { waitForTransactionReceipt, writeContract } from "@wagmi/core";
+
+import { ActorSubclass } from "@dfinity/agent";
+import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
 import { RecipeFull } from "@/recipe/types/recipe.types";
 import { Run } from "catts_engine/declarations/catts_engine.did";
-import { runStateStore } from "@/run/RunStateStore";
-import { ActorSubclass } from "@dfinity/agent";
-import { _SERVICE } from "catts_engine/declarations/catts_engine.did";
-import { hexToBytes, toHex, TransactionExecutionError } from "viem";
-import { writeContract, waitForTransactionReceipt } from "@wagmi/core";
-import { AllowedChainIds, CHAIN_CONFIG, wagmiConfig } from "@/config";
-import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
-import { getRunStatus } from "../getRunStatus";
 import { RunStatus } from "../types/run-status.type";
+import { Signer } from "ethers";
+import { _SERVICE } from "catts_engine/declarations/catts_engine.did";
+import { estimateGas } from "@/lib/eas/estimateGas";
+import { getFeeData } from "@/lib/alchemy/getFeeData";
+import { getRunStatus } from "../getRunStatus";
+import { getSchemaUID } from "@ethereum-attestation-service/eas-sdk";
 import { handleError } from "./util/handleError";
+import { runStateStore } from "@/run/RunStateStore";
 import { wait } from "@/lib/util/wait";
 
 const GET_UID_RETRY_LIMIT = 30;
 const GET_UID_RETRY_INTERVAL = 5_000;
 
-async function createRun(
-  recipeId: Uint8Array,
-  chainId: number,
-  actor: ActorSubclass<_SERVICE>,
-) {
+async function estimateTransactionFees(chainId: number) {
   try {
-    const res = await actor.run_create(recipeId, chainId);
+    return await getFeeData({ chainId });
+  } catch (e) {
+    handleError(e, "createRunStatus", "Error getting transaction fees");
+  }
+}
+async function createRun({
+  recipeId,
+  chainId,
+  baseFeePerGas,
+  maxPriorityFeePerGas,
+  gas,
+  actor,
+}: {
+  recipeId: Uint8Array;
+  chainId: number;
+  baseFeePerGas: bigint;
+  maxPriorityFeePerGas: bigint;
+  gas: bigint;
+  actor: ActorSubclass<_SERVICE>;
+}) {
+  try {
+    const res = await actor.run_create(
+      recipeId,
+      chainId,
+      baseFeePerGas,
+      maxPriorityFeePerGas,
+      gas,
+    );
     if (res && "Ok" in res) {
       return res.Ok;
     }
@@ -71,6 +99,14 @@ async function payRun(run: Run, chainId: number) {
         handleError(undefined, "payStatus", "Transaction hash mismatch.");
         return;
       }
+      run.payment_block_number = [receipt.blockNumber];
+      run.payment_log_index = [BigInt(receipt.transactionIndex)];
+      runStateStore.send({
+        type: "setRunInProgress",
+        run,
+      });
+
+      receipt.transactionIndex;
       return receipt;
     } else {
       handleError(undefined, "payStatus", "No transaction receipt returned.");
@@ -185,13 +221,31 @@ async function createAttestation(
 
 export async function startCreateRunFlow({
   recipe,
+  creator,
   actor,
   chainId,
+  signer,
 }: {
   recipe: RecipeFull;
+  creator: string;
   actor: ActorSubclass<_SERVICE>;
   chainId: number;
+  signer: Signer;
 }) {
+  if (!signer.provider) {
+    runStateStore.send({
+      type: "transition",
+      step: "createRunStatus",
+      status: "error",
+    });
+    runStateStore.send({
+      type: "setError",
+      step: "createRunStatus",
+      message: "Couldn't create run. No provider found.",
+    });
+    return false;
+  }
+
   runStateStore.send({
     type: "transition",
     step: "createRunStatus",
@@ -199,16 +253,58 @@ export async function startCreateRunFlow({
   });
 
   // Only proceed if the simulation was successful
-  let snapshot = runStateStore.getSnapshot();
-  if (snapshot.context.simulateValidateStatus !== "success") {
+  const snapshot = runStateStore.getSnapshot();
+  if (
+    snapshot.context.simulateValidateStatus !== "success" ||
+    !snapshot.context.attestationData
+  ) {
+    runStateStore.send({
+      type: "setError",
+      step: "createRunStatus",
+      message: "Couldn't create run. Simulation failed.",
+    });
     return false;
   }
 
-  const run = await createRun(
-    hexToBytes(recipe.id as `0x{string}`),
+  const feeData = await estimateTransactionFees(chainId);
+
+  if (!feeData || !feeData.lastBaseFeePerGas) {
+    runStateStore.send({
+      type: "setError",
+      step: "createRunStatus",
+      message: "Couldn't create run. Error fetching fee data.",
+    });
+    return false;
+  }
+
+  const { provider } = signer;
+  const { schema, resolver } = recipe;
+  const schemaUid = getSchemaUID(schema, resolver, false);
+  const { attestationData } = snapshot.context;
+
+  const gas = await estimateGas({
     chainId,
+    provider,
+    schema,
+    schemaUid,
+    attestationData,
+    recipient: creator,
+  });
+
+  const recipeId = hexToBytes(recipe.id as `0x{string}`);
+  const baseFeePerGas = BigInt(feeData.lastBaseFeePerGas.toString());
+
+  // Max priority fee is 10% of the base fee
+  const maxPriorityFeePerGas = (baseFeePerGas * BigInt(10)) / BigInt(100);
+
+  const run = await createRun({
+    recipeId,
+    chainId,
+    baseFeePerGas,
+    maxPriorityFeePerGas,
+    gas,
     actor,
-  );
+  });
 
   if (!run) {
     return false;
@@ -226,12 +322,6 @@ export async function startCreateRunFlow({
       { step: "payStatus", status: "pending" },
     ],
   });
-
-  // Only proceed if the simulation was successful
-  snapshot = runStateStore.getSnapshot();
-  if (snapshot.context.simulateValidateStatus !== "success") {
-    return false;
-  }
 
   const receipt = await payRun(run, chainId);
 

@@ -100,3 +100,7 @@ export const allowedChains: number[] = [
 ];
 
 export type AllowedChainIds = 10 | 11155111 | 8453 | 42161;
+
+// Alchemy
+
+export const ALCHEMY_API_KEY = "fA4yD502lz4utnhMnmZz5Kq4ztHOM1Yg";

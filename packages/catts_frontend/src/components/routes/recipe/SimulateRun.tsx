@@ -52,7 +52,7 @@ export default function SimulateRun() {
     simulateFetchStatus,
     simulateProcessStatus,
     simulateValidateStatus,
-    processorOutput: simulationOutput,
+    attestationData: simulationOutput,
   } = useSelector(runStateStore, (state) => state.context);
 
   const isSimulationCompleted = useIsSimulationCompleted();

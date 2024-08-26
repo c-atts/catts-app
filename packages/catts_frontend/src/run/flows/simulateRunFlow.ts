@@ -49,22 +49,15 @@ export async function startSimulateRunFlow({
   });
 
   let processorOutputRaw = "";
-  let processorOutput: ProcessorOutput;
   try {
     const result = await runProcessor({ recipe, queryData });
     processorOutputRaw = result.processorOutputRaw;
-    processorOutput = result.processorOutput;
   } catch (e) {
     handleError(e, "simulateProcessStatus", (e as Error).message);
     return false;
   }
 
   await wait(500);
-
-  runStateStore.send({
-    type: "setProcessorOutput",
-    output: processorOutput,
-  });
 
   runStateStore.send({
     type: "transitionMany",
@@ -79,6 +72,10 @@ export async function startSimulateRunFlow({
       processorResult: processorOutputRaw,
     });
     await validateSchemaItems({ schemaItems, schema: recipe.schema });
+    runStateStore.send({
+      type: "setAttestationData",
+      schemaItems,
+    });
   } catch (e) {
     handleError(e, "simulateValidateStatus", "Couldn't validate output");
     return false;

@@ -69,7 +69,13 @@ export default function RunDialog() {
       return;
     }
 
-    await startCreateRunFlow({ recipe, actor, chainId });
+    await startCreateRunFlow({
+      recipe,
+      actor,
+      chainId,
+      signer,
+      creator: address,
+    });
 
     await triggerReindexingAndInvaliadate();
   }

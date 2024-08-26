@@ -1,4 +1,4 @@
-import { ProcessorOutput } from "@/recipe/types/processor-output.type";
+import { SchemaItem } from "@ethereum-attestation-service/eas-sdk";
 import { createStore } from "@xstate/store";
 import { useSelector } from "@xstate/store/react";
 import { Run } from "catts_engine/declarations/catts_engine.did";
@@ -16,7 +16,7 @@ type RunContext = {
   createAttestationStatus: RunStepStatus;
   errorMessage?: string;
   runInProgress?: Run;
-  processorOutput?: ProcessorOutput;
+  attestationData?: SchemaItem[];
 };
 
 const initialState: RunContext = {
@@ -30,7 +30,7 @@ const initialState: RunContext = {
   createAttestationStatus: "idle",
   errorMessage: undefined,
   runInProgress: undefined,
-  processorOutput: undefined,
+  attestationData: undefined,
 };
 
 type KeysOfType<T, V> = {
@@ -67,8 +67,8 @@ export const runStateStore = createStore(initialState, {
     context.runInProgress = event.run;
     return context;
   },
-  setProcessorOutput: (context, event: { output: ProcessorOutput }) => {
-    context.processorOutput = event.output;
+  setAttestationData: (context, event: { schemaItems: SchemaItem[] }) => {
+    context.attestationData = event.schemaItems;
     return context;
   },
 });
