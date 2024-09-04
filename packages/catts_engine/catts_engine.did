@@ -17,6 +17,13 @@ type ChangeLogResponse = record {
 type ChangeLogTypeName = variant { Run; Recipe; User };
 type HttpError = record { code : nat16; message : text; details : opt text };
 type HttpHeader = record { value : text; name : text };
+type HttpRequest = record {
+  url : text;
+  method : text;
+  body : blob;
+  headers : vec record { text; text };
+  certificate_version : opt nat16;
+};
 type HttpResponse = record {
   status : nat;
   body : blob;
@@ -87,6 +94,8 @@ type User = record { eth_address : text };
 service : (CanisterSettingsInput) -> {
   canister_eth_address : () -> (Result);
   change_log : (nat32, opt nat32) -> (Result_1) query;
+  http_request : (HttpRequest) -> (HttpResponse) query;
+  http_request_update : (HttpRequest) -> (HttpResponse);
   logs : () -> (vec LogItem) query;
   recipe_create : (RecipeDetailsInput, text) -> (Result_2);
   recipe_delete : (blob) -> (Result_2);

@@ -34,15 +34,6 @@
       "package": "backend",
       "type": "custom",
       "wasm": "target/wasm32-wasi/release/catts_engine.wasm.gz"
-    },
-
-    "catts_frontend": {
-      "build": ["npm run build -w catts_frontend"],
-      "declarations": {
-        "output": "packages/catts_frontend/declarations"
-      },
-      "source": ["packages/catts_frontend/dist"],
-      "type": "assets"
     }
   },
   "output_env_file": ".env",

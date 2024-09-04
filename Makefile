@@ -40,6 +40,14 @@ upgrade-siwe:
 	    } \
 	)"
 
+build-frontend:
+	npm install
+	npm run build -w catts_frontend
+
+run-frontend:
+	npm install
+	npm run dev -w catts_frontend
+
 build-engine:
 	export CANISTER_CANDID_PATH_IC_SIWE_PROVIDER=../ic_siwe_provider/ic_siwe_provider.did && \
 	export CANISTER_CANDID_PATH_EVM_RPC=../evm_rpc/evm_rpc.did && \
@@ -59,20 +67,7 @@ deploy-engine: build-engine
 	    } \
 	)"
 
-deploy-frontend:
-	dfx generate catts_engine
-	npm install
-	dfx deploy catts_frontend
-
-deploy-all: create-canisters deploy-siwe deploy-evm-rpc deploy-engine deploy-frontend
-
-build-frontend:
-	npm install
-	npm run build -w catts_frontend
-
-run-frontend:
-	npm install
-	npm run dev -w catts_frontend
+deploy-all: create-canisters deploy-siwe deploy-evm-rpc build-frontend deploy-engine
 
 clean:
 	rm -rf .dfx

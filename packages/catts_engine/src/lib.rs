@@ -1,3 +1,4 @@
+mod certified_data;
 mod chain_config;
 mod change_log;
 mod controllers;
@@ -12,6 +13,7 @@ mod eth_address;
 mod evm;
 mod graphql;
 mod http_error;
+mod http_request;
 mod json;
 mod logger;
 mod recipe;
@@ -21,12 +23,16 @@ mod tasks;
 mod time;
 mod user;
 
+use asset_util::CertifiedAssets;
 use candid::{CandidType, Nat};
+use certified_data::init_assets;
 use chain_config::{init_chain_configs, ChainConfig};
 use change_log::{ChangeLogItem, ChangeLogResponse};
 use eth_address::EthAddressBytes;
 use ethers_core::abi::Contract;
 use http_error::HttpError;
+use http_request::http::HttpRequest;
+use ic_canister_sig_creation::signature_map::SignatureMap;
 use ic_cdk::{
     api::management_canister::http_request::{HttpResponse, TransformArgs},
     export_candid, init, post_upgrade, trap,
@@ -42,7 +48,7 @@ use recipe::{Recipe, RecipeDetailsInput, RecipeId};
 use run::{Run, RunId};
 use serde::{Deserialize, Serialize};
 use serde_bytes::ByteBuf;
-use std::{cell::RefCell, sync::Arc, time::Duration};
+use std::{cell::RefCell, collections::HashMap, sync::Arc, time::Duration};
 use tasks::{execute_tasks, Timestamp};
 use user::User;
 
@@ -64,7 +70,6 @@ const RECIPES_MEMORY_ID: MemoryId = MemoryId::new(3);
 const RECIPE_NAME_INDEX_MEMORY_ID: MemoryId = MemoryId::new(4);
 const RUNS_MEMORY_ID: MemoryId = MemoryId::new(5);
 const TASKS_MEMORY_ID: MemoryId = MemoryId::new(6);
-const CHAIN_CONFIGS_MEMORY_ID: MemoryId = MemoryId::new(7);
 const CHANGE_LOG_INDEX_MEMORY_ID: MemoryId = MemoryId::new(8);
 const CHANGE_LOG_DATA_MEMORY_ID: MemoryId = MemoryId::new(9);
 
@@ -91,12 +96,7 @@ thread_local! {
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
     // CONFIG
-    static CHAIN_CONFIGS: RefCell<StableBTreeMap<u32, ChainConfig, Memory>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(CHAIN_CONFIGS_MEMORY_ID)),
-        )
-    );
-
+    static CHAIN_CONFIGS: RefCell<HashMap<u32, ChainConfig>> = RefCell::new(HashMap::new());
     static CANISTER_SETTINGS: RefCell<CanisterSettings> = RefCell::new(CanisterSettings::default());
 
     // USERS
@@ -147,7 +147,9 @@ thread_local! {
         ).expect("Failed to initialize change log.")
     );
 
-
+    // CERTIFIED ASSETS
+    static SIGNATURES : RefCell<SignatureMap> = RefCell::new(SignatureMap::default());
+    static ASSETS: RefCell<CertifiedAssets> = RefCell::new(CertifiedAssets::default());
 }
 
 fn init_wasi() {
@@ -186,6 +188,7 @@ fn init_and_upgrade(settings: CanisterSettingsInput) {
     save_canister_settings(settings);
     start_task_timer();
     init_chain_configs();
+    init_assets();
 }
 
 #[init]

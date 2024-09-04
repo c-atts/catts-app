@@ -13,9 +13,9 @@ pub fn get_by_id(recipe_id: &RecipeId) -> Result<Recipe, RecipeError> {
         .ok_or(RecipeError::NotFound)
 }
 
-pub fn get_by_name(slug: &String) -> Result<Recipe, RecipeError> {
+pub fn get_by_name(name: &String) -> Result<Recipe, RecipeError> {
     let recipe_id = RECIPE_NAME_INDEX
-        .with_borrow(|recipes| recipes.get(slug))
+        .with_borrow(|recipes| recipes.get(name))
         .ok_or(RecipeError::NotFound)?;
     get_by_id(&recipe_id)
 }
