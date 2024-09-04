@@ -70,5 +70,5 @@ pub fn debug(message: &str) {
 // Get the logs as string for the frontend
 // [timestamp] [level] message
 pub fn get() -> Vec<LogItem> {
-    LOG_ITEMS.with_borrow(|log| log.to_vec())
+    LOG_ITEMS.with_borrow(|log| log.iter().rev().cloned().collect())
 }

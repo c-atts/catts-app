@@ -1,8 +1,9 @@
 use crate::{
-    chain_config::{self, ChainConfig},
+    chain_config::{self},
     eth_address::EthAddress,
-    evm::rpc::{eth_estimate_gas, eth_transaction},
+    evm::rpc::eth_transaction,
     graphql::replace_dynamic_variables,
+    logger::{self},
     recipe::{Recipe, RecipeQuery},
     run::Run,
     ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, QUERY_PROXY_URL,
@@ -179,6 +180,7 @@ pub async fn run_query(
     address: &EthAddress,
     recipe_query: &RecipeQuery,
 ) -> Result<String, RunEasQueryError> {
+    logger::debug("run_query");
     let body = get_body(recipe_query, address).into_bytes();
 
     let mut hasher = Blake2bVar::new(12).unwrap();
@@ -188,27 +190,37 @@ pub async fn run_query(
     let cache_key = hex::encode(cache_key);
 
     let url = format!("{}/{}", QUERY_PROXY_URL, cache_key);
+
     let request = CanisterHttpRequestArgument {
         url,
         method: HttpMethod::POST,
         headers: vec![],
         body: Some(body),
         max_response_bytes: None,
-        transform: Some(TransformContext::from_name(
-            "transform".to_string(),
-            serde_json::to_vec(&Vec::<u8>::new()).unwrap(),
-        )),
+        transform: Some(TransformContext::from_name("transform".to_string(), vec![])),
     };
+
+    logger::debug(&format!("run_query https outcall: url: {:?}", request.url));
 
     match http_request(request, ETH_DEFAULT_CALL_CYCLES).await {
         Ok((response,)) => {
+            logger::debug(&format!(
+                "run_query https outcall ok, response: {:?}",
+                String::from_utf8(response.body.clone())
+            ));
             Ok(String::from_utf8(response.body)
                 .expect("Transformed response is not UTF-8 encoded."))
         }
-        Err((r, m)) => Err(RunEasQueryError::HttpRequestError {
-            rejection_code: r,
-            message: m,
-        }),
+        Err((r, m)) => {
+            logger::debug(&format!(
+                "run_query https outcall error, code: {:?}, message {:?}",
+                r, m
+            ));
+            Err(RunEasQueryError::HttpRequestError {
+                rejection_code: r,
+                message: m,
+            })
+        }
     }
 }
 
@@ -289,8 +301,6 @@ pub async fn create_attestation(
         "Run don't have a max_priority_fee_per_gas amount specified"
     ))?;
 
-    let max_fee_per_gas = base_fee_per_gas + max_priority_fee_per_gas.clone();
-
     let chain_config = chain_config::get(chain_id)?;
 
     Ok(eth_transaction(
@@ -299,28 +309,8 @@ pub async fn create_attestation(
         "attest",
         &[attest_request],
         gas,
-        max_fee_per_gas,
-        max_priority_fee_per_gas,
-        &chain_config,
-    )
-    .await?)
-}
-
-pub async fn estimate_attestation_gas_usage(
-    recipe: &Recipe,
-    attestation_data: &str,
-    recipient: &EthAddress,
-    chain_config: &ChainConfig,
-) -> Result<String> {
-    let attest_request = create_attest_request(recipe, attestation_data, recipient)?;
-
-    let chain_config = chain_config::get(chain_config.chain_id)?;
-
-    Ok(eth_estimate_gas(
-        chain_config.eas_contract.clone(),
-        &Arc::clone(&ETH_EAS_CONTRACT),
-        "attest",
-        &[attest_request],
+        base_fee_per_gas,
+        Some(max_priority_fee_per_gas),
         &chain_config,
     )
     .await?)

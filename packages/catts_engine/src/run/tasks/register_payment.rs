@@ -11,6 +11,7 @@ use crate::{
 use anyhow::{anyhow, bail, Result};
 use ethers_core::abi::ParamType;
 use futures::Future;
+use ic_cdk::api::canister_balance;
 use serde::{Deserialize, Serialize};
 use std::pin::Pin;
 
@@ -31,6 +32,9 @@ pub struct RegisterPaymentExecutor {}
 impl TaskExecutor for RegisterPaymentExecutor {
     fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>> {
         Box::pin(async move {
+            let cycles_before = canister_balance();
+            logger::debug("register_payment");
+
             let args: ProcessRunPaymentArgs = bincode::deserialize(&task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
@@ -69,6 +73,16 @@ impl TaskExecutor for RegisterPaymentExecutor {
                         retry_interval: CREATE_ATTESTATION_RETRY_INTERVAL,
                     },
                 );
+
+                let cycles_after = canister_balance();
+                logger::info(
+                    format!(
+                        "register_payment, cycles spent: {:?}",
+                        cycles_before - cycles_after
+                    )
+                    .as_str(),
+                );
+
                 return Ok(());
             }
 

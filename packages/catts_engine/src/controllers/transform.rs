@@ -3,8 +3,11 @@ use ic_cdk::{
     query,
 };
 
+use crate::logger::{self};
+
 #[query]
 fn transform(raw: TransformArgs) -> HttpResponse {
+    logger::debug(&format!("transform: {:?}", raw));
     let mut res = HttpResponse {
         status: raw.response.status.clone(),
         body: raw.response.body.clone(),

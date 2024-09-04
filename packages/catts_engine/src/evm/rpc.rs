@@ -1,12 +1,11 @@
 use crate::{
     chain_config::ChainConfig,
     declarations::evm_rpc::{
-        evm_rpc, Block, BlockTag, FeeHistory, FeeHistoryArgs, FeeHistoryResult,
-        GetBlockByNumberResult, GetLogsArgs, GetLogsResult, GetTransactionCountArgs,
-        GetTransactionCountResult, GetTransactionReceiptResult, LogEntry, MultiFeeHistoryResult,
-        MultiGetBlockByNumberResult, MultiGetLogsResult, MultiGetTransactionCountResult,
-        MultiGetTransactionReceiptResult, MultiSendRawTransactionResult, RequestResult, RpcConfig,
-        RpcError, SendRawTransactionResult, SendRawTransactionStatus, TransactionReceipt,
+        evm_rpc, BlockTag, GetLogsArgs, GetLogsResult, GetTransactionCountArgs,
+        GetTransactionCountResult, GetTransactionReceiptResult, LogEntry, MultiGetLogsResult,
+        MultiGetTransactionCountResult, MultiGetTransactionReceiptResult,
+        MultiSendRawTransactionResult, RpcConfig, RpcError, SendRawTransactionResult,
+        SendRawTransactionStatus, TransactionReceipt,
     },
     evm::util::{ecdsa_key_id, nat_to_u256, nat_to_u64},
     ETH_DEFAULT_CALL_CYCLES,
@@ -26,15 +25,10 @@ use ic_cdk::api::{
         ecdsa_public_key, sign_with_ecdsa, EcdsaPublicKeyArgument, SignWithEcdsaArgument,
     },
 };
-use serde_bytes::ByteBuf;
-use serde_json::json;
 use std::{cell::RefCell, str::FromStr};
 use thiserror::Error;
 
-use super::{
-    types::{JsonRpcErrorResponse, JsonRpcResponse, SignRequest},
-    util::get_abi_function_by_name,
-};
+use super::{types::SignRequest, util::get_abi_function_by_name};
 
 async fn next_id(chain_config: &ChainConfig) -> Nat {
     let res: CallResult<(MultiGetTransactionCountResult,)> = call_with_payment128(
@@ -78,9 +72,6 @@ pub enum EthTransactionError {
     #[error("Json error: {0}")]
     JsonError(#[from] serde_json::Error),
 
-    #[error("JsonRpc error: {0:?}")]
-    JsonRpcError(JsonRpcErrorResponse),
-
     #[error("Inconsistent response")]
     InconsistentResponse,
 }
@@ -93,7 +84,7 @@ pub async fn eth_transaction(
     args: &[Token],
     gas: Nat,
     max_fee_per_gas: Nat,
-    max_priority_fee_per_gas: Nat,
+    max_priority_fee_per_gas: Option<Nat>,
     chain_config: &ChainConfig,
 ) -> Result<String, EthTransactionError> {
     let abi_function = get_abi_function_by_name(abi_contract, function_name);
@@ -136,54 +127,6 @@ pub async fn eth_transaction(
         other => Err(EthTransactionError::MultiSendRawTransaction(other)),
     }
 }
-
-pub async fn eth_estimate_gas(
-    contract_address: String,
-    abi_contract: &Contract,
-    function_name: &str,
-    args: &[Token],
-    chain_config: &ChainConfig,
-) -> Result<String, EthTransactionError> {
-    let abi_function = get_abi_function_by_name(abi_contract, function_name);
-    let data = abi_function
-        .encode_input(args)
-        .map_err(|_| EthTransactionError::ArgsEncoding)?;
-
-    let json_rpc_payload = json!({
-        "id": 1,
-        "jsonrpc": "2.0",
-        "method": "eth_estimateGas",
-        "params": [{
-            "to": contract_address,
-            "data": format!("0x{}", hex::encode(data)),
-        }, "latest"],
-    })
-    .to_string();
-
-    let (result,): (RequestResult,) = call_with_payment128(
-        crate::declarations::evm_rpc::evm_rpc.0,
-        "request",
-        (
-            chain_config.default_rpc_service.clone(),
-            json_rpc_payload,
-            2048_u64,
-        ),
-        ETH_DEFAULT_CALL_CYCLES,
-    )
-    .await
-    .map_err(EthTransactionError::CallError)?;
-
-    match result {
-        RequestResult::Ok(s) => serde_json::from_str::<JsonRpcResponse>(&s)
-            .map_err(EthTransactionError::JsonError)
-            .and_then(|r| match r {
-                JsonRpcResponse::Success(s) => Ok(s.result),
-                JsonRpcResponse::Error(e) => Err(EthTransactionError::JsonRpcError(e)),
-            }),
-        RequestResult::Err(e) => Err(EthTransactionError::RpcError(e)),
-    }
-}
-
 pub async fn eth_get_transaction_receipt(
     hash: &str,
     chain_config: &ChainConfig,
@@ -246,6 +189,8 @@ async fn sign_transaction(req: SignRequest) -> String {
 
     const EIP1559_TX_ID: u8 = 2;
 
+    let max_priority_fee_per_gas = req.max_priority_fee_per_gas.map(|fee| nat_to_u256(&fee));
+
     let tx = Eip1559TransactionRequest {
         chain_id: Some(nat_to_u64(&req.chain_id)),
         from: None,
@@ -260,7 +205,7 @@ async fn sign_transaction(req: SignRequest) -> String {
         data: req.data,
         access_list: Default::default(),
         max_fee_per_gas: Some(nat_to_u256(&req.max_fee_per_gas)),
-        max_priority_fee_per_gas: Some(nat_to_u256(&req.max_priority_fee_per_gas)),
+        max_priority_fee_per_gas,
     };
 
     let mut unsigned_tx_bytes = tx.rlp().to_vec();
@@ -355,123 +300,4 @@ pub async fn get_self_eth_address() -> String {
     }
 
     SELF_ETH_ADDRESS.with(|maybe_address| maybe_address.borrow().clone().unwrap())
-}
-
-#[derive(Error, Debug)]
-pub enum EvmRpcError {
-    #[error("Rpc error: {0}")]
-    Rpc(String),
-    #[error("IC call error: {0}")]
-    Ic(String),
-    #[error("Inconsistent responses from multiple RPC services")]
-    Inconsistent,
-    #[error("Unexpected error: {0}")]
-    Unexpected(String),
-}
-
-/// Returns the latest block with one caveat: if multiple Rpc services are specified and
-/// they return inconsistent responses, the function will return the earliest block in the
-/// - the "smallest common" latest block.
-pub async fn eth_get_block_by_number(
-    block_tag: BlockTag,
-    chain_config: &ChainConfig,
-) -> Result<Block, EvmRpcError> {
-    let call_result: CallResult<(MultiGetBlockByNumberResult,)> = call_with_payment128(
-        evm_rpc.0,
-        "eth_getBlockByNumber",
-        (
-            chain_config.rpc_services.clone(),
-            None::<RpcConfig>,
-            block_tag,
-            false,
-        ),
-        ETH_DEFAULT_CALL_CYCLES,
-    )
-    .await;
-
-    let block: Block = match call_result {
-        Ok((MultiGetBlockByNumberResult::Consistent(block),)) => match block {
-            GetBlockByNumberResult::Ok(block) => block,
-            GetBlockByNumberResult::Err(e) => {
-                return Err(EvmRpcError::Rpc(format!("{:?}", e)));
-            }
-        },
-        Ok((MultiGetBlockByNumberResult::Inconsistent(res),)) => {
-            let mut maybe_earliest_block: Option<Block> = None;
-            for r in res {
-                if let (_, GetBlockByNumberResult::Ok(b)) = r {
-                    match maybe_earliest_block {
-                        Some(ref earliest_block) => {
-                            if b.number < earliest_block.number {
-                                maybe_earliest_block = Some(b);
-                            }
-                        }
-                        None => {
-                            maybe_earliest_block = Some(b);
-                        }
-                    }
-                }
-            }
-            match maybe_earliest_block {
-                Some(earliest_block) => earliest_block,
-                None => {
-                    return Err(EvmRpcError::Unexpected("No block found".to_string()));
-                }
-            }
-        }
-        Err(e) => {
-            return Err(EvmRpcError::Ic(e.1));
-        }
-    };
-
-    Ok(block)
-}
-
-pub async fn eth_fee_history(
-    block_count: &Nat,
-    newest_block: &BlockTag,
-    reward_percentiles: Option<Vec<u8>>,
-    chain_config: &ChainConfig,
-) -> Result<FeeHistory, EvmRpcError> {
-    let fee_history_args: FeeHistoryArgs = FeeHistoryArgs {
-        blockCount: block_count.clone(),
-        newestBlock: newest_block.clone(),
-        rewardPercentiles: reward_percentiles.map(ByteBuf::from),
-    };
-
-    let call_result: CallResult<(MultiFeeHistoryResult,)> = call_with_payment128(
-        evm_rpc.0,
-        "eth_feeHistory",
-        (
-            chain_config.rpc_services.clone(),
-            None::<RpcConfig>,
-            fee_history_args,
-        ),
-        ETH_DEFAULT_CALL_CYCLES,
-    )
-    .await;
-
-    let fee_history: FeeHistory = match call_result {
-        Ok((res,)) => match res {
-            MultiFeeHistoryResult::Consistent(fee_history) => match fee_history {
-                FeeHistoryResult::Ok(maybe_fee_history) => match maybe_fee_history {
-                    Some(fee_history) => fee_history,
-                    None => {
-                        return Err(EvmRpcError::Unexpected("No fee history found".to_string()));
-                    }
-                },
-                FeeHistoryResult::Err(e) => {
-                    return Err(EvmRpcError::Rpc(format!("{:?}", e)));
-                }
-            },
-            MultiFeeHistoryResult::Inconsistent(_) => {
-                return Err(EvmRpcError::Inconsistent);
-            }
-        },
-        Err(e) => {
-            return Err(EvmRpcError::Ic(e.1));
-        }
-    };
-
-    Ok(fee_history)
 }

@@ -21,7 +21,7 @@ mod tasks;
 mod time;
 mod user;
 
-use candid::CandidType;
+use candid::{CandidType, Nat};
 use chain_config::{init_chain_configs, ChainConfig};
 use change_log::{ChangeLogItem, ChangeLogResponse};
 use eth_address::EthAddressBytes;

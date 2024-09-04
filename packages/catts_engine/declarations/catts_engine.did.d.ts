@@ -131,7 +131,10 @@ export interface _SERVICE {
   'recipe_list' : ActorMethod<[], Result_4>,
   'recipe_publish' : ActorMethod<[Uint8Array | number[]], Result_2>,
   'run_cancel' : ActorMethod<[Uint8Array | number[]], Result_5>,
-  'run_create' : ActorMethod<[Uint8Array | number[], number], Result_5>,
+  'run_create' : ActorMethod<
+    [Uint8Array | number[], number, bigint, bigint, bigint],
+    Result_5
+  >,
   'run_get' : ActorMethod<[Uint8Array | number[]], Result_5>,
   'run_register_payment' : ActorMethod<
     [Uint8Array | number[], string, bigint],

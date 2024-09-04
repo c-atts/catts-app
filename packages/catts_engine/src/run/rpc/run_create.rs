@@ -1,21 +1,27 @@
 use crate::{
     chain_config::{self},
     http_error::HttpError,
-    logger,
+    logger::{self},
     recipe::{self, RecipeId, RecipePublishState},
-    run::{
-        self, estimate_gas_usage, get_cyclesfee_for_chain, get_min_gasfee_for_chain,
-        util::estimate_transaction_fees, Run,
-    },
+    run::{self, get_cyclesfee_for_chain, get_min_gasfee_for_chain, Run},
     user::auth_guard,
 };
 use candid::Nat;
 use ic_cdk::{api::canister_balance, update};
 
 #[update]
-async fn run_create(recipe_id: RecipeId, chain_id: u32) -> Result<Run, HttpError> {
-    let cycles_before = canister_balance();
+async fn run_create(
+    recipe_id: RecipeId,
+    chain_id: u32,
+    base_fee_per_gas: Nat,
+    max_priority_fee_per_gas: Nat,
+    gas: Nat,
+) -> Result<Run, HttpError> {
     let address = auth_guard()?;
+
+    let cycles_before = canister_balance();
+    logger::debug("run_create");
+
     let recipe = recipe::get_by_id(&recipe_id).map_err(HttpError::not_found)?;
 
     if recipe.publish_state != RecipePublishState::Published {
@@ -28,48 +34,34 @@ async fn run_create(recipe_id: RecipeId, chain_id: u32) -> Result<Run, HttpError
 
     let mut run = Run::new(&recipe_id, chain_id, &address).map_err(HttpError::bad_request)?;
 
-    let fee_estimates = estimate_transaction_fees(&run)
-        .await
-        .map_err(HttpError::internal_server_error)?;
+    let gas_fee = gas.clone() * (base_fee_per_gas.clone() + max_priority_fee_per_gas.clone());
+    let min_gas_fee = get_min_gasfee_for_chain(chain_id).unwrap();
+    let gas_fee = gas_fee.max(min_gas_fee);
 
-    let gas = estimate_gas_usage(&recipe, &run)
-        .await
-        .map_err(HttpError::internal_server_error)?;
+    let cycles_fee = get_cyclesfee_for_chain(chain_id).unwrap();
 
-    let user_fee = gas.clone()
-        * (fee_estimates.base_fee_per_gas.clone() + fee_estimates.max_priority_fee_per_gas.clone());
+    let user_fee = gas_fee + cycles_fee;
 
-    let min_gas_fee =
-        get_min_gasfee_for_chain(chain_id).map_err(HttpError::internal_server_error)?;
-
-    let user_fee = user_fee.max(min_gas_fee);
-
-    let cycles_fee = get_cyclesfee_for_chain(chain_id).map_err(HttpError::internal_server_error)?;
-
-    let user_fee = user_fee + cycles_fee;
-
-    // Add 2% of the base fee to the max priority fee per gas
-    let max_priority_fee_per_gas = fee_estimates.max_priority_fee_per_gas.clone()
-        + (fee_estimates.base_fee_per_gas.clone() * Nat::from(2u32) / Nat::from(100u32));
-
-    ic_cdk::println!(
-        "base_fee_per_gas: {}, max_priority_fee_per_gas: {}, gas: {}",
-        fee_estimates.base_fee_per_gas,
-        max_priority_fee_per_gas,
-        gas
+    logger::debug(
+        format!(
+            "base_fee_per_gas: {}, max_priority_fee_per_gas: {}, gas: {}",
+            base_fee_per_gas, max_priority_fee_per_gas, gas
+        )
+        .as_str(),
     );
 
     run.gas = Some(gas);
-    run.base_fee_per_gas = Some(fee_estimates.base_fee_per_gas);
+    run.base_fee_per_gas = Some(base_fee_per_gas);
     run.max_priority_fee_per_gas = Some(max_priority_fee_per_gas);
     run.user_fee = Some(user_fee);
 
     let run = run::create(run);
 
     let cycles_after = canister_balance();
+
     logger::info(
         format!(
-            "run_register_payment, cycles spent: {:?}",
+            "run_create, cycles spent: {:?}",
             cycles_before - cycles_after
         )
         .as_str(),

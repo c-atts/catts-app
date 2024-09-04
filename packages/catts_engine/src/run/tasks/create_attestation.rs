@@ -1,11 +1,13 @@
 use crate::{
     eas::{create_attestation, process_query_result, run_query},
     eth_address::EthAddress,
+    logger::{self},
     recipe::{self},
     run::{self, RunStatus},
     tasks::{add_task, Task, TaskError, TaskExecutor, TaskType},
 };
 use futures::Future;
+use ic_cdk::api::canister_balance;
 use std::pin::Pin;
 
 use super::util::save_error_and_cancel;
@@ -18,6 +20,9 @@ pub struct CreateAttestationExecutor {}
 impl TaskExecutor for CreateAttestationExecutor {
     fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>> {
         Box::pin(async move {
+            let cycles_before = canister_balance();
+            logger::debug("create_attestation");
+
             let run_id = run::vec_to_run_id(task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
@@ -84,6 +89,15 @@ impl TaskExecutor for CreateAttestationExecutor {
                     execute_count: 0,
                     retry_interval: GET_ATTESTATION_UID_RETRY_INTERVAL,
                 },
+            );
+
+            let cycles_after = canister_balance();
+            logger::info(
+                format!(
+                    "create_attestation, cycles spent: {:?}",
+                    cycles_before - cycles_after
+                )
+                .as_str(),
             );
 
             Ok(())

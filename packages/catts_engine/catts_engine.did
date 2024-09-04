@@ -97,7 +97,7 @@ service : (CanisterSettingsInput) -> {
   recipe_list : () -> (Result_4) query;
   recipe_publish : (blob) -> (Result_2);
   run_cancel : (blob) -> (Result_5);
-  run_create : (blob, nat32) -> (Result_5);
+  run_create : (blob, nat32, nat, nat, nat) -> (Result_5);
   run_get : (blob) -> (Result_5) query;
   run_register_payment : (blob, text, nat) -> (Result_5);
   transform : (TransformArgs) -> (HttpResponse) query;

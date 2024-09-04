@@ -3,11 +3,12 @@ use std::pin::Pin;
 use crate::{
     chain_config::{self},
     evm::rpc::eth_get_transaction_receipt,
-    logger,
+    logger::{self},
     run::{self},
     tasks::{Task, TaskError, TaskExecutor},
 };
 use futures::Future;
+use ic_cdk::api::canister_balance;
 
 use super::util::save_error_and_cancel;
 
@@ -16,6 +17,9 @@ pub struct GetAttestationUidExecutor {}
 impl TaskExecutor for GetAttestationUidExecutor {
     fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>> {
         Box::pin(async move {
+            let cycles_before = canister_balance();
+            logger::debug("get_attestation_uid");
+
             let run_id = run::vec_to_run_id(task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
 
@@ -60,6 +64,15 @@ impl TaskExecutor for GetAttestationUidExecutor {
             let uid = receipt.logs[0].data.clone();
             run.attestation_uid = Some(uid);
             run::update(run).unwrap();
+
+            let cycles_after = canister_balance();
+            logger::info(
+                format!(
+                    "get_attestation_uid, cycles spent: {:?}",
+                    cycles_before - cycles_after
+                )
+                .as_str(),
+            );
 
             Ok(())
         })

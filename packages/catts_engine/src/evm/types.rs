@@ -44,7 +44,7 @@ pub struct SignRequest {
     pub to: String,
     pub gas: Nat,
     pub max_fee_per_gas: Nat,
-    pub max_priority_fee_per_gas: Nat,
+    pub max_priority_fee_per_gas: Option<Nat>,
     pub value: Nat,
     pub nonce: Nat,
     pub data: Option<Bytes>,

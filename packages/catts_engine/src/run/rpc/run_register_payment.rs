@@ -2,7 +2,7 @@ use ic_cdk::{api::canister_balance, update};
 
 use crate::{
     http_error::HttpError,
-    logger::info,
+    logger::{self, info},
     run::{self, tasks::register_payment::ProcessRunPaymentArgs, Run, RunId},
     tasks::{add_task, Task, TaskType},
     user::auth_guard,
@@ -17,8 +17,11 @@ async fn run_register_payment(
     transaction_hash: String,
     block_to_process: u128,
 ) -> Result<Run, HttpError> {
-    let cycles_before = canister_balance();
     let address = auth_guard()?;
+
+    logger::debug("run_register_payment");
+    let cycles_before = canister_balance();
+
     let run = run::get(&run_id).map_err(HttpError::not_found)?;
 
     // Only creator can register payment

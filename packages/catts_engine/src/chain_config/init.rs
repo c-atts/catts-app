@@ -14,10 +14,7 @@ pub fn init_chain_configs() {
                 eth_usd_price: "0x123".to_string(),
                 eas_contract: "0xC2679fBD37d54388Ce493F1DB75320D236e1815e".to_string(),
                 payment_contract: "0xe498539Cad0E4325b88d6F6a1B89af7e4C8dF404".to_string(),
-                rpc_services: RpcServices::EthSepolia(Some(vec![
-                    EthSepoliaService::Ankr,
-                    EthSepoliaService::BlockPi,
-                ])),
+                rpc_services: RpcServices::EthSepolia(Some(vec![EthSepoliaService::BlockPi])),
                 default_rpc_service: RpcService::EthSepolia(EthSepoliaService::BlockPi),
             },
         );
@@ -28,10 +25,7 @@ pub fn init_chain_configs() {
                 eth_usd_price: "0x123".to_string(),
                 eas_contract: "0x4200000000000000000000000000000000000021".to_string(),
                 payment_contract: "0x15a9a0f3bf24f9ff438f18f83ecc8b7cb2e15f9a".to_string(),
-                rpc_services: RpcServices::OptimismMainnet(Some(vec![
-                    L2MainnetService::Ankr,
-                    L2MainnetService::BlockPi,
-                ])),
+                rpc_services: RpcServices::OptimismMainnet(Some(vec![L2MainnetService::BlockPi])),
                 default_rpc_service: RpcService::OptimismMainnet(L2MainnetService::BlockPi),
             },
         );
@@ -42,10 +36,7 @@ pub fn init_chain_configs() {
                 eth_usd_price: "0x123".to_string(),
                 eas_contract: "0x4200000000000000000000000000000000000021".to_string(),
                 payment_contract: "0x839ADFdFd2B038C3e4429abe54ac4DBB620a0BD1".to_string(),
-                rpc_services: RpcServices::BaseMainnet(Some(vec![
-                    L2MainnetService::Ankr,
-                    L2MainnetService::BlockPi,
-                ])),
+                rpc_services: RpcServices::BaseMainnet(Some(vec![L2MainnetService::BlockPi])),
                 default_rpc_service: RpcService::BaseMainnet(L2MainnetService::BlockPi),
             },
         );

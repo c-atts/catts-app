@@ -140,7 +140,11 @@ export const idlFactory = ({ IDL }) => {
     'recipe_list' : IDL.Func([], [Result_4], ['query']),
     'recipe_publish' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_2], []),
     'run_cancel' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_5], []),
-    'run_create' : IDL.Func([IDL.Vec(IDL.Nat8), IDL.Nat32], [Result_5], []),
+    'run_create' : IDL.Func(
+        [IDL.Vec(IDL.Nat8), IDL.Nat32, IDL.Nat, IDL.Nat, IDL.Nat],
+        [Result_5],
+        [],
+      ),
     'run_get' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_5], ['query']),
     'run_register_payment' : IDL.Func(
         [IDL.Vec(IDL.Nat8), IDL.Text, IDL.Nat],
