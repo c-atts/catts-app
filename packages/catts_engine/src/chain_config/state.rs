@@ -3,7 +3,7 @@ use crate::CHAIN_CONFIGS;
 
 pub fn get(chain_id: u32) -> Result<ChainConfig, ChainConfigError> {
     CHAIN_CONFIGS
-        .with_borrow(|configs| configs.get(&chain_id))
+        .with_borrow(|configs| configs.get(&chain_id).cloned())
         .ok_or(ChainConfigError::NotFound)
 }
 
