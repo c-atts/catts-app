@@ -196,7 +196,7 @@ pub async fn run_query(
         method: HttpMethod::POST,
         headers: vec![],
         body: Some(body),
-        max_response_bytes: None,
+        max_response_bytes: Some(4_096),
         transform: Some(TransformContext::from_name("transform".to_string(), vec![])),
     };
 
