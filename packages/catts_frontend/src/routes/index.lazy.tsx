@@ -13,19 +13,19 @@ function Index() {
             <div className="text-5xl md:text-6xl xl:text-7xl font-semibold text-center md:text-left md:w-[500px] xl:w-[730px] leading-tight pb-16 md:pb-[150px] text-accent-foreground/90">
               Attest to Any Onchain Data
             </div>
-            <div className="flex flex-col md:flex-row justify-between w-full">
-              <div className="flex w-full md:w-fit justify-center items-center md:items-end gap-10 pb-10 md:pb-0">
+            <div className="flex flex-col justify-between w-full md:flex-row">
+              <div className="flex items-center justify-center w-full gap-10 pb-10 md:w-fit md:items-end md:pb-0">
                 <img
-                  className="w-10 xl:w-20 h-10 xl:h-20"
+                  className="w-10 h-10 xl:w-20 xl:h-20"
                   src="/ethereum.svg"
                 />
                 <img
-                  className="w-10 xl:w-20 h-10 xl:h-20"
+                  className="w-10 h-10 xl:w-20 xl:h-20"
                   src="/optimism.svg"
                 />
-                <img className="w-10 xl:w-20 h-10 xl:h-20" src="/base.svg" />
+                <img className="w-10 h-10 xl:w-20 xl:h-20" src="/base.svg" />
                 <img
-                  className="w-10 xl:w-20 h-10 xl:h-20"
+                  className="w-10 h-10 xl:w-20 xl:h-20"
                   src="/arbitrum.svg"
                 />
               </div>
@@ -42,16 +42,16 @@ function Index() {
         </div>
       </div>
 
-      <div className="lg:hidden flex-col items-center justify-center w-full">
-        <div className="flex flex-col w-full py-20 items-center">
-          <div className="flex w-full justify-between">
+      <div className="flex-col items-center justify-center w-full lg:hidden">
+        <div className="flex flex-col items-center w-full py-20">
+          <div className="flex justify-between w-full">
             <div className="flex justify-between w-full">
               <div className="flex flex-col gap-14">
-                <div className="text-5xl md:text-6xl xl:text-7xl font-semibold leading-tight text-muted-foreground text-center">
+                <div className="text-5xl font-semibold leading-tight text-center md:text-6xl xl:text-7xl text-muted-foreground">
                   Transform, combine and migrate attestations
                 </div>
 
-                <div className="w-full text-accent-foreground/90 text-lg leading-relaxed px-10 text-center">
+                <div className="w-full px-10 text-lg leading-relaxed text-center text-accent-foreground/90">
                   Run any number of queries on the{" "}
                   <a
                     className="classic-link"
@@ -69,12 +69,21 @@ function Index() {
                     target="_blank"
                   >
                     The Graph
+                  </a>
+                  ,{" "}
+                  <a
+                    className="classic-link"
+                    href="https://moralis.io/api"
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Moralis
                   </a>{" "}
-                  or <b>any other data source</b> that supports GraphQL. The
-                  C–ATTS engine processes the query results using any logic or
-                  algorithm and creates composite EAS attestations.
+                  or <b>any open Rest/GraphQL API</b>. The C–ATTS engine
+                  processes the query results using any logic or algorithm and
+                  creates composite EAS attestations.
                 </div>
-                <div className="flex w-full gap-10 justify-center">
+                <div className="flex justify-center w-full gap-10">
                   <img className="w-12 h-12" src="/thegraph.svg" />
                   <img className="w-12 h-12" src="/eas.png" />
                 </div>
@@ -84,9 +93,9 @@ function Index() {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-col items-center justify-center w-full">
+      <div className="flex-col items-center justify-center hidden w-full lg:flex">
         <div className="flex flex-col xl:w-[1280px] py-32 items-center px-10 xl:px-0 gap-20">
-          <div className="flex w-full justify-between">
+          <div className="flex justify-between w-full">
             <div className="flex flex-col">
               <div className="flex gap-10 pb-10">
                 <img className="w-12 h-12" src="/thegraph.svg" />
@@ -111,10 +120,19 @@ function Index() {
                   target="_blank"
                 >
                   The Graph
+                </a>
+                ,{" "}
+                <a
+                  className="classic-link"
+                  href="https://moralis.io/api"
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  Moralis
                 </a>{" "}
-                or <b>any other data source</b> that supports GraphQL. The
-                C–ATTS engine processes the query results using any logic or
-                algorithm and creates composite EAS attestations.
+                or <b>any open Rest/GraphQL API</b>. The C–ATTS engine processes
+                the query results using any logic or algorithm and creates
+                composite EAS attestations.
               </div>
             </div>
             <div className="text-5xl md:text-6xl xl:text-7xl font-semibold w-[500px] xl:w-[730px] leading-tight pb-28 text-muted-foreground text-right">
@@ -127,12 +145,12 @@ function Index() {
 
       <div className="flex flex-col items-center w-full pb-20 lg:pb-32">
         <div className="flex flex-col w-full xl:w-[1280px] px-5 xl:px-0">
-          <div className="flex flex-col xl:flex-row justify-between w-full gap-10">
-            <div className="w-full bg-muted-foreground p-10 md:p-20 flex-flex-col justify-between">
-              <div className="flex w-full justify-end pb-14">
+          <div className="flex flex-col justify-between w-full gap-10 xl:flex-row">
+            <div className="justify-between w-full p-10 bg-muted-foreground md:p-20 flex-flex-col">
+              <div className="flex justify-end w-full pb-14">
                 <img className="w-1/3" src="/ic.svg" />
               </div>
-              <div className="pb-20 text-card text-5xl leading-tight font-medium w-2/3">
+              <div className="w-2/3 pb-20 text-5xl font-medium leading-tight text-card">
                 Powered by Chain Fusion
               </div>
               <div className="w-full md:w-[450px] text-card text-lg xl:text-xl leading-relaxed">
@@ -152,20 +170,20 @@ function Index() {
                 L2s without the need for bridges.
               </div>
             </div>
-            <div className="w-full bg-muted-foreground p-10 md:p-20 flex flex-col justify-between gap-10">
-              <div className="w-full flex justify-end pb-20 md:pb-32">
-                <div className="text-card text-5xl leading-tight font-medium w-3/4 text-right">
+            <div className="flex flex-col justify-between w-full gap-10 p-10 bg-muted-foreground md:p-20">
+              <div className="flex justify-end w-full pb-20 md:pb-32">
+                <div className="w-3/4 text-5xl font-medium leading-tight text-right text-card">
                   Define Custom Recipes
                 </div>
               </div>
-              <div className="w-full text-card text-lg xl:text-xl leading-relaxed pb-1 text-right">
+              <div className="w-full pb-1 text-lg leading-relaxed text-right text-card xl:text-xl">
                 C–ATTS recipes define the queries and the processing logic
                 needed to create composite attestations. Recipes consist of
                 standard <b>GraphQL</b> queries and a <b>JavaScript</b>. Recipes
                 can be created by anyone, tested locally, and then published and
                 stored onchain.
               </div>
-              <div className="flex w-full justify-end gap-10">
+              <div className="flex justify-end w-full gap-10">
                 <img className="w-12 h-12" src="/gql.png" />
                 <img className="w-12 h-12" src="/js.png" />
               </div>
@@ -176,14 +194,14 @@ function Index() {
       <div className="flex flex-col items-center w-full bg-landing-2">
         <div className="flex flex-col xl:w-[1280px] py-20 lg:py-28 px-5">
           <div className="flex flex-col w-full">
-            <div className="w-full font-semibold leading-tight text-muted-foreground text-5xl md:text-6xl xl:text-7xl text-center pb-20">
+            <div className="w-full pb-20 text-5xl font-semibold leading-tight text-center text-muted-foreground md:text-6xl xl:text-7xl">
               Discover the power of{" "}
               <span className="whitespace-nowrap">C–ATTS</span>, start creating
               composite attestations today.
             </div>
-            <div className="w-full flex justify-center">
+            <div className="flex justify-center w-full">
               <Link to="/explorer">
-                <div className="bg-primary px-14 py-8 rounded-full text-white text-3xl font-medium text-center hover-darken">
+                <div className="py-8 text-3xl font-medium text-center text-white rounded-full bg-primary px-14 hover-darken">
                   Start Exploring
                 </div>
               </Link>
