@@ -8,7 +8,7 @@ use crate::{
         SendRawTransactionStatus, TransactionReceipt,
     },
     evm::util::{ecdsa_key_id, nat_to_u256, nat_to_u64},
-    ETH_DEFAULT_CALL_CYCLES,
+    logger, ETH_DEFAULT_CALL_CYCLES,
 };
 use candid::Nat;
 use ethers_core::{
@@ -39,7 +39,7 @@ async fn next_id(chain_config: &ChainConfig) -> Nat {
             None::<RpcConfig>,
             GetTransactionCountArgs {
                 address: get_self_eth_address().await,
-                block: BlockTag::Latest,
+                block: BlockTag::Pending,
             },
         ),
         ETH_DEFAULT_CALL_CYCLES,
@@ -92,6 +92,13 @@ pub async fn eth_transaction(
         .encode_input(args)
         .map_err(|_| EthTransactionError::ArgsEncoding)?;
 
+    let nonce = next_id(chain_config).await;
+
+    logger::debug(&format!(
+        "eth_transaction: contract_address: {}, function_name: {}, args: {:?}, gas: {}, max_fee_per_gas: {}, max_priority_fee_per_gas: {:?}, nonce: {}",
+        contract_address, function_name, args, gas, max_fee_per_gas, max_priority_fee_per_gas, nonce
+    ));
+
     let signed_data = sign_transaction(SignRequest {
         chain_id: chain_config.chain_id.into(),
         to: contract_address,
@@ -99,7 +106,7 @@ pub async fn eth_transaction(
         max_fee_per_gas,
         max_priority_fee_per_gas,
         value: 0_u8.into(),
-        nonce: next_id(chain_config).await,
+        nonce,
         data: Some(data.into()),
     })
     .await;
@@ -131,6 +138,8 @@ pub async fn eth_get_transaction_receipt(
     hash: &str,
     chain_config: &ChainConfig,
 ) -> Result<TransactionReceipt, String> {
+    logger::debug(&format!("eth_get_transaction_receipt: hash: {}", hash));
+
     let (res,): (MultiGetTransactionReceiptResult,) = call_with_payment128(
         crate::declarations::evm_rpc::evm_rpc.0,
         "eth_getTransactionReceipt",
@@ -155,6 +164,11 @@ pub async fn get_run_payment_logs(
     block_number: u128,
     chain_config: &ChainConfig,
 ) -> Result<Vec<LogEntry>, EthTransactionError> {
+    logger::debug(&format!(
+        "get_run_payment_logs: block_number: {}",
+        block_number
+    ));
+
     let (res,): (MultiGetLogsResult,) = call_with_payment128(
         evm_rpc.0,
         "eth_getLogs",
