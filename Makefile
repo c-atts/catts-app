@@ -58,7 +58,7 @@ build-engine:
 	ic-wasm catts_engine.wasm -o catts_engine.wasm metadata candid:service -f ../../../packages/catts_engine/catts_engine.did -v public && \
 	gzip -c catts_engine.wasm > catts_engine.wasm.gz
 
-deploy-engine: build-engine
+deploy-engine: build-frontend build-engine
 	dfx deploy catts_engine --with-cycles 10t --argument "( \
 	    record { \
 	        ecdsa_key_id = \"dfx_test_key\"; \
@@ -67,7 +67,7 @@ deploy-engine: build-engine
 	    } \
 	)"
 
-deploy-all: create-canisters deploy-siwe deploy-evm-rpc build-frontend deploy-engine
+deploy-all: create-canisters deploy-siwe deploy-evm-rpc deploy-engine
 
 clean:
 	rm -rf .dfx
