@@ -166,7 +166,7 @@ function Index() {
                   Internet Computer
                 </a>
                 . Thanks to the chain fusion capabilities of IC, the smart
-                ontracts can create attestations on multiple Ethereum L1s and
+                contracts can create attestations on multiple Ethereum L1s and
                 L2s without the need for bridges.
               </div>
             </div>
