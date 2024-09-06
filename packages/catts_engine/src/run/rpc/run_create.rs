@@ -34,6 +34,9 @@ async fn run_create(
 
     let mut run = Run::new(&recipe_id, chain_id, &address).map_err(HttpError::bad_request)?;
 
+    // Add 50% to the base fee per gas to account for gas fee volatility
+    let base_fee_per_gas = base_fee_per_gas * Nat::from(3_u8) / Nat::from(2_u8);
+
     let gas_fee = gas.clone() * (base_fee_per_gas.clone() + max_priority_fee_per_gas.clone());
     let min_gas_fee = get_min_gasfee_for_chain(chain_id).unwrap();
     let gas_fee = gas_fee.max(min_gas_fee);
