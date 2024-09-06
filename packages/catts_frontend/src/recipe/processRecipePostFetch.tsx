@@ -22,6 +22,8 @@ export function processRecipePostFetch(
             variables,
           },
         });
+      } else {
+        processedQueries.push(queryRaw);
       }
     }
     processedRecipe = {

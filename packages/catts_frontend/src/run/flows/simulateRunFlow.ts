@@ -6,7 +6,6 @@ import { fetchRecipeQueries } from "@/recipe/fetchRecipeQueries";
 import { handleError } from "./util/handleError";
 import { wait } from "@/lib/util/wait";
 import { runProcessor } from "@/recipe/runProcessor";
-import { ProcessorOutput } from "@/recipe/types/processor-output.type";
 
 export async function startSimulateRunFlow({
   recipe,
