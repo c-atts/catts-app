@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSupabase } from "@/lib/supabase/SupabaseContext";
+import { processRecipePostFetch } from "../processRecipePostFetch";
 
 export const useGetRecipeById = (id?: string) => {
   const supabase = useSupabase();
@@ -13,7 +14,7 @@ export const useGetRecipeById = (id?: string) => {
         .eq("id", id)
         .single();
       if (error) throw error;
-      return data;
+      return processRecipePostFetch(data);
     },
   });
 };
