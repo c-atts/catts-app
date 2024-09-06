@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import path from "path";
+import viteCompression from "vite-plugin-compression";
 
 dotenv.config({ path: "../../.env" });
 
@@ -22,7 +23,7 @@ const processEnvCanisterIds = Object.fromEntries(
 );
 
 export default defineConfig({
-  plugins: [react(), TanStackRouterVite()],
+  plugins: [react(), TanStackRouterVite(), viteCompression()],
   root: ".",
   resolve: {
     alias: {
