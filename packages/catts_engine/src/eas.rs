@@ -8,7 +8,7 @@ use crate::{
     run::Run,
     ETH_DEFAULT_CALL_CYCLES, ETH_EAS_CONTRACT, QUERY_PROXY_URL,
 };
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use blake2::{
     digest::{Update, VariableOutput},
     Blake2bVar,
@@ -18,11 +18,8 @@ use ethers_core::{
     types::U256,
     utils::{hex, keccak256},
 };
-use ic_cdk::api::{
-    call::RejectionCode,
-    management_canister::http_request::{
-        http_request, CanisterHttpRequestArgument, HttpMethod, TransformContext,
-    },
+use ic_cdk::api::management_canister::http_request::{
+    http_request, CanisterHttpRequestArgument, HttpMethod, TransformContext,
 };
 use javy::Runtime;
 use serde::{Deserialize, Serialize};
@@ -52,59 +49,69 @@ pub struct SchemaItem {
     pub value: SchemaValue,
 }
 
-pub fn encode_abi_data(json_data: &str) -> Vec<u8> {
+pub fn encode_abi_data(json_data: &str) -> Result<Vec<u8>> {
     let schema_items: Vec<SchemaItem> =
-        serde_json::from_str(json_data).expect("Failed to parse JSON");
+        serde_json::from_str(json_data).map_err(|e| anyhow!("Failed to parse JSON: {}", e))?;
 
     let tokens: Vec<Token> = schema_items
         .iter()
         .map(|item| match item.type_field.as_str() {
             _ if item.type_field == "address" => match &item.value {
                 SchemaValue::String(hex) => {
-                    Token::Address(Address::from_str(hex).expect("Invalid address"))
+                    let address = Address::from_str(hex)
+                        .map_err(|e| anyhow!("Invalid address hex value: {}", e))?;
+                    Ok(Token::Address(address))
                 }
-                _ => panic!("Unsupported value: {:?}", item.value),
+                _ => Err(anyhow!("Unsupported value for address: {:?}", item.value)),
             },
             _ if item.type_field == "string" => match &item.value {
-                SchemaValue::String(val) => Token::String(val.clone()),
-                _ => panic!("Unsupported value: {:?}", item.value),
+                SchemaValue::String(val) => Ok(Token::String(val.clone())),
+                _ => Err(anyhow!("Unsupported value for string: {:?}", item.value)),
             },
             _ if item.type_field == "bool" => match &item.value {
-                SchemaValue::Bool(val) => Token::Bool(*val),
-                _ => panic!("Unsupported value: {:?}", item.value),
+                SchemaValue::Bool(val) => Ok(Token::Bool(*val)),
+                _ => Err(anyhow!("Unsupported value for bool: {:?}", item.value)),
             },
             _ if item.type_field == "bytes" => match &item.value {
                 SchemaValue::String(hex) => {
-                    Token::Bytes(hex::decode(hex).expect("Invalid hex value"))
+                    let bytes =
+                        hex::decode(hex).map_err(|e| anyhow!("Invalid hex value: {}", e))?;
+                    Ok(Token::Bytes(bytes))
                 }
-                _ => panic!("Unsupported value: {:?}", item.value),
+                _ => Err(anyhow!("Unsupported value for bytes: {:?}", item.value)),
             },
             _ if item.type_field == "bytes32" => match &item.value {
                 SchemaValue::String(hex) => {
-                    Token::FixedBytes(hex::decode(hex).expect("Invalid hex value"))
+                    let bytes = hex::decode(hex)
+                        .map_err(|e| anyhow!("Invalid hex value for bytes32: {}", e))?;
+                    Ok(Token::FixedBytes(bytes))
                 }
-                _ => panic!("Unsupported value: {:?}", item.value),
+                _ => Err(anyhow!("Unsupported value for bytes32: {:?}", item.value)),
             },
             _ if item.type_field.starts_with("uint") => match &item.value {
                 SchemaValue::String(hex) => {
-                    Token::Uint(U256::from_str(hex).expect("Invalid hex value"))
+                    let uint = U256::from_str(hex)
+                        .map_err(|e| anyhow!("Invalid hex value for uint: {}", e))?;
+                    Ok(Token::Uint(uint))
                 }
-                SchemaValue::Number(num) => Token::Uint({ *num }.into()),
-                _ => panic!("Unsupported value: {:?}", item.value),
+                SchemaValue::Number(num) => Ok(Token::Uint((*num).into())),
+                _ => Err(anyhow!("Unsupported value for uint: {:?}", item.value)),
             },
             _ if item.type_field.starts_with("int") => match &item.value {
                 SchemaValue::String(hex) => {
-                    Token::Int(U256::from_str(hex).expect("Invalid hex value"))
+                    let int = U256::from_str(hex)
+                        .map_err(|e| anyhow!("Invalid hex value for int: {}", e))?;
+                    Ok(Token::Int(int))
                 }
-                SchemaValue::Number(num) => Token::Int({ *num }.into()),
-                _ => panic!("Unsupported value: {:?}", item.value),
+                SchemaValue::Number(num) => Ok(Token::Int((*num).into())),
+                _ => Err(anyhow!("Unsupported value for int: {:?}", item.value)),
             },
-            _ => panic!("Unsupported type: {}", item.type_field),
+            _ => Err(anyhow!("Unsupported type: {}", item.type_field)),
         })
-        .collect();
+        .collect::<Result<Vec<Token>>>()?; // Collecting and propagating errors
 
     // Encode the tokens
-    encode(&tokens)
+    Ok(encode(&tokens))
 }
 
 #[derive(Error, Debug)]
@@ -132,16 +139,7 @@ pub fn get_schema_uid(
     Ok(keccak256(encoded))
 }
 
-#[derive(Error, Debug)]
-pub enum RunEasQueryError {
-    #[error("Request failed: {message:?}, code: {rejection_code:?}")]
-    HttpRequestError {
-        rejection_code: RejectionCode,
-        message: String,
-    },
-}
-
-fn get_body(recipe_query: &RecipeQuery, address: &EthAddress) -> String {
+fn get_body(recipe_query: &RecipeQuery, address: &EthAddress) -> Result<String> {
     let mut query_body = json!({
         "url": replace_dynamic_variables(&recipe_query.url, address),
     });
@@ -163,25 +161,24 @@ fn get_body(recipe_query: &RecipeQuery, address: &EthAddress) -> String {
     if let Some(body) = &recipe_query.body {
         if let Value::Object(ref mut map) = query_body {
             let processed_variables = replace_dynamic_variables(&body.variables, address);
+            let variables_json: Value = serde_json::from_str(&processed_variables)
+                .map_err(|e| anyhow!("Failed to parse variables into JSON: {}", e))?;
             map.insert(
                 "body".to_string(),
                 json!({
                     "query": body.query,
-                    "variables": processed_variables,
+                    "variables": variables_json,
                 }),
             );
         }
     }
 
-    query_body.to_string()
+    Ok(query_body.to_string())
 }
 
-pub async fn run_query(
-    address: &EthAddress,
-    recipe_query: &RecipeQuery,
-) -> Result<String, RunEasQueryError> {
+pub async fn run_query(address: &EthAddress, recipe_query: &RecipeQuery) -> Result<String> {
     logger::debug("run_query");
-    let body = get_body(recipe_query, address).into_bytes();
+    let body = get_body(recipe_query, address)?.into_bytes();
 
     let mut hasher = Blake2bVar::new(12).unwrap();
     hasher.update(&body);
@@ -216,15 +213,13 @@ pub async fn run_query(
                 "run_query https outcall error, code: {:?}, message {:?}",
                 r, m
             ));
-            Err(RunEasQueryError::HttpRequestError {
-                rejection_code: r,
-                message: m,
-            })
+            bail!("Failed to run query. Code: {:?}, Message: {}", r, m)
         }
     }
 }
 
 pub fn process_query_result(processor: &str, query_result: &str) -> String {
+    logger::debug("process_query_result");
     let js_process_function = format!(
         r#"
             let queryResult = JSON.parse(queryResultRaw);
@@ -262,9 +257,11 @@ pub fn create_attest_request(
     attestation_data: &str,
     recipient: &EthAddress,
 ) -> Result<Token> {
+    logger::debug("create_attest_request");
+
     let schema_uid = get_schema_uid(&recipe.schema, &recipe.resolver, recipe.revokable)?;
 
-    let encoded_abi_data = encode_abi_data(attestation_data);
+    let encoded_abi_data = encode_abi_data(attestation_data)?;
 
     let schema_token = Token::FixedBytes(schema_uid.to_vec());
     let attestation_request_data = Token::Tuple(vec![
@@ -286,6 +283,8 @@ pub async fn create_attestation(
     recipient: &EthAddress,
     chain_id: u32,
 ) -> Result<String> {
+    logger::debug("create_attestation");
+
     let attest_request = create_attest_request(recipe, attestation_data, recipient)?;
 
     let gas = run

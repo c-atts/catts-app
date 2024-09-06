@@ -33,7 +33,6 @@ impl TaskExecutor for RegisterPaymentExecutor {
     fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>> {
         Box::pin(async move {
             let cycles_before = canister_balance();
-            logger::debug("register_payment");
 
             let args: ProcessRunPaymentArgs = bincode::deserialize(&task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;

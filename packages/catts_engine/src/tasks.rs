@@ -106,7 +106,9 @@ fn execute_task(mut task: Task) {
     );
     ic_cdk::spawn(async move {
         match get_executor_for_task(&task).execute(task.clone()).await {
-            Ok(_) => logger::debug("Task executed successfully"),
+            Ok(_) => {
+                logger::debug(format!("Task {:?} executed successfully", task.task_type).as_str())
+            }
             Err(e) => match e {
                 TaskError::Retry(reason) => {
                     if task.execute_count + 1 < task.max_retries {

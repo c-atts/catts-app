@@ -21,7 +21,6 @@ impl TaskExecutor for CreateAttestationExecutor {
     fn execute(&self, task: Task) -> Pin<Box<dyn Future<Output = Result<(), TaskError>> + Send>> {
         Box::pin(async move {
             let cycles_before = canister_balance();
-            logger::debug("create_attestation");
 
             let run_id = run::vec_to_run_id(task.args)
                 .map_err(|_| TaskError::Cancel("Invalid arguments".to_string()))?;
@@ -56,6 +55,7 @@ impl TaskExecutor for CreateAttestationExecutor {
                 let response = run_query(&recipient, &recipe.queries[i]).await;
                 match response {
                     Ok(qr) => {
+                        logger::debug(&format!("Query response: {}", qr));
                         query_response.push(qr);
                     }
                     Err(err) => {
