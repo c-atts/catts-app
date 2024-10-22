@@ -33,18 +33,18 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <SupabaseProvider>
-          <SiweIdentityProvider<_SERVICE>
-            canisterId={canisterId}
-            idlFactory={idlFactory}
-          >
+        <SiweIdentityProvider<_SERVICE>
+          canisterId={canisterId}
+          idlFactory={idlFactory}
+        >
+          <SupabaseProvider>
             <ActorProvider>
               <AuthGuard>
                 <RouterProvider router={router} />
               </AuthGuard>
             </ActorProvider>
-          </SiweIdentityProvider>
-        </SupabaseProvider>
+          </SupabaseProvider>
+        </SiweIdentityProvider>
       </QueryClientProvider>
     </WagmiProvider>
     <Toaster position="top-center" />

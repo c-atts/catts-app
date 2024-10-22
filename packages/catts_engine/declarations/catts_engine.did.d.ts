@@ -29,6 +29,13 @@ export interface HttpError {
   'details' : [] | [string],
 }
 export interface HttpHeader { 'value' : string, 'name' : string }
+export interface HttpRequest {
+  'url' : string,
+  'method' : string,
+  'body' : Uint8Array | number[],
+  'headers' : Array<[string, string]>,
+  'certificate_version' : [] | [number],
+}
 export interface HttpResponse {
   'status' : bigint,
   'body' : Uint8Array | number[],
@@ -121,6 +128,8 @@ export interface User { 'eth_address' : string }
 export interface _SERVICE {
   'canister_eth_address' : ActorMethod<[], Result>,
   'change_log' : ActorMethod<[number, [] | [number]], Result_1>,
+  'http_request' : ActorMethod<[HttpRequest], HttpResponse>,
+  'http_request_update' : ActorMethod<[HttpRequest], HttpResponse>,
   'logs' : ActorMethod<[], Array<LogItem>>,
   'recipe_create' : ActorMethod<[RecipeDetailsInput, string], Result_2>,
   'recipe_delete' : ActorMethod<[Uint8Array | number[]], Result_2>,

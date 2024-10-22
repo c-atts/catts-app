@@ -29,46 +29,55 @@ const RecipeRecipeNameLazyImport = createFileRoute('/recipe/$recipeName')()
 // Create/Update Routes
 
 const ExplorerLazyRoute = ExplorerLazyImport.update({
+  id: '/explorer',
   path: '/explorer',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/explorer.lazy').then((d) => d.Route))
 
 const SearchRoute = SearchImport.update({
+  id: '/search',
   path: '/search',
   getParentRoute: () => rootRoute,
 } as any)
 
 const RunsRoute = RunsImport.update({
+  id: '/runs',
   path: '/runs',
   getParentRoute: () => rootRoute,
 } as any)
 
 const RecipesRoute = RecipesImport.update({
+  id: '/recipes',
   path: '/recipes',
   getParentRoute: () => rootRoute,
 } as any)
 
 const PopularRoute = PopularImport.update({
+  id: '/popular',
   path: '/popular',
   getParentRoute: () => rootRoute,
 } as any)
 
 const IndexLazyRoute = IndexLazyImport.update({
+  id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
 
 const UserAddressLazyRoute = UserAddressLazyImport.update({
+  id: '/user/$address',
   path: '/user/$address',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/user.$address.lazy').then((d) => d.Route))
 
 const RunRunIdLazyRoute = RunRunIdLazyImport.update({
+  id: '/run/$runId',
   path: '/run/$runId',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/run.$runId.lazy').then((d) => d.Route))
 
 const RecipeRecipeNameLazyRoute = RecipeRecipeNameLazyImport.update({
+  id: '/recipe/$recipeName',
   path: '/recipe/$recipeName',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
@@ -147,17 +156,107 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({
-  IndexLazyRoute,
-  PopularRoute,
-  RecipesRoute,
-  RunsRoute,
-  SearchRoute,
-  ExplorerLazyRoute,
-  RecipeRecipeNameLazyRoute,
-  RunRunIdLazyRoute,
-  UserAddressLazyRoute,
-})
+export interface FileRoutesByFullPath {
+  '/': typeof IndexLazyRoute
+  '/popular': typeof PopularRoute
+  '/recipes': typeof RecipesRoute
+  '/runs': typeof RunsRoute
+  '/search': typeof SearchRoute
+  '/explorer': typeof ExplorerLazyRoute
+  '/recipe/$recipeName': typeof RecipeRecipeNameLazyRoute
+  '/run/$runId': typeof RunRunIdLazyRoute
+  '/user/$address': typeof UserAddressLazyRoute
+}
+
+export interface FileRoutesByTo {
+  '/': typeof IndexLazyRoute
+  '/popular': typeof PopularRoute
+  '/recipes': typeof RecipesRoute
+  '/runs': typeof RunsRoute
+  '/search': typeof SearchRoute
+  '/explorer': typeof ExplorerLazyRoute
+  '/recipe/$recipeName': typeof RecipeRecipeNameLazyRoute
+  '/run/$runId': typeof RunRunIdLazyRoute
+  '/user/$address': typeof UserAddressLazyRoute
+}
+
+export interface FileRoutesById {
+  __root__: typeof rootRoute
+  '/': typeof IndexLazyRoute
+  '/popular': typeof PopularRoute
+  '/recipes': typeof RecipesRoute
+  '/runs': typeof RunsRoute
+  '/search': typeof SearchRoute
+  '/explorer': typeof ExplorerLazyRoute
+  '/recipe/$recipeName': typeof RecipeRecipeNameLazyRoute
+  '/run/$runId': typeof RunRunIdLazyRoute
+  '/user/$address': typeof UserAddressLazyRoute
+}
+
+export interface FileRouteTypes {
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/popular'
+    | '/recipes'
+    | '/runs'
+    | '/search'
+    | '/explorer'
+    | '/recipe/$recipeName'
+    | '/run/$runId'
+    | '/user/$address'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/popular'
+    | '/recipes'
+    | '/runs'
+    | '/search'
+    | '/explorer'
+    | '/recipe/$recipeName'
+    | '/run/$runId'
+    | '/user/$address'
+  id:
+    | '__root__'
+    | '/'
+    | '/popular'
+    | '/recipes'
+    | '/runs'
+    | '/search'
+    | '/explorer'
+    | '/recipe/$recipeName'
+    | '/run/$runId'
+    | '/user/$address'
+  fileRoutesById: FileRoutesById
+}
+
+export interface RootRouteChildren {
+  IndexLazyRoute: typeof IndexLazyRoute
+  PopularRoute: typeof PopularRoute
+  RecipesRoute: typeof RecipesRoute
+  RunsRoute: typeof RunsRoute
+  SearchRoute: typeof SearchRoute
+  ExplorerLazyRoute: typeof ExplorerLazyRoute
+  RecipeRecipeNameLazyRoute: typeof RecipeRecipeNameLazyRoute
+  RunRunIdLazyRoute: typeof RunRunIdLazyRoute
+  UserAddressLazyRoute: typeof UserAddressLazyRoute
+}
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexLazyRoute: IndexLazyRoute,
+  PopularRoute: PopularRoute,
+  RecipesRoute: RecipesRoute,
+  RunsRoute: RunsRoute,
+  SearchRoute: SearchRoute,
+  ExplorerLazyRoute: ExplorerLazyRoute,
+  RecipeRecipeNameLazyRoute: RecipeRecipeNameLazyRoute,
+  RunRunIdLazyRoute: RunRunIdLazyRoute,
+  UserAddressLazyRoute: UserAddressLazyRoute,
+}
+
+export const routeTree = rootRoute
+  ._addFileChildren(rootRouteChildren)
+  ._addFileTypes<FileRouteTypes>()
 
 /* prettier-ignore-end */
 

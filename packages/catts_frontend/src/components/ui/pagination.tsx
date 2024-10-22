@@ -1,15 +1,16 @@
+/* eslint-disable react/prop-types */
 import * as React from "react";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ButtonProps, buttonVariants } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
+import { createLink, LinkComponent } from '@tanstack/react-router'
 
 const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
   <nav
-    role="navigation"
     aria-label="pagination"
     className={cn("mx-auto flex w-full justify-center", className)}
+    role="navigation"
     {...props}
   />
 );
@@ -20,8 +21,8 @@ const PaginationContent = React.forwardRef<
   React.ComponentProps<"ul">
 >(({ className, ...props }, ref) => (
   <ul
-    ref={ref}
     className={cn("flex flex-row items-center gap-1", className)}
+    ref={ref}
     {...props}
   />
 ));
@@ -31,69 +32,67 @@ const PaginationItem = React.forwardRef<
   HTMLLIElement,
   React.ComponentProps<"li">
 >(({ className, ...props }, ref) => (
-  <li ref={ref} className={cn("", className)} {...props} />
+  <li className={cn("", className)} ref={ref} {...props} />
 ));
 PaginationItem.displayName = "PaginationItem";
 
 type PaginationLinkProps = {
+  className?: string;
   isActive?: boolean;
-} & Pick<ButtonProps, "size"> &
-  React.ComponentProps<typeof Link>;
+  children: React.ReactNode;
+} & Pick<ButtonProps, "size">;
 
-const PaginationLink = ({
-  className,
-  isActive,
-  // @ts-ignore
-  size = "icon",
-  ...props
-}: PaginationLinkProps) => (
-  <Link
-    aria-current={isActive ? "page" : undefined}
-    className={cn(
-      buttonVariants({
-        variant: isActive ? "outline" : "ghost",
-        size,
-      }),
-      className,
-    )}
-    {...props}
-  />
-);
-PaginationLink.displayName = "PaginationLink";
 
-const PaginationPrevious = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to previous page"
-    // @ts-ignore
+const _PaginationLinkTemplate = React.forwardRef<HTMLAnchorElement, PaginationLinkProps>(
+  ({ isActive, className, size = "icon", ...props }: PaginationLinkProps, ref) => {
+    return (
+      <a aria-current={isActive ? "page" : undefined}
+        className={cn(
+          buttonVariants({
+            variant: isActive ? "outline" : "ghost",
+            size,
+          }),
+          className,
+        )}
+        ref={ref}
+        {...props} />
+    )
+  },
+)
+_PaginationLinkTemplate.displayName = "PaginationLink";
+
+const PaginationLinkTemplate = createLink(_PaginationLinkTemplate)
+
+const PaginationLink: LinkComponent<typeof _PaginationLinkTemplate> = (props) => {
+  return <PaginationLinkTemplate aria-label="Go to previous page"
+    preload={'intent'}
     size="default"
-    className={cn("gap-1 pl-2.5", className)}
-    {...props}
-  >
+    {...props}>
+    {props.children}
+  </PaginationLinkTemplate>
+}
+
+const PaginationPrevious: LinkComponent<typeof _PaginationLinkTemplate> = (props) => {
+  return <PaginationLinkTemplate aria-label="Go to previous page"
+    className={cn("gap-1 pl-2.5", props.className)}
+    preload={'intent'}
+    size="default"
+    {...props}>
     <ChevronLeft className="h-4 w-4" />
     <span>Previous</span>
-  </PaginationLink>
-);
-PaginationPrevious.displayName = "PaginationPrevious";
+  </PaginationLinkTemplate>
+}
 
-const PaginationNext = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to next page"
-    // @ts-ignore
+const PaginationNext: LinkComponent<typeof _PaginationLinkTemplate> = (props) => {
+  return <PaginationLinkTemplate aria-label="Go to next page"
+    className={cn("gap-1 pr-2.5", props.className)}
+    preload={'intent'}
     size="default"
-    className={cn("gap-1 pr-2.5", className)}
-    {...props}
-  >
-    <span>Next</span>
+    {...props}>
     <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
-);
-PaginationNext.displayName = "PaginationNext";
+    <span>Previous</span>
+  </PaginationLinkTemplate>
+}
 
 const PaginationEllipsis = ({
   className,

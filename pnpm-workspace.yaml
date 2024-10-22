@@ -1,0 +1,5 @@
+packages:
+  - "packages/catts_engine"
+  - "packages/catts_frontend"
+  - "packages/catts_payments"
+  - "packages/ic_siwe_provider"

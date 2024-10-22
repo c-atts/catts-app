@@ -1,7 +1,5 @@
 import { AllowedChainIds, CHAIN_CONFIG, wagmiConfig } from "@/config";
 import { TransactionExecutionError, hexToBytes, toHex } from "viem";
-import { waitForTransactionReceipt, writeContract } from "@wagmi/core";
-
 import { ActorSubclass } from "@dfinity/agent";
 import CattsPaymentsAbi from "catts_payments/catts_payments.abi.json";
 import { RecipeFull } from "@/recipe/types/recipe.types";
@@ -16,6 +14,7 @@ import { getSchemaUID } from "@ethereum-attestation-service/eas-sdk";
 import { handleError } from "./util/handleError";
 import { runStateStore } from "@/run/RunStateStore";
 import { wait } from "@/lib/util/wait";
+import { writeContract, waitForTransactionReceipt } from "wagmi/actions";
 
 const GET_UID_RETRY_LIMIT = 30;
 const GET_UID_RETRY_INTERVAL = 5_000;
@@ -114,6 +113,7 @@ async function payRun(run: Run, chainId: number) {
   } catch (e) {
     handleError(e, "payStatus", "Error waiting for transaction receipt.");
   }
+
 }
 
 async function createAttestation(

@@ -23,12 +23,6 @@
     "vite"
   ],
   "type": "module",
-  "workspaces": [
-    "packages/catts_engine",
-    "packages/catts_frontend",
-    "packages/catts_payments",
-    "packages/ic_siwe_provider"
-  ],
   "scripts": {
     "build:frontend": "npm run build -w catts_frontend",
     "dev:frontend": "npm run dev -w catts_frontend"

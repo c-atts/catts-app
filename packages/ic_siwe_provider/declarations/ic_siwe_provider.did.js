@@ -40,6 +40,7 @@ export const idlFactory = ({ IDL }) => {
     'Err' : IDL.Text,
   });
   const SiweSignature = IDL.Text;
+  const Nonce = IDL.Text;
   const CanisterPublicKey = PublicKey;
   const LoginDetails = IDL.Record({
     'user_canister_pubkey' : CanisterPublicKey,
@@ -47,8 +48,12 @@ export const idlFactory = ({ IDL }) => {
   });
   const LoginResponse = IDL.Variant({ 'Ok' : LoginDetails, 'Err' : IDL.Text });
   const SiweMessage = IDL.Text;
+  const PrepareLoginOkResponse = IDL.Record({
+    'nonce' : IDL.Text,
+    'siwe_message' : SiweMessage,
+  });
   const PrepareLoginResponse = IDL.Variant({
-    'Ok' : SiweMessage,
+    'Ok' : PrepareLoginOkResponse,
     'Err' : IDL.Text,
   });
   return IDL.Service({
@@ -61,7 +66,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'siwe_login' : IDL.Func(
-        [SiweSignature, Address, SessionKey],
+        [SiweSignature, Address, SessionKey, Nonce],
         [LoginResponse],
         [],
       ),

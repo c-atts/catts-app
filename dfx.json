@@ -1,14 +1,13 @@
 {
   "canisters": {
     "ic_siwe_provider": {
-      "candid": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.did",
+      "candid": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.1.1/ic_siwe_provider.did",
       "declarations": {
         "output": "packages/ic_siwe_provider/declarations"
       },
       "type": "custom",
-      "wasm": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.0.6/ic_siwe_provider.wasm.gz"
+      "wasm": "https://github.com/kristoferlund/ic-siwe/releases/download/v0.1.1/ic_siwe_provider.wasm.gz"
     },
-
     "evm_rpc": {
       "candid": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.did",
       "declarations": {
@@ -25,7 +24,6 @@
       "type": "custom",
       "wasm": "https://github.com/internet-computer-protocol/evm-rpc-canister/releases/latest/download/evm_rpc.wasm.gz"
     },
-
     "catts_engine": {
       "candid": "packages/catts_engine/catts_engine.did",
       "declarations": {

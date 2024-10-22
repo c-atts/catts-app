@@ -35,6 +35,19 @@ export const idlFactory = ({ IDL }) => {
     'details' : IDL.Opt(IDL.Text),
   });
   const Result_1 = IDL.Variant({ 'Ok' : ChangeLogResponse, 'Err' : HttpError });
+  const HttpRequest = IDL.Record({
+    'url' : IDL.Text,
+    'method' : IDL.Text,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'certificate_version' : IDL.Opt(IDL.Nat16),
+  });
+  const HttpHeader = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
+  const HttpResponse = IDL.Record({
+    'status' : IDL.Nat,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(HttpHeader),
+  });
   const LogLevel = IDL.Variant({
     'Error' : IDL.Null,
     'Info' : IDL.Null,
@@ -107,12 +120,6 @@ export const idlFactory = ({ IDL }) => {
     'payment_transaction_hash' : IDL.Opt(IDL.Text),
   });
   const Result_5 = IDL.Variant({ 'Ok' : Run, 'Err' : HttpError });
-  const HttpHeader = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
-  const HttpResponse = IDL.Record({
-    'status' : IDL.Nat,
-    'body' : IDL.Vec(IDL.Nat8),
-    'headers' : IDL.Vec(HttpHeader),
-  });
   const TransformArgs = IDL.Record({
     'context' : IDL.Vec(IDL.Nat8),
     'response' : HttpResponse,
@@ -126,6 +133,8 @@ export const idlFactory = ({ IDL }) => {
         [Result_1],
         ['query'],
       ),
+    'http_request' : IDL.Func([HttpRequest], [HttpResponse], ['query']),
+    'http_request_update' : IDL.Func([HttpRequest], [HttpResponse], []),
     'logs' : IDL.Func([], [IDL.Vec(LogItem)], ['query']),
     'recipe_create' : IDL.Func([RecipeDetailsInput, IDL.Text], [Result_2], []),
     'recipe_delete' : IDL.Func([IDL.Vec(IDL.Nat8)], [Result_2], []),

@@ -1,10 +1,10 @@
 import { CHAIN_CONFIG, wagmiConfig } from "@/config";
-import { getChainId } from "@wagmi/core";
 import {
   getSchemaUID,
   SchemaRegistry,
 } from "@ethereum-attestation-service/eas-sdk";
 import { JsonRpcSigner } from "ethers";
+import { getChainId } from "wagmi/actions";
 
 export async function loadEasSchema({
   schema,

@@ -2,9 +2,9 @@ import * as dotenv from "dotenv";
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import path from "path";
 import viteCompression from "vite-plugin-compression";
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 dotenv.config({ path: "../../.env" });
 

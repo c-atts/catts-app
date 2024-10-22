@@ -4,5 +4,8 @@
   "description": "",
   "keywords": [],
   "author": "Kristofer Lund <kristofer@kristoferlund.se>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@dfinity/agent": "^2.1.2"
+  }
 }

@@ -3,6 +3,7 @@ create-canisters:
 
 deploy-evm-rpc:
 	dfx deploy evm_rpc --with-cycles 1t
+	dfx generate evm_rpc
 
 deploy-siwe:
 	dfx deploy ic_siwe_provider --argument "( \
@@ -21,6 +22,7 @@ deploy-siwe:
 	        }; \
 	    } \
 	)"
+	dfx generate ic_siwe_provider
 
 upgrade-siwe:
 	dfx canister install ic_siwe_provider --mode upgrade --upgrade-unchanged --argument "( \
@@ -41,12 +43,15 @@ upgrade-siwe:
 	)"
 
 build-frontend:
-	npm install
-	npm run build -w catts_frontend
+	dfx generate catts_engine
+	cd packages/catts_frontend && \
+	pnpm install && \
+	pnpm run build
 
 run-frontend:
-	npm install
-	npm run dev -w catts_frontend
+	cd packages/catts_frontend && \
+	pnpm install && \
+	pnpm run dev 
 
 build-engine:
 	export CANISTER_CANDID_PATH_IC_SIWE_PROVIDER=../ic_siwe_provider/ic_siwe_provider.did && \
@@ -73,16 +78,17 @@ clean:
 	rm -rf .dfx
 	rm -rf node_modules
 	rm -rf packages/catts_engine/declarations
-	rm -rf packages/catts_engine/src/declarations
+	rm -rf packages/catts_engine/node_modules
 	rm -rf packages/catts_frontend/declarations
+	rm -rf packages/catts_frontend/node_modules
 	rm -rf packages/catts_frontend/dist
 	rm -rf packages/catts_payments/artifacts
 	rm -rf packages/catts_payments/cache
 	rm -rf packages/catts_payments/coverage
 	rm -rf packages/catts_payments/typechain-types
 	rm -rf packages/catts_payments/coverage.json
-	rm -rf packages/evm_rpc/declarations
-	rm -rf packages/ic_siwe_provider/declarations
+	rm -rf packages/evm_rpc/node_modules
+	rm -rf packages/ic_siwe_provider/node_modules
 	rm -rf target
 	rm -f .env
 	cargo clean

@@ -1,14 +1,13 @@
-type Auth = variant { FreeRpc; PriorityRpc; RegisterProvider; Manage };
 type Block = record {
   miner : text;
-  totalDifficulty : nat;
+  totalDifficulty : opt nat;
   receiptsRoot : text;
   stateRoot : text;
   hash : text;
-  difficulty : nat;
+  difficulty : opt nat;
   size : nat;
   uncles : vec text;
-  baseFeePerGas : nat;
+  baseFeePerGas : opt nat;
   extraData : text;
   transactionsRoot : opt text;
   sha3Uncles : text;
@@ -36,18 +35,21 @@ type EthMainnetService = variant {
   BlockPi;
   Cloudflare;
   PublicNode;
+  Llama;
 };
 type EthSepoliaService = variant {
   Alchemy;
   Ankr;
   BlockPi;
   PublicNode;
+  Sepolia;
 };
 type L2MainnetService = variant {
   Alchemy;
   Ankr;
   BlockPi;
   PublicNode;
+  Llama;
 };
 type FeeHistory = record {
   reward : vec vec nat;
@@ -67,6 +69,31 @@ type GetLogsArgs = record {
   topics : opt vec Topic;
 };
 type GetTransactionCountArgs = record { address : text; block : BlockTag };
+type CallArgs = record {
+  transaction : TransactionRequest;
+  block : opt BlockTag;
+};
+type TransactionRequest = record {
+  "type" : opt text;
+  nonce : opt nat;
+  to : opt text;
+  from : opt text;
+  gas : opt nat;
+  value : opt nat;
+  input : opt text;
+  gasPrice : opt nat;
+  maxPriorityFeePerGas : opt nat;
+  maxFeePerGas : opt nat;
+  maxFeePerBlobGas : opt nat;
+  accessList: opt vec AccessListEntry;
+  blobVersionedHashes : opt vec text;
+  blobs : opt vec text;
+  chainId : opt nat;
+};
+type AccessListEntry = record {
+  address : text;
+  storageKeys : vec text;
+};
 type HttpHeader = record { value : text; name : text };
 type HttpOutcallError = variant {
   IcError : record { code : RejectionCode; message : text };
@@ -76,8 +103,17 @@ type HttpOutcallError = variant {
     parsingError : opt text;
   };
 };
-type InitArgs = record {
-  nodesInSubnet : nat32;
+type InstallArgs = record {
+  demo : opt bool;
+  manageApiKeys : opt vec principal;
+  logFilter : opt LogFilter;
+};
+type Regex = text;
+type LogFilter = variant {
+  ShowAll;
+  HideAll;
+  ShowPattern : Regex;
+  HidePattern : Regex;
 };
 type JsonRpcError = record { code : int64; message : text };
 type LogEntry = record {
@@ -90,11 +126,6 @@ type LogEntry = record {
   address : text;
   logIndex : opt nat;
   removed : bool;
-};
-type ManageProviderArgs = record {
-  providerId : nat64;
-  "service" : opt RpcService;
-  primary : opt bool;
 };
 type Metrics = record {
   requests : vec record { record { text; text }; nat64 };
@@ -130,29 +161,37 @@ type MultiSendRawTransactionResult = variant {
   Consistent : SendRawTransactionResult;
   Inconsistent : vec record { RpcService; SendRawTransactionResult };
 };
+type MultiCallResult = variant {
+  Consistent : CallResult;
+  Inconsistent : vec record { RpcService; CallResult };
+};
 type ProviderError = variant {
   TooFewCycles : record { expected : nat; received : nat };
   MissingRequiredProvider;
   ProviderNotFound;
   NoPermission;
+  InvalidRpcConfig : text ;
 };
 type ProviderId = nat64;
-type ProviderView = record {
-  cyclesPerCall : nat64;
-  owner : principal;
-  hostname : text;
-  primary : bool;
-  chainId : nat64;
-  cyclesPerMessageByte : nat64;
-  providerId : nat64;
+type ChainId = nat64;
+type Provider = record {
+  providerId : ProviderId;
+  chainId : ChainId;
+  access : RpcAccess;
+  alias : opt RpcService;
 };
-type RegisterProviderArgs = record {
-  cyclesPerCall : nat64;
-  credentialPath : text;
-  hostname : text;
-  credentialHeaders : opt vec HttpHeader;
-  chainId : nat64;
-  cyclesPerMessageByte : nat64;
+type RpcAccess = variant {
+  Authenticated : record {
+    auth : RpcAuth;
+    publicUrl : opt text;
+  };
+  Unauthenticated : record {
+    publicUrl : text;
+  };
+};
+type RpcAuth = variant {
+  BearerToken : record { url : text };
+  UrlParameter : record { urlPattern : text };
 };
 type RejectionCode = variant {
   NoError;
@@ -163,7 +202,7 @@ type RejectionCode = variant {
   SysFatal;
   CanisterReject;
 };
-type FeeHistoryResult = variant { Ok : opt FeeHistory; Err : RpcError };
+type FeeHistoryResult = variant { Ok : FeeHistory; Err : RpcError };
 type GetBlockByNumberResult = variant { Ok : Block; Err : RpcError };
 type GetLogsResult = variant { Ok : vec LogEntry; Err : RpcError };
 type GetTransactionCountResult = variant { Ok : nat; Err : RpcError };
@@ -175,9 +214,19 @@ type SendRawTransactionResult = variant {
   Ok : SendRawTransactionStatus;
   Err : RpcError;
 };
+type CallResult = variant { Ok : text; Err : RpcError };
 type RequestResult = variant { Ok : text; Err : RpcError };
 type RequestCostResult = variant { Ok : nat; Err : RpcError };
-type RpcConfig = record { responseSizeEstimate : opt nat64 };
+type RpcConfig = record { responseSizeEstimate : opt nat64; responseConsensus : opt ConsensusStrategy };
+type ConsensusStrategy = variant {
+  Equality;
+  Threshold : record {
+    // Total number of providers to be queried. Can be omitted, if that number can be inferred (e.g., providers are specified in the request).
+    total : opt nat8;
+    // Minimum number of providers that must return the same (non-error) result.
+    min : nat8;
+  };
+};
 type RpcError = variant {
   JsonRpcError : JsonRpcError;
   ProviderError : ProviderError;
@@ -186,8 +235,7 @@ type RpcError = variant {
 };
 type RpcApi = record { url : text; headers : opt vec HttpHeader };
 type RpcService = variant {
-  Chain : nat64;
-  Provider : nat64;
+  Provider : ProviderId;
   Custom : RpcApi;
   EthSepolia : EthSepoliaService;
   EthMainnet : EthMainnetService;
@@ -197,7 +245,7 @@ type RpcService = variant {
 };
 type RpcServices = variant {
   Custom : record {
-    chainId : nat64;
+    chainId : ChainId;
     services : vec RpcApi;
   };
   EthSepolia : opt vec EthSepoliaService;
@@ -216,8 +264,8 @@ type SendRawTransactionStatus = variant {
 // See https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getlogs
 type Topic = vec text;
 type TransactionReceipt = record {
-  to : text;
-  status : nat;
+  to : opt text;
+  status : opt nat;
   transactionHash : text;
   blockNumber : nat;
   from : text;
@@ -230,47 +278,23 @@ type TransactionReceipt = record {
   contractAddress : opt text;
   gasUsed : nat;
 };
-type UpdateProviderArgs = record {
-  cyclesPerCall : opt nat64;
-  credentialPath : opt text;
-  hostname : opt text;
-  credentialHeaders : opt vec HttpHeader;
-  primary : opt bool;
-  cyclesPerMessageByte : opt nat64;
-  providerId : nat64;
-};
 type ValidationError = variant {
   Custom : text;
-  HostNotAllowed : text;
-  UrlParseError : text;
   InvalidHex : text;
-  CredentialPathNotAllowed;
-  CredentialHeaderNotAllowed;
 };
-service : (InitArgs) -> {
-  authorize : (principal, Auth) -> (success : bool);
-  deauthorize : (principal, Auth) -> (success : bool);
+service : (InstallArgs) -> {
   eth_feeHistory : (RpcServices, opt RpcConfig, FeeHistoryArgs) -> (MultiFeeHistoryResult);
   eth_getBlockByNumber : (RpcServices, opt RpcConfig, BlockTag) -> (MultiGetBlockByNumberResult);
   eth_getLogs : (RpcServices, opt RpcConfig, GetLogsArgs) -> (MultiGetLogsResult);
-  eth_getTransactionCount : (RpcServices, opt RpcConfig, GetTransactionCountArgs) -> (
-    MultiGetTransactionCountResult
-  );
+  eth_getTransactionCount : (RpcServices, opt RpcConfig, GetTransactionCountArgs) -> (MultiGetTransactionCountResult);
   eth_getTransactionReceipt : (RpcServices, opt RpcConfig, hash : text) -> (MultiGetTransactionReceiptResult);
   eth_sendRawTransaction : (RpcServices, opt RpcConfig, rawSignedTransactionHex : text) -> (MultiSendRawTransactionResult);
-  getAccumulatedCycleCount : (ProviderId) -> (cycles : nat) query;
-  getAuthorized : (Auth) -> (vec principal) query;
-  getMetrics : () -> (Metrics) query;
-  getNodesInSubnet : () -> (numberOfNodes : nat32) query;
-  getOpenRpcAccess : () -> (active : bool) query;
-  getProviders : () -> (vec ProviderView) query;
-  getServiceProviderMap : () -> (vec record { RpcService; nat64 }) query;
-  manageProvider : (ManageProviderArgs) -> ();
-  registerProvider : (RegisterProviderArgs) -> (nat64);
+  eth_call : (RpcServices, opt RpcConfig, CallArgs) -> (MultiCallResult);
   request : (RpcService, json : text, maxResponseBytes : nat64) -> (RequestResult);
   requestCost : (RpcService, json : text, maxResponseBytes : nat64) -> (RequestCostResult) query;
-  setOpenRpcAccess : (active : bool) -> ();
-  unregisterProvider : (ProviderId) -> (bool);
-  updateProvider : (UpdateProviderArgs) -> ();
-  withdrawAccumulatedCycles : (ProviderId, recipient : principal) -> ();
+  getMetrics : () -> (Metrics) query;
+  getNodesInSubnet : () -> (numberOfNodes : nat32) query;
+  getProviders : () -> (vec Provider) query;
+  getServiceProviderMap : () -> (vec record { RpcService; ProviderId }) query;
+  updateApiKeys : (vec record { ProviderId; opt text }) -> ();
 };

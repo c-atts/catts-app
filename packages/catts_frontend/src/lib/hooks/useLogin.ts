@@ -26,19 +26,26 @@ export const useLogin = () => {
         return;
       }
 
-      const agent = new HttpAgent({ identity });
-      if (process.env.DFX_NETWORK !== "ic") {
-        agent.fetchRootKey().catch((err) => {
-          console.warn(
-            "Unable to fetch root key. Check to ensure that your local replica is running",
-          );
-          console.error(err);
-        });
-      }
+      const shouldFetchRootKey = process.env.DFX_NETWORK !== 'ic';
+      const agent = await HttpAgent.create({ identity, shouldFetchRootKey });
       const actor = Actor.createActor<_SERVICE>(idlFactory, {
         agent,
         canisterId,
       });
+
+      // const agent = new HttpAgent({ identity });
+      // if (process.env.DFX_NETWORK !== "ic") {
+      //   agent.fetchRootKey().catch((err) => {
+      //     console.warn(
+      //       "Unable to fetch root key. Check to ensure that your local replica is running",
+      //     );
+      //     console.error(err);
+      //   });
+      // }
+      // const actor = Actor.createActor<_SERVICE>(idlFactory, {
+      //   agent,
+      //   canisterId,
+      // });
 
       if (!actor) {
         console.error("Unable to create actor");

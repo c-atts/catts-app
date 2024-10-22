@@ -53,6 +53,7 @@ pub struct SignedDelegation {
 pub enum GetDelegationResponse { Ok(SignedDelegation), Err(String) }
 
 pub type SiweSignature = String;
+pub type Nonce = String;
 pub type CanisterPublicKey = PublicKey;
 #[derive(Debug, CandidType, Deserialize)]
 pub struct LoginDetails {
@@ -65,7 +66,13 @@ pub enum LoginResponse { Ok(LoginDetails), Err(String) }
 
 pub type SiweMessage = String;
 #[derive(Debug, CandidType, Deserialize)]
-pub enum PrepareLoginResponse { Ok(SiweMessage), Err(String) }
+pub struct PrepareLoginOkResponse {
+  pub nonce: String,
+  pub siwe_message: SiweMessage,
+}
+
+#[derive(Debug, CandidType, Deserialize)]
+pub enum PrepareLoginResponse { Ok(PrepareLoginOkResponse), Err(String) }
 
 pub struct IcSiweProvider(pub Principal);
 impl IcSiweProvider {
@@ -91,8 +98,9 @@ impl IcSiweProvider {
     arg0: SiweSignature,
     arg1: Address,
     arg2: SessionKey,
+    arg3: Nonce,
   ) -> Result<(LoginResponse,)> {
-    ic_cdk::call(self.0, "siwe_login", (arg0,arg1,arg2,)).await
+    ic_cdk::call(self.0, "siwe_login", (arg0,arg1,arg2,arg3,)).await
   }
   pub async fn siwe_prepare_login(&self, arg0: Address) -> Result<
     (PrepareLoginResponse,)

@@ -2,20 +2,20 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
-export type Auth = { 'RegisterProvider' : null } |
-  { 'FreeRpc' : null } |
-  { 'PriorityRpc' : null } |
-  { 'Manage' : null };
+export interface AccessListEntry {
+  'storageKeys' : Array<string>,
+  'address' : string,
+}
 export interface Block {
   'miner' : string,
-  'totalDifficulty' : bigint,
+  'totalDifficulty' : [] | [bigint],
   'receiptsRoot' : string,
   'stateRoot' : string,
   'hash' : string,
-  'difficulty' : bigint,
+  'difficulty' : [] | [bigint],
   'size' : bigint,
   'uncles' : Array<string>,
-  'baseFeePerGas' : bigint,
+  'baseFeePerGas' : [] | [bigint],
   'extraData' : string,
   'transactionsRoot' : [] | [string],
   'sha3Uncles' : string,
@@ -35,7 +35,17 @@ export type BlockTag = { 'Earliest' : null } |
   { 'Latest' : null } |
   { 'Number' : bigint } |
   { 'Pending' : null };
+export interface CallArgs {
+  'transaction' : TransactionRequest,
+  'block' : [] | [BlockTag],
+}
+export type CallResult = { 'Ok' : string } |
+  { 'Err' : RpcError };
+export type ChainId = bigint;
+export type ConsensusStrategy = { 'Equality' : null } |
+  { 'Threshold' : { 'min' : number, 'total' : [] | [number] } };
 export type EthMainnetService = { 'Alchemy' : null } |
+  { 'Llama' : null } |
   { 'BlockPi' : null } |
   { 'Cloudflare' : null } |
   { 'PublicNode' : null } |
@@ -43,7 +53,8 @@ export type EthMainnetService = { 'Alchemy' : null } |
 export type EthSepoliaService = { 'Alchemy' : null } |
   { 'BlockPi' : null } |
   { 'PublicNode' : null } |
-  { 'Ankr' : null };
+  { 'Ankr' : null } |
+  { 'Sepolia' : null };
 export interface FeeHistory {
   'reward' : Array<Array<bigint>>,
   'gasUsedRatio' : Array<number>,
@@ -55,7 +66,7 @@ export interface FeeHistoryArgs {
   'newestBlock' : BlockTag,
   'rewardPercentiles' : [] | [Uint8Array | number[]],
 }
-export type FeeHistoryResult = { 'Ok' : [] | [FeeHistory] } |
+export type FeeHistoryResult = { 'Ok' : FeeHistory } |
   { 'Err' : RpcError };
 export type GetBlockByNumberResult = { 'Ok' : Block } |
   { 'Err' : RpcError };
@@ -86,9 +97,14 @@ export type HttpOutcallError = {
       'parsingError' : [] | [string],
     }
   };
-export interface InitArgs { 'nodesInSubnet' : number }
+export interface InstallArgs {
+  'logFilter' : [] | [LogFilter],
+  'demo' : [] | [boolean],
+  'manageApiKeys' : [] | [Array<Principal>],
+}
 export interface JsonRpcError { 'code' : bigint, 'message' : string }
 export type L2MainnetService = { 'Alchemy' : null } |
+  { 'Llama' : null } |
   { 'BlockPi' : null } |
   { 'PublicNode' : null } |
   { 'Ankr' : null };
@@ -103,11 +119,10 @@ export interface LogEntry {
   'logIndex' : [] | [bigint],
   'removed' : boolean,
 }
-export interface ManageProviderArgs {
-  'service' : [] | [RpcService],
-  'primary' : [] | [boolean],
-  'providerId' : bigint,
-}
+export type LogFilter = { 'ShowAll' : null } |
+  { 'HideAll' : null } |
+  { 'ShowPattern' : Regex } |
+  { 'HidePattern' : Regex };
 export interface Metrics {
   'cyclesWithdrawn' : bigint,
   'responses' : Array<[[string, string, string], bigint]>,
@@ -118,6 +133,8 @@ export interface Metrics {
   'errHttpOutcall' : Array<[[string, string], bigint]>,
   'errHostNotAllowed' : Array<[string, bigint]>,
 }
+export type MultiCallResult = { 'Consistent' : CallResult } |
+  { 'Inconsistent' : Array<[RpcService, CallResult]> };
 export type MultiFeeHistoryResult = { 'Consistent' : FeeHistoryResult } |
   { 'Inconsistent' : Array<[RpcService, FeeHistoryResult]> };
 export type MultiGetBlockByNumberResult = {
@@ -138,30 +155,21 @@ export type MultiSendRawTransactionResult = {
     'Consistent' : SendRawTransactionResult
   } |
   { 'Inconsistent' : Array<[RpcService, SendRawTransactionResult]> };
+export interface Provider {
+  'access' : RpcAccess,
+  'alias' : [] | [RpcService],
+  'chainId' : ChainId,
+  'providerId' : ProviderId,
+}
 export type ProviderError = {
     'TooFewCycles' : { 'expected' : bigint, 'received' : bigint }
   } |
+  { 'InvalidRpcConfig' : string } |
   { 'MissingRequiredProvider' : null } |
   { 'ProviderNotFound' : null } |
   { 'NoPermission' : null };
 export type ProviderId = bigint;
-export interface ProviderView {
-  'cyclesPerCall' : bigint,
-  'owner' : Principal,
-  'hostname' : string,
-  'primary' : boolean,
-  'chainId' : bigint,
-  'cyclesPerMessageByte' : bigint,
-  'providerId' : bigint,
-}
-export interface RegisterProviderArgs {
-  'cyclesPerCall' : bigint,
-  'credentialPath' : string,
-  'hostname' : string,
-  'credentialHeaders' : [] | [Array<HttpHeader>],
-  'chainId' : bigint,
-  'cyclesPerMessageByte' : bigint,
-}
+export type Regex = string;
 export type RejectionCode = { 'NoError' : null } |
   { 'CanisterError' : null } |
   { 'SysTransient' : null } |
@@ -173,8 +181,17 @@ export type RequestCostResult = { 'Ok' : bigint } |
   { 'Err' : RpcError };
 export type RequestResult = { 'Ok' : string } |
   { 'Err' : RpcError };
+export type RpcAccess = {
+    'Authenticated' : { 'publicUrl' : [] | [string], 'auth' : RpcAuth }
+  } |
+  { 'Unauthenticated' : { 'publicUrl' : string } };
 export interface RpcApi { 'url' : string, 'headers' : [] | [Array<HttpHeader>] }
-export interface RpcConfig { 'responseSizeEstimate' : [] | [bigint] }
+export type RpcAuth = { 'BearerToken' : { 'url' : string } } |
+  { 'UrlParameter' : { 'urlPattern' : string } };
+export interface RpcConfig {
+  'responseConsensus' : [] | [ConsensusStrategy],
+  'responseSizeEstimate' : [] | [bigint],
+}
 export type RpcError = { 'JsonRpcError' : JsonRpcError } |
   { 'ProviderError' : ProviderError } |
   { 'ValidationError' : ValidationError } |
@@ -185,11 +202,10 @@ export type RpcService = { 'EthSepolia' : EthSepoliaService } |
   { 'OptimismMainnet' : L2MainnetService } |
   { 'ArbitrumOne' : L2MainnetService } |
   { 'EthMainnet' : EthMainnetService } |
-  { 'Chain' : bigint } |
-  { 'Provider' : bigint };
+  { 'Provider' : ProviderId };
 export type RpcServices = { 'EthSepolia' : [] | [Array<EthSepoliaService>] } |
   { 'BaseMainnet' : [] | [Array<L2MainnetService>] } |
-  { 'Custom' : { 'chainId' : bigint, 'services' : Array<RpcApi> } } |
+  { 'Custom' : { 'chainId' : ChainId, 'services' : Array<RpcApi> } } |
   { 'OptimismMainnet' : [] | [Array<L2MainnetService>] } |
   { 'ArbitrumOne' : [] | [Array<L2MainnetService>] } |
   { 'EthMainnet' : [] | [Array<EthMainnetService>] };
@@ -201,8 +217,8 @@ export type SendRawTransactionStatus = { 'Ok' : [] | [string] } |
   { 'InsufficientFunds' : null };
 export type Topic = Array<string>;
 export interface TransactionReceipt {
-  'to' : string,
-  'status' : bigint,
+  'to' : [] | [string],
+  'status' : [] | [bigint],
   'transactionHash' : string,
   'blockNumber' : bigint,
   'from' : string,
@@ -215,24 +231,30 @@ export interface TransactionReceipt {
   'contractAddress' : [] | [string],
   'gasUsed' : bigint,
 }
-export interface UpdateProviderArgs {
-  'cyclesPerCall' : [] | [bigint],
-  'credentialPath' : [] | [string],
-  'hostname' : [] | [string],
-  'credentialHeaders' : [] | [Array<HttpHeader>],
-  'primary' : [] | [boolean],
-  'cyclesPerMessageByte' : [] | [bigint],
-  'providerId' : bigint,
+export interface TransactionRequest {
+  'to' : [] | [string],
+  'gas' : [] | [bigint],
+  'maxFeePerGas' : [] | [bigint],
+  'gasPrice' : [] | [bigint],
+  'value' : [] | [bigint],
+  'maxFeePerBlobGas' : [] | [bigint],
+  'from' : [] | [string],
+  'type' : [] | [string],
+  'accessList' : [] | [Array<AccessListEntry>],
+  'nonce' : [] | [bigint],
+  'maxPriorityFeePerGas' : [] | [bigint],
+  'blobs' : [] | [Array<string>],
+  'input' : [] | [string],
+  'chainId' : [] | [bigint],
+  'blobVersionedHashes' : [] | [Array<string>],
 }
-export type ValidationError = { 'CredentialPathNotAllowed' : null } |
-  { 'HostNotAllowed' : string } |
-  { 'CredentialHeaderNotAllowed' : null } |
-  { 'UrlParseError' : string } |
-  { 'Custom' : string } |
+export type ValidationError = { 'Custom' : string } |
   { 'InvalidHex' : string };
 export interface _SERVICE {
-  'authorize' : ActorMethod<[Principal, Auth], boolean>,
-  'deauthorize' : ActorMethod<[Principal, Auth], boolean>,
+  'eth_call' : ActorMethod<
+    [RpcServices, [] | [RpcConfig], CallArgs],
+    MultiCallResult
+  >,
   'eth_feeHistory' : ActorMethod<
     [RpcServices, [] | [RpcConfig], FeeHistoryArgs],
     MultiFeeHistoryResult
@@ -257,21 +279,16 @@ export interface _SERVICE {
     [RpcServices, [] | [RpcConfig], string],
     MultiSendRawTransactionResult
   >,
-  'getAccumulatedCycleCount' : ActorMethod<[ProviderId], bigint>,
-  'getAuthorized' : ActorMethod<[Auth], Array<Principal>>,
   'getMetrics' : ActorMethod<[], Metrics>,
   'getNodesInSubnet' : ActorMethod<[], number>,
-  'getOpenRpcAccess' : ActorMethod<[], boolean>,
-  'getProviders' : ActorMethod<[], Array<ProviderView>>,
-  'getServiceProviderMap' : ActorMethod<[], Array<[RpcService, bigint]>>,
-  'manageProvider' : ActorMethod<[ManageProviderArgs], undefined>,
-  'registerProvider' : ActorMethod<[RegisterProviderArgs], bigint>,
+  'getProviders' : ActorMethod<[], Array<Provider>>,
+  'getServiceProviderMap' : ActorMethod<[], Array<[RpcService, ProviderId]>>,
   'request' : ActorMethod<[RpcService, string, bigint], RequestResult>,
   'requestCost' : ActorMethod<[RpcService, string, bigint], RequestCostResult>,
-  'setOpenRpcAccess' : ActorMethod<[boolean], undefined>,
-  'unregisterProvider' : ActorMethod<[ProviderId], boolean>,
-  'updateProvider' : ActorMethod<[UpdateProviderArgs], undefined>,
-  'withdrawAccumulatedCycles' : ActorMethod<[ProviderId, Principal], undefined>,
+  'updateApiKeys' : ActorMethod<
+    [Array<[ProviderId, [] | [string]]>],
+    undefined
+  >,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];
